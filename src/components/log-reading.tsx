@@ -1,4 +1,4 @@
-import { logReadingProgress, ReadingProgress } from "@/storage/reading";
+import { logReadingProgress } from "@/storage/reading";
 import { useState } from "react";
 import {
   Alert,
@@ -13,8 +13,8 @@ import * as z from "zod";
 
 const ReadingProgressSchema = z.object({
   title: z.string().min(1),
-  currentPage: z.number().min(1),
-  pageCount: z.number().min(1),
+  currentPage: z.coerce.number().min(1),
+  pageCount: z.coerce.number().min(1),
 });
 
 interface LogReadingProps {
@@ -28,9 +28,9 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
   const [pageCount, setPageCount] = useState("");
   const [currentPage, setCurrentPage] = useState("");
 
-  const [titleError, setTitleError] = useState(false);
-  const [pageCountError, setPageCountError] = useState(false);
-  const [currentPageError, setCurrentPageError] = useState(false);
+  const [titleError, setTitleError] = useState("");
+  const [pageCountError, setPageCountError] = useState("");
+  const [currentPageError, setCurrentPageError] = useState("");
 
   function clearAndCloseModal() {
     setTitle("");
@@ -41,9 +41,9 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
   }
 
   function clearErrors() {
-    setTitleError(false);
-    setPageCountError(false);
-    setCurrentPageError(false);
+    setTitleError("");
+    setPageCountError("");
+    setCurrentPageError("");
   }
 
   function handleLogReadingPress() {
@@ -58,10 +58,10 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
     try {
       clearErrors();
 
-      const rawReadingProgress: ReadingProgress = {
+      const rawReadingProgress = {
         title,
-        pageCount: Number(pageCount),
-        currentPage: Number(currentPage),
+        pageCount,
+        currentPage,
       };
 
       const readingProgress = ReadingProgressSchema.parse(rawReadingProgress);
@@ -72,16 +72,25 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
       onSuccess();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        error.issues.forEach(({ path: [field] }) => {
-          switch (field) {
+        console.log(error);
+        error.issues.forEach((issue) => {
+          switch (issue.path[0]) {
             case "title":
-              setTitleError(true);
+              setTitleError(issue.message);
               break;
             case "pageCount":
-              setPageCountError(true);
+              if (issue.code === "invalid_type") {
+                setPageCountError("Input must be a positive whole number");
+              } else {
+                setPageCountError(issue.message);
+              }
               break;
             case "currentPage":
-              setCurrentPageError(true);
+              if (issue.code === "invalid_type") {
+                setCurrentPageError("Input must be a positive whole number");
+              } else {
+                setCurrentPageError(issue.message);
+              }
               break;
           }
         });
@@ -115,6 +124,9 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
               style={titleError && styles.inputError}
               onChangeText={setTitle}
             />
+            {titleError && (
+              <Text style={styles.errorMessage}>{titleError}</Text>
+            )}
             <TextInput
               keyboardType="numeric"
               placeholder="Page count"
@@ -122,6 +134,9 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
               style={pageCountError && styles.inputError}
               onChangeText={setPageCount}
             />
+            {pageCountError && (
+              <Text style={styles.errorMessage}>{pageCountError}</Text>
+            )}
             <TextInput
               keyboardType="numeric"
               placeholder="Current page"
@@ -129,6 +144,9 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
               style={currentPageError && styles.inputError}
               onChangeText={setCurrentPage}
             />
+            {currentPageError && (
+              <Text style={styles.errorMessage}>{currentPageError}</Text>
+            )}
             <View style={{ flexDirection: "row" }}>
               <Pressable
                 style={[styles.button, styles.buttonSubmit]}
@@ -185,6 +203,9 @@ const styles = StyleSheet.create({
   },
   buttonSubmit: {
     backgroundColor: "#2196F3",
+  },
+  errorMessage: {
+    color: "red",
   },
   inputError: {
     backgroundColor: "#ff00002a",
