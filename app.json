@@ -39,6 +39,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7d20bd79-97be-4d3a-8904-e459dd84b3a2"
+      }
+    },
+    "owner": "antrflahertys-team"
   }
 }
