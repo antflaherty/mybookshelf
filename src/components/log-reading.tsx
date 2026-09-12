@@ -9,6 +9,13 @@ import {
   TextInput,
   View,
 } from "react-native";
+import * as z from "zod";
+
+const ReadingProgressSchema = z.object({
+  title: z.string().min(1),
+  currentPage: z.number().min(1),
+  pageCount: z.number().min(1),
+});
 
 interface LogReadingProps {
   onSuccess: () => void;
@@ -21,11 +28,22 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
   const [pageCount, setPageCount] = useState("");
   const [currentPage, setCurrentPage] = useState("");
 
+  const [titleError, setTitleError] = useState(false);
+  const [pageCountError, setPageCountError] = useState(false);
+  const [currentPageError, setCurrentPageError] = useState(false);
+
   function clearAndCloseModal() {
     setTitle("");
     setPageCount("");
     setCurrentPage("");
+    clearErrors();
     setModalVisible(false);
+  }
+
+  function clearErrors() {
+    setTitleError(false);
+    setPageCountError(false);
+    setCurrentPageError(false);
   }
 
   function handleLogReadingPress() {
@@ -37,16 +55,38 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
   }
 
   async function handleSubmitPress() {
-    const readingProgress: ReadingProgress = {
-      title,
-      pageCount: Number(pageCount),
-      currentPage: Number(currentPage),
-    };
+    try {
+      clearErrors();
 
-    await logReadingProgress(readingProgress);
+      const rawReadingProgress: ReadingProgress = {
+        title,
+        pageCount: Number(pageCount),
+        currentPage: Number(currentPage),
+      };
 
-    clearAndCloseModal();
-    onSuccess();
+      const readingProgress = ReadingProgressSchema.parse(rawReadingProgress);
+
+      await logReadingProgress(readingProgress);
+
+      clearAndCloseModal();
+      onSuccess();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        error.issues.forEach(({ path: [field] }) => {
+          switch (field) {
+            case "title":
+              setTitleError(true);
+              break;
+            case "pageCount":
+              setPageCountError(true);
+              break;
+            case "currentPage":
+              setCurrentPageError(true);
+              break;
+          }
+        });
+      }
+    }
   }
 
   return (
@@ -72,18 +112,21 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
             <TextInput
               placeholder="Title"
               value={title}
+              style={titleError && styles.inputError}
               onChangeText={setTitle}
             />
             <TextInput
               keyboardType="numeric"
               placeholder="Page count"
               value={pageCount}
+              style={pageCountError && styles.inputError}
               onChangeText={setPageCount}
             />
             <TextInput
               keyboardType="numeric"
               placeholder="Current page"
               value={currentPage}
+              style={currentPageError && styles.inputError}
               onChangeText={setCurrentPage}
             />
             <View style={{ flexDirection: "row" }}>
@@ -142,6 +185,9 @@ const styles = StyleSheet.create({
   },
   buttonSubmit: {
     backgroundColor: "#2196F3",
+  },
+  inputError: {
+    backgroundColor: "#ff00002a",
   },
   textStyle: {
     color: "white",
