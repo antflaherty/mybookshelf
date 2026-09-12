@@ -1,0 +1,155 @@
+import { logReadingProgress, ReadingProgress } from "@/storage/reading";
+import { useState } from "react";
+import {
+  Alert,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+
+interface LogReadingProps {
+  onSuccess: () => void;
+}
+
+export default function LogReading({ onSuccess }: LogReadingProps) {
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const [title, setTitle] = useState("");
+  const [pageCount, setPageCount] = useState("");
+  const [currentPage, setCurrentPage] = useState("");
+
+  function clearAndCloseModal() {
+    setTitle("");
+    setPageCount("");
+    setCurrentPage("");
+    setModalVisible(false);
+  }
+
+  function handleLogReadingPress() {
+    setModalVisible(true);
+  }
+
+  function handleCancelPress() {
+    clearAndCloseModal();
+  }
+
+  async function handleSubmitPress() {
+    const readingProgress: ReadingProgress = {
+      title,
+      pageCount: Number(pageCount),
+      currentPage: Number(currentPage),
+    };
+
+    await logReadingProgress(readingProgress);
+
+    clearAndCloseModal();
+    onSuccess();
+  }
+
+  return (
+    <View>
+      <Pressable
+        style={[styles.button, styles.buttonOpen]}
+        onPress={handleLogReadingPress}
+      >
+        <Text>Log Reading</Text>
+      </Pressable>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          Alert.alert("Modal has been closed.");
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Log Some Reading</Text>
+            <TextInput
+              placeholder="Title"
+              value={title}
+              onChangeText={setTitle}
+            />
+            <TextInput
+              keyboardType="numeric"
+              placeholder="Page count"
+              value={pageCount}
+              onChangeText={setPageCount}
+            />
+            <TextInput
+              keyboardType="numeric"
+              placeholder="Current page"
+              value={currentPage}
+              onChangeText={setCurrentPage}
+            />
+            <View style={{ flexDirection: "row" }}>
+              <Pressable
+                style={[styles.button, styles.buttonSubmit]}
+                onPress={handleSubmitPress}
+              >
+                <Text style={styles.textStyle}>Submit</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.button, styles.buttonCancel]}
+                onPress={handleCancelPress}
+              >
+                <Text style={styles.textStyle}>Cancel</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    margin: 10,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonCancel: {
+    backgroundColor: "rgb(243, 33, 33)",
+  },
+  buttonOpen: {
+    backgroundColor: "#F194FF",
+  },
+  buttonSubmit: {
+    backgroundColor: "#2196F3",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+  },
+});
