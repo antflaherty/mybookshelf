@@ -58,7 +58,7 @@ func getBookByTitle(c *gin.Context) {
 }
 
 func getAllReadingProgress(c *gin.Context) {
-	allReadingProgress := make([]readingProgress, len(currentPageByBookId))
+	var allReadingProgress []readingProgress
 
 	for id := range currentPageByBookId {
 		book, error := getBookById(id)
