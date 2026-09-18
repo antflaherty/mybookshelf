@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export interface ReadingProgress {
+interface ReadingProgress {
   title: string;
   pageCount: number;
   currentPage: number;

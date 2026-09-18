@@ -1,13 +1,14 @@
 import LogReading from "@/components/log-reading";
 import ReadingProgressList from "@/components/reading-progress-list";
-import { getReadingProgress, ReadingProgress } from "@/storage/reading";
+import { Book, ReadingProgress } from "@/lib/definitions";
+import { getReadingProgress } from "@/api/apiClient";
 import { useFocusEffect } from "expo-router/build/react-navigation";
 import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 export default function Index() {
   const [readingProgressList, setReadingProgressList] = useState<
-    ReadingProgress[]
+    (Book & ReadingProgress)[]
   >([]);
 
   async function loadReadingProgress() {

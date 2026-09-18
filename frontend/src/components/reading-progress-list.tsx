@@ -1,9 +1,9 @@
 import ReadingProgressItem from "@/components/reading-progress-item";
-import { ReadingProgress } from "@/storage/reading";
+import { Book, ReadingProgress } from "@/lib/definitions";
 import { View } from "react-native";
 
 interface ReadingProgressListProps {
-  progressList: ReadingProgress[];
+  progressList:(Book & ReadingProgress)[];
 }
 
 export default function ReadingProgressList({
