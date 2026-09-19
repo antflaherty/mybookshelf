@@ -1,8 +1,8 @@
 export interface Book {
-    id: string
-    title: string;
-    author: string;
-    pageCount: number;
+  id: string;
+  title: string;
+  author: string;
+  pageCount: number;
 }
 
 export interface ReadingProgress {

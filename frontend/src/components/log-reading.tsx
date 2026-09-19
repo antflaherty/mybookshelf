@@ -1,4 +1,4 @@
-import { logReadingProgress } from "@/storage/reading";
+import { logReadingProgress } from "@/api/apiClient";
 import { useState } from "react";
 import {
   Alert,
@@ -10,31 +10,33 @@ import {
   View,
 } from "react-native";
 import * as z from "zod";
+import { Dropdown } from "react-native-element-dropdown";
+import { Book } from "@/lib/definitions";
 
 const ReadingProgressSchema = z.object({
-  title: z.string().min(1),
+  id: z.string().min(1),
   currentPage: z.coerce.number().min(1),
-  pageCount: z.coerce.number().min(1),
 });
 
 interface LogReadingProps {
   onSuccess: () => void;
+  books: Book[];
 }
 
-export default function LogReading({ onSuccess }: LogReadingProps) {
+export default function LogReading({ onSuccess, books }: LogReadingProps) {
   const [modalVisible, setModalVisible] = useState(false);
 
-  const [title, setTitle] = useState("");
-  const [pageCount, setPageCount] = useState("");
+  const [id, setId] = useState("");
   const [currentPage, setCurrentPage] = useState("");
 
   const [titleError, setTitleError] = useState("");
-  const [pageCountError, setPageCountError] = useState("");
   const [currentPageError, setCurrentPageError] = useState("");
 
+  const bookDropdownData = books.map((book) => {
+    return { value: book.id, label: book.title };
+  });
+
   function clearAndCloseModal() {
-    setTitle("");
-    setPageCount("");
     setCurrentPage("");
     clearErrors();
     setModalVisible(false);
@@ -42,7 +44,6 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
 
   function clearErrors() {
     setTitleError("");
-    setPageCountError("");
     setCurrentPageError("");
   }
 
@@ -59,8 +60,7 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
       clearErrors();
 
       const rawReadingProgress = {
-        title,
-        pageCount,
+        id,
         currentPage,
       };
 
@@ -75,15 +75,8 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
         console.log(error);
         error.issues.forEach((issue) => {
           switch (issue.path[0]) {
-            case "title":
+            case "id":
               setTitleError(issue.message);
-              break;
-            case "pageCount":
-              if (issue.code === "invalid_type") {
-                setPageCountError("Input must be a positive whole number");
-              } else {
-                setPageCountError(issue.message);
-              }
               break;
             case "currentPage":
               if (issue.code === "invalid_type") {
@@ -118,24 +111,21 @@ export default function LogReading({ onSuccess }: LogReadingProps) {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>Log Some Reading</Text>
-            <TextInput
-              placeholder="Title"
-              value={title}
-              style={titleError && styles.inputError}
-              onChangeText={setTitle}
+            <Dropdown
+              style={styles.dropdown}
+              data={bookDropdownData}
+              search
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              searchPlaceholder="Select title"
+              value={id}
+              onChange={(item: { value: string }) => {
+                setId(item.value);
+              }}
             />
             {titleError && (
               <Text style={styles.errorMessage}>{titleError}</Text>
-            )}
-            <TextInput
-              keyboardType="numeric"
-              placeholder="Page count"
-              value={pageCount}
-              style={pageCountError && styles.inputError}
-              onChangeText={setPageCount}
-            />
-            {pageCountError && (
-              <Text style={styles.errorMessage}>{pageCountError}</Text>
             )}
             <TextInput
               keyboardType="numeric"
@@ -203,6 +193,14 @@ const styles = StyleSheet.create({
   },
   buttonSubmit: {
     backgroundColor: "#2196F3",
+  },
+  dropdown: {
+    margin: 16,
+    height: 50,
+    width: 150,
+    backgroundColor: "#EEEEEE",
+    borderRadius: 22,
+    paddingHorizontal: 8,
   },
   errorMessage: {
     color: "red",

@@ -3,7 +3,7 @@ import { Book, ReadingProgress } from "@/lib/definitions";
 import { View } from "react-native";
 
 interface ReadingProgressListProps {
-  progressList:(Book & ReadingProgress)[];
+  progressList: (Book & ReadingProgress)[];
 }
 
 export default function ReadingProgressList({

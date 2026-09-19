@@ -2,7 +2,7 @@ import { Book, ReadingProgress } from "@/lib/definitions";
 import { Text, View } from "react-native";
 
 interface ReadingProgressItemProps {
-  progressItem:Book & ReadingProgress;
+  progressItem: Book & ReadingProgress;
 }
 
 export default function ReadingProgressItem({

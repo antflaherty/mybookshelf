@@ -3,28 +3,36 @@ package main
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
+type bookId struct {
+	Id string `json:"id"`
+}
+
 type book struct {
-	Id        string `json:"id"`
+	bookId
 	Title     string `json:"title"`
 	Author    string `json:"author"`
 	PageCount int    `json:"pageCount"`
 }
 
 type readingProgress struct {
-	book
+	bookId
 	CurrentPage int `json:"currentPage"`
 }
 
+type qualifiedReadingProgress struct {
+	book
+	readingProgress
+}
+
 var books = []book{
-	{"1", "1984", "George Orwell", 100},
-	{"2", "Animal Farm", "George Orwell", 100},
-	{"3", "Small Gods", "Terry Pratchett", 325},
-	{"4", "Mistbord", "Brandon Sanderson", 750},
+	{Id: "1", Title: "1984", Author: "George Orwell", PageCount: 100},
+	{Id: "2", Title: "Animal Farm", Author: "George Orwell", PageCount: 100},
+	{Id: "3", Title: "Small Gods", Author: "Terry Pratchett", PageCount: 325},
+	{Id: "4", Title: "Mistbord", Author: "Brandon Sanderson", PageCount: 750},
 }
 
 var currentPageByBookId = make(map[string]int)
@@ -58,7 +66,7 @@ func getBookByTitle(c *gin.Context) {
 }
 
 func getAllReadingProgress(c *gin.Context) {
-	var allReadingProgress []readingProgress
+	var allReadingProgress []qualifiedReadingProgress
 
 	for id := range currentPageByBookId {
 		book, error := getBookById(id)
@@ -69,31 +77,29 @@ func getAllReadingProgress(c *gin.Context) {
 
 		currentPage := currentPageByBookId[id]
 
-		allReadingProgress = append(allReadingProgress, readingProgress{book: book, CurrentPage: currentPage})
+		allReadingProgress = append(allReadingProgress, qualifiedReadingProgress{book: book, CurrentPage: currentPage})
 	}
 
 	c.IndentedJSON(http.StatusOK, allReadingProgress)
 }
 
 func postReadingProgress(c *gin.Context) {
-	id := c.Query("id")
-	currentPageString := c.Query("currentPage")
+	var readingProgress readingProgress
 
-	currentPage, error := strconv.Atoi(currentPageString)
-	if error != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid current page. Must be an integer."})
+	if err := c.ShouldBindJSON(&readingProgress); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	book, error := getBookById(id)
+	book, error := getBookById(readingProgress.Id)
 	if error != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found with Id."})
 		return
 	}
 
-	currentPageByBookId[id] = currentPage
+	currentPageByBookId[readingProgress.Id] = readingProgress.CurrentPage
 
-	updatedReadingProgress := readingProgress{book: book, CurrentPage: currentPage}
+	updatedReadingProgress := qualifiedReadingProgress{book: book, CurrentPage: readingProgress.CurrentPage}
 
 	c.IndentedJSON(http.StatusOK, updatedReadingProgress)
 }
