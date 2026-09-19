@@ -44,6 +44,7 @@ export async function logReadingProgress(
   });
 
   if (!response.ok) {
+    console.error(await response.text())
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 }
