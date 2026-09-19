@@ -32,13 +32,6 @@ type qualifiedReadingProgress struct {
 	readingProgress
 }
 
-var books = []book{
-	{Id: "1", Title: "1984", Author: "George Orwell", PageCount: 100},
-	{Id: "2", Title: "Animal Farm", Author: "George Orwell", PageCount: 100},
-	{Id: "3", Title: "Small Gods", Author: "Terry Pratchett", PageCount: 325},
-	{Id: "4", Title: "Mistbord", Author: "Brandon Sanderson", PageCount: 750},
-}
-
 func main() {
 	db, err := sql.Open("sqlite", "./local.db")
 	if err != nil {
@@ -50,7 +43,7 @@ func main() {
 
 	router := gin.Default()
 
-	router.GET("/books", getBooks)
+	router.GET("/books", getBooksHandler(db))
 	router.GET("/readingProgress", getReadingProgressHandler(db))
 
 	router.POST("/readingProgress", postReadingProgressHandler(db))
@@ -58,15 +51,39 @@ func main() {
 	router.Run("localhost:8080")
 }
 
-func getBooks(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, books)
+func getBooksHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		sqlString := "SELECT Id, Title, Author, PageCount FROM Books"
+
+		rows, err := db.Query(sqlString)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		defer rows.Close()
+
+		var books []book
+		for rows.Next() {
+			b := &book{}
+			err := rows.Scan(&b.Id, &b.Title, &b.Author, &b.PageCount)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			}
+			books = append(books, *b)
+		}
+
+		if err = rows.Err(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+
+		c.JSON(http.StatusOK, books)
+	}
 }
 
 func getReadingProgressHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sql := "SELECT ReadingProgress.BookId, ReadingProgress.CurrentPage, Books.Title, Books.Author, Books.PageCount FROM ReadingProgress INNER JOIN Books ON ReadingProgress.BookId=Books.Id"
+		sqlString := "SELECT ReadingProgress.BookId, ReadingProgress.CurrentPage, Books.Title, Books.Author, Books.PageCount FROM ReadingProgress INNER JOIN Books ON ReadingProgress.BookId=Books.Id"
 
-		rows, err := db.Query(sql)
+		rows, err := db.Query(sqlString)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
@@ -86,7 +103,7 @@ func getReadingProgressHandler(db *sql.DB) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 
-		c.IndentedJSON(http.StatusOK, allReadingProgress)
+		c.JSON(http.StatusOK, allReadingProgress)
 	}
 }
 
@@ -102,19 +119,19 @@ func postReadingProgressHandler(db *sql.DB) gin.HandlerFunc {
 		book, err := getBookById(db, readingProgress.Id)
 
 		if err != nil {
-			c.IndentedJSON(http.StatusNotFound, err.Error())
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 
 		err = upsertReadingProgress(db, &readingProgress)
 
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err.Error())
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		updatedReadingProgress := qualifiedReadingProgress{book: *book, CurrentPage: readingProgress.CurrentPage}
-		c.IndentedJSON(http.StatusOK, updatedReadingProgress)
+		c.JSON(http.StatusOK, updatedReadingProgress)
 
 	}
 }
