@@ -49,8 +49,8 @@ func main() {
 	defer db.Close()
 
 	router := gin.Default()
+
 	router.GET("/books", getBooks)
-	router.GET("/books/:title", getBookByTitle)
 	router.GET("/readingProgress", getReadingProgressHandler(db))
 
 	router.POST("/readingProgress", postReadingProgressHandler(db))
@@ -60,19 +60,6 @@ func main() {
 
 func getBooks(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, books)
-}
-
-func getBookByTitle(c *gin.Context) {
-	title := c.Param("title")
-
-	for _, book := range books {
-		if book.Title == title {
-			c.IndentedJSON(http.StatusOK, book)
-			return
-		}
-	}
-
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "book not found"})
 }
 
 func getReadingProgressHandler(db *sql.DB) gin.HandlerFunc {
@@ -143,20 +130,6 @@ func getBookById(db *sql.DB, id string) (*book, error) {
 	return &book{}, err
 }
 
-func getReadingProgressByBookId(db *sql.DB, bookId string) (*readingProgress, error) {
-	sqlString := "SELECT * FROM ReadingProgress WHERE BookId = ?"
-	row := db.QueryRow(sqlString, bookId)
-	rp := &readingProgress{}
-	err := row.Scan(&rp.Id, &rp.CurrentPage)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return rp, nil
-}
-
 func upsertReadingProgress(db *sql.DB, rp *readingProgress) error {
 	existingRp, err := getReadingProgressByBookId(db, rp.Id)
 
@@ -174,4 +147,18 @@ func upsertReadingProgress(db *sql.DB, rp *readingProgress) error {
 	sqlString := `UPDATE ReadingProgress SET CurrentPage = ? WHERE BookId = ?;`
 	_, err = db.Exec(sqlString, rp.CurrentPage, rp.Id)
 	return err
+}
+
+func getReadingProgressByBookId(db *sql.DB, bookId string) (*readingProgress, error) {
+	sqlString := "SELECT * FROM ReadingProgress WHERE BookId = ?"
+	row := db.QueryRow(sqlString, bookId)
+	rp := &readingProgress{}
+	err := row.Scan(&rp.Id, &rp.CurrentPage)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return rp, nil
 }
