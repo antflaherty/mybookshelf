@@ -99,9 +99,11 @@ export default function LogReadingModalScreen() {
   }
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={styles.modalText}>Log Some Reading</Text>
+      <Text style={[styles.modalText, { color: theme.text }]}>
+        Log Some Reading
+      </Text>
       <Dropdown
-        style={styles.dropdown}
+        style={[styles.dropdown, { backgroundColor: theme.inputBackground }]}
         data={bookDropdownData}
         search
         maxHeight={300}
@@ -118,7 +120,10 @@ export default function LogReadingModalScreen() {
         keyboardType="numeric"
         placeholder="Current page"
         value={currentPage}
-        style={currentPageError && styles.inputError}
+        style={[
+          currentPageError && styles.inputError,
+          { backgroundColor: theme.inputBackground, color: theme.inputText },
+        ]}
         onChangeText={setCurrentPage}
       />
       {currentPageError && (
@@ -126,16 +131,16 @@ export default function LogReadingModalScreen() {
       )}
       <View style={{ flexDirection: "row" }}>
         <Pressable
-          style={[styles.button, styles.buttonSubmit]}
+          style={[styles.button, { backgroundColor: theme.primary }]}
           onPress={handleSubmitPress}
         >
-          <Text style={styles.textStyle}>Submit</Text>
+          <Text style={[styles.textStyle, { color: theme.text }]}>Submit</Text>
         </Pressable>
         <Pressable
-          style={[styles.button, styles.buttonCancel]}
+          style={[styles.button, { backgroundColor: theme.secondary }]}
           onPress={handleCancelPress}
         >
-          <Text style={styles.textStyle}>Cancel</Text>
+          <Text style={[styles.textStyle, { color: theme.text }]}>Cancel</Text>
         </Pressable>
       </View>
     </View>

@@ -1,12 +1,11 @@
 import { createContext, ReactNode, useContext, useState } from "react";
 
-type ThemeName = "forest" | "sky";
-
 export interface Theme {
-  name: ThemeName;
+  name: string;
   background: string;
   text: string;
   primary: string;
+  secondary: string;
   inputBackground: string;
   inputText: string;
 }
@@ -17,6 +16,7 @@ export const THEMES: { [name: string]: Theme } = {
     background: "#02551b",
     text: "#def2a2",
     primary: "#925808",
+    secondary: "#287a41",
     inputBackground: "#f4d8aa",
     inputText: "#0f2904",
   },
@@ -25,6 +25,7 @@ export const THEMES: { [name: string]: Theme } = {
     background: "#6ebeff",
     text: "#000000",
     primary: "#ffffff",
+    secondary: "#abd8fd",
     inputBackground: "#c9e1f5",
     inputText: "#000000",
   },
@@ -32,7 +33,7 @@ export const THEMES: { [name: string]: Theme } = {
 
 interface ThemeContextValue {
   theme: Theme;
-  setTheme: (themeName: ThemeName) => void;
+  setTheme: (themeName: string) => void;
 }
 
 export const ThemeContext = createContext<ThemeContextValue | undefined>(

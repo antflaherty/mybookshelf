@@ -1,12 +1,11 @@
 import { Dropdown } from "react-native-element-dropdown";
-import { Pressable, Text, TextInput, View, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useTheme, THEMES } from "@/app/theme";
-import { useState } from "react";
 
 export default function SettingsScreen() {
   const { theme, setTheme } = useTheme();
 
-  const themeDropdownData = Object.values(THEMES).map(({ name }) => ({
+  const themeDropdownData = Object.keys(THEMES).map((name) => ({
     label: name,
     value: name,
   }));
@@ -14,7 +13,7 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Dropdown
-        style={styles.dropdown}
+        style={[styles.dropdown, { backgroundColor: theme.inputBackground }]}
         data={themeDropdownData}
         maxHeight={300}
         labelField="label"

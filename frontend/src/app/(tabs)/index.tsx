@@ -27,7 +27,10 @@ export default function Index() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Link style={{ color: theme.text }} href="/log-reading">
+      <Link
+        style={{ backgroundColor: theme.primary, color: theme.text }}
+        href="/log-reading"
+      >
         Log Reading
       </Link>
       <ReadingProgressList
