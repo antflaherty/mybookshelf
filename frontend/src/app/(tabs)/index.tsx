@@ -1,6 +1,7 @@
 import ReadingProgressList from "@/components/reading-progress-list";
 import { Book, ReadingProgress } from "@/lib/definitions";
 import { getReadingProgress } from "@/api/apiClient";
+import { useTheme } from "@/app/theme";
 import { useFocusEffect } from "expo-router/build/react-navigation";
 import { Link } from "expo-router";
 import { useCallback, useState } from "react";
@@ -10,6 +11,8 @@ export default function Index() {
   const [readingProgressList, setReadingProgressList] = useState<
     (Book & ReadingProgress)[]
   >([]);
+
+  const { theme } = useTheme();
 
   async function loadReadingProgress() {
     const data = await getReadingProgress();
@@ -23,8 +26,12 @@ export default function Index() {
   );
 
   return (
-    <View style={styles.container}>
-      <Link href="/log-reading">Log Reading</Link>
+    <View
+      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
+    >
+      <Link style={{ color: theme.textColor }} href="/log-reading">
+        Log Reading
+      </Link>
       <ReadingProgressList
         progressList={readingProgressList}
       ></ReadingProgressList>

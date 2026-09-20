@@ -98,47 +98,47 @@ export default function LogReadingModalScreen() {
     }
   }
   return (
-    <View style={styles.container}>
-      <View style={{ backgroundColor: theme.backgroundColor }}>
-        <Text style={styles.modalText}>Log Some Reading</Text>
-        <Dropdown
-          style={styles.dropdown}
-          data={bookDropdownData}
-          search
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          searchPlaceholder="Select title"
-          value={id}
-          onChange={(item: { value: string }) => {
-            setId(item.value);
-          }}
-        />
-        {titleError && <Text style={styles.errorMessage}>{titleError}</Text>}
-        <TextInput
-          keyboardType="numeric"
-          placeholder="Current page"
-          value={currentPage}
-          style={currentPageError && styles.inputError}
-          onChangeText={setCurrentPage}
-        />
-        {currentPageError && (
-          <Text style={styles.errorMessage}>{currentPageError}</Text>
-        )}
-        <View style={{ flexDirection: "row" }}>
-          <Pressable
-            style={[styles.button, styles.buttonSubmit]}
-            onPress={handleSubmitPress}
-          >
-            <Text style={styles.textStyle}>Submit</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.button, styles.buttonCancel]}
-            onPress={handleCancelPress}
-          >
-            <Text style={styles.textStyle}>Cancel</Text>
-          </Pressable>
-        </View>
+    <View
+      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
+    >
+      <Text style={styles.modalText}>Log Some Reading</Text>
+      <Dropdown
+        style={styles.dropdown}
+        data={bookDropdownData}
+        search
+        maxHeight={300}
+        labelField="label"
+        valueField="value"
+        searchPlaceholder="Select title"
+        value={id}
+        onChange={(item: { value: string }) => {
+          setId(item.value);
+        }}
+      />
+      {titleError && <Text style={styles.errorMessage}>{titleError}</Text>}
+      <TextInput
+        keyboardType="numeric"
+        placeholder="Current page"
+        value={currentPage}
+        style={currentPageError && styles.inputError}
+        onChangeText={setCurrentPage}
+      />
+      {currentPageError && (
+        <Text style={styles.errorMessage}>{currentPageError}</Text>
+      )}
+      <View style={{ flexDirection: "row" }}>
+        <Pressable
+          style={[styles.button, styles.buttonSubmit]}
+          onPress={handleSubmitPress}
+        >
+          <Text style={styles.textStyle}>Submit</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.button, styles.buttonCancel]}
+          onPress={handleCancelPress}
+        >
+          <Text style={styles.textStyle}>Cancel</Text>
+        </Pressable>
       </View>
     </View>
   );

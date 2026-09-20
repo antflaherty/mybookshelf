@@ -13,19 +13,19 @@ export default function SettingsScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={{ backgroundColor: theme.backgroundColor }}>
-        <Text style={{ color: theme.textColor }}>Background Colour</Text>
-        <TextInput
-          value={backgroundColor}
-          onChangeText={setBackgroundColor}
-        ></TextInput>
-        <Text style={{ color: theme.textColor }}>Text Colour</Text>
-        <TextInput value={textColor} onChangeText={setTextColor}></TextInput>
-        <Pressable onPress={handleApplyPress}>
-          <Text>Apply</Text>
-        </Pressable>
-      </View>
+    <View
+      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
+    >
+      <Text style={{ color: theme.textColor }}>Background Colour</Text>
+      <TextInput
+        value={backgroundColor}
+        onChangeText={setBackgroundColor}
+      ></TextInput>
+      <Text style={{ color: theme.textColor }}>Text Colour</Text>
+      <TextInput value={textColor} onChangeText={setTextColor}></TextInput>
+      <Pressable onPress={handleApplyPress}>
+        <Text>Apply</Text>
+      </Pressable>
     </View>
   );
 }
