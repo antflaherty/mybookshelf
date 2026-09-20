@@ -13,7 +13,7 @@ export default function ReadingProgressItem({
 
   return (
     <View>
-      <Text style={{ color: theme.textColor }}>
+      <Text style={{ color: theme.text }}>
         {progressItem.title}: {progressItem.currentPage} /{" "}
         {progressItem.pageCount}
       </Text>

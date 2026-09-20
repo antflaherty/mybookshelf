@@ -1,18 +1,38 @@
 import { createContext, ReactNode, useContext, useState } from "react";
 
+type ThemeName = "forest" | "sky";
+
 export interface Theme {
-  backgroundColor: string;
-  textColor: string;
+  name: ThemeName;
+  background: string;
+  text: string;
+  primary: string;
+  inputBackground: string;
+  inputText: string;
 }
 
-export const DEFAULT_THEME: Theme = {
-  backgroundColor: "#990099",
-  textColor: "#dddddd",
+export const THEMES: { [name: string]: Theme } = {
+  forest: {
+    name: "forest",
+    background: "#02551b",
+    text: "#def2a2",
+    primary: "#925808",
+    inputBackground: "#f4d8aa",
+    inputText: "#0f2904",
+  },
+  sky: {
+    name: "sky",
+    background: "#6ebeff",
+    text: "#000000",
+    primary: "#ffffff",
+    inputBackground: "#c9e1f5",
+    inputText: "#000000",
+  },
 };
 
 interface ThemeContextValue {
   theme: Theme;
-  setTheme: (theme: Theme) => void;
+  setTheme: (themeName: ThemeName) => void;
 }
 
 export const ThemeContext = createContext<ThemeContextValue | undefined>(
@@ -20,12 +40,17 @@ export const ThemeContext = createContext<ThemeContextValue | undefined>(
 );
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState(DEFAULT_THEME);
-
-  console.log(theme);
+  const [theme, setTheme] = useState(THEMES.forest);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        setTheme: (themeName) => {
+          setTheme(THEMES[themeName]);
+        },
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );

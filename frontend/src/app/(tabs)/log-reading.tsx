@@ -1,5 +1,5 @@
 import { getBooks, logReadingProgress } from "@/api/apiClient";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -98,9 +98,7 @@ export default function LogReadingModalScreen() {
     }
   }
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
-    >
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={styles.modalText}>Log Some Reading</Text>
       <Dropdown
         style={styles.dropdown}

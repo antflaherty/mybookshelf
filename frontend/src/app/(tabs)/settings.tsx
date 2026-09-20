@@ -1,31 +1,30 @@
+import { Dropdown } from "react-native-element-dropdown";
 import { Pressable, Text, TextInput, View, StyleSheet } from "react-native";
-import { useTheme } from "@/app/theme";
+import { useTheme, THEMES } from "@/app/theme";
 import { useState } from "react";
 
 export default function SettingsScreen() {
   const { theme, setTheme } = useTheme();
-  const [backgroundColor, setBackgroundColor] = useState(theme.backgroundColor);
-  const [textColor, setTextColor] = useState(theme.textColor);
 
-  function handleApplyPress() {
-    const newTheme = { backgroundColor, textColor };
-    setTheme(newTheme);
-  }
+  const themeDropdownData = Object.values(THEMES).map(({ name }) => ({
+    label: name,
+    value: name,
+  }));
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
-    >
-      <Text style={{ color: theme.textColor }}>Background Colour</Text>
-      <TextInput
-        value={backgroundColor}
-        onChangeText={setBackgroundColor}
-      ></TextInput>
-      <Text style={{ color: theme.textColor }}>Text Colour</Text>
-      <TextInput value={textColor} onChangeText={setTextColor}></TextInput>
-      <Pressable onPress={handleApplyPress}>
-        <Text>Apply</Text>
-      </Pressable>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Dropdown
+        style={styles.dropdown}
+        data={themeDropdownData}
+        maxHeight={300}
+        labelField="label"
+        valueField="value"
+        searchPlaceholder="Select theme"
+        value={theme.name}
+        onChange={(item) => {
+          setTheme(item.value);
+        }}
+      />
     </View>
   );
 }
@@ -35,5 +34,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  dropdown: {
+    margin: 16,
+    height: 50,
+    width: 150,
+    borderRadius: 22,
+    paddingHorizontal: 8,
   },
 });
