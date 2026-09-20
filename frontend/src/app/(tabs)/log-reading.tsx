@@ -1,5 +1,5 @@
 import { getBooks, logReadingProgress } from "@/api/apiClient";
-import { useCallback, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -12,6 +12,7 @@ import * as z from "zod";
 import { Dropdown } from "react-native-element-dropdown";
 import { Book } from "@/lib/definitions";
 import { router, useFocusEffect } from "expo-router";
+import { useTheme } from "@/app/theme";
 
 const ReadingProgressSchema = z.object({
   id: z.string().min(1),
@@ -26,6 +27,8 @@ export default function LogReadingModalScreen() {
 
   const [titleError, setTitleError] = useState("");
   const [currentPageError, setCurrentPageError] = useState("");
+
+  const { theme } = useTheme();
 
   const bookDropdownData = books.map((book) => {
     return { value: book.id, label: book.title };
@@ -95,51 +98,58 @@ export default function LogReadingModalScreen() {
     }
   }
   return (
-    <View style={styles.centeredView}>
-      <Text style={styles.modalText}>Log Some Reading</Text>
-      <Dropdown
-        style={styles.dropdown}
-        data={bookDropdownData}
-        search
-        maxHeight={300}
-        labelField="label"
-        valueField="value"
-        searchPlaceholder="Select title"
-        value={id}
-        onChange={(item: { value: string }) => {
-          setId(item.value);
-        }}
-      />
-      {titleError && <Text style={styles.errorMessage}>{titleError}</Text>}
-      <TextInput
-        keyboardType="numeric"
-        placeholder="Current page"
-        value={currentPage}
-        style={currentPageError && styles.inputError}
-        onChangeText={setCurrentPage}
-      />
-      {currentPageError && (
-        <Text style={styles.errorMessage}>{currentPageError}</Text>
-      )}
-      <View style={{ flexDirection: "row" }}>
-        <Pressable
-          style={[styles.button, styles.buttonSubmit]}
-          onPress={handleSubmitPress}
-        >
-          <Text style={styles.textStyle}>Submit</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.button, styles.buttonCancel]}
-          onPress={handleCancelPress}
-        >
-          <Text style={styles.textStyle}>Cancel</Text>
-        </Pressable>
+    <View style={styles.container}>
+      <View style={{ backgroundColor: theme.backgroundColor }}>
+        <Text style={styles.modalText}>Log Some Reading</Text>
+        <Dropdown
+          style={styles.dropdown}
+          data={bookDropdownData}
+          search
+          maxHeight={300}
+          labelField="label"
+          valueField="value"
+          searchPlaceholder="Select title"
+          value={id}
+          onChange={(item: { value: string }) => {
+            setId(item.value);
+          }}
+        />
+        {titleError && <Text style={styles.errorMessage}>{titleError}</Text>}
+        <TextInput
+          keyboardType="numeric"
+          placeholder="Current page"
+          value={currentPage}
+          style={currentPageError && styles.inputError}
+          onChangeText={setCurrentPage}
+        />
+        {currentPageError && (
+          <Text style={styles.errorMessage}>{currentPageError}</Text>
+        )}
+        <View style={{ flexDirection: "row" }}>
+          <Pressable
+            style={[styles.button, styles.buttonSubmit]}
+            onPress={handleSubmitPress}
+          >
+            <Text style={styles.textStyle}>Submit</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.button, styles.buttonCancel]}
+            onPress={handleCancelPress}
+          >
+            <Text style={styles.textStyle}>Cancel</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   centeredView: {
     flex: 1,
     justifyContent: "center",
