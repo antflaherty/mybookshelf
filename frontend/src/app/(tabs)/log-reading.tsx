@@ -1,0 +1,186 @@
+import { getBooks, logReadingProgress } from "@/api/apiClient";
+import { useCallback, useState } from "react";
+import {
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import * as z from "zod";
+import { Dropdown } from "react-native-element-dropdown";
+import { Book } from "@/lib/definitions";
+import { router, useFocusEffect } from "expo-router";
+
+const ReadingProgressSchema = z.object({
+  id: z.string().min(1),
+  currentPage: z.coerce.number().min(1),
+});
+
+export default function LogReadingModalScreen() {
+  const [books, setBooks] = useState<Book[]>([]);
+
+  const [id, setId] = useState("");
+  const [currentPage, setCurrentPage] = useState("");
+
+  const [titleError, setTitleError] = useState("");
+  const [currentPageError, setCurrentPageError] = useState("");
+
+  const bookDropdownData = books.map((book) => {
+    return { value: book.id, label: book.title };
+  });
+
+  async function loadAllBooks() {
+    const data = await getBooks();
+    setBooks(data);
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      loadAllBooks();
+    }, []),
+  );
+
+  function clearAndGoBack() {
+    setId("");
+    setCurrentPage("");
+    clearErrors();
+    router.back();
+  }
+
+  function clearErrors() {
+    setTitleError("");
+    setCurrentPageError("");
+  }
+
+  function handleCancelPress() {
+    clearAndGoBack();
+  }
+
+  async function handleSubmitPress() {
+    try {
+      clearErrors();
+
+      const rawReadingProgress = {
+        id,
+        currentPage,
+      };
+
+      const readingProgress = ReadingProgressSchema.parse(rawReadingProgress);
+
+      await logReadingProgress(readingProgress);
+
+      Alert.alert("Reading Logged!");
+
+      clearAndGoBack();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log(error);
+        error.issues.forEach((issue) => {
+          switch (issue.path[0]) {
+            case "id":
+              setTitleError(issue.message);
+              break;
+            case "currentPage":
+              if (issue.code === "invalid_type") {
+                setCurrentPageError("Input must be a positive whole number");
+              } else {
+                setCurrentPageError(issue.message);
+              }
+              break;
+          }
+        });
+      }
+    }
+  }
+  return (
+    <View style={styles.centeredView}>
+      <Text style={styles.modalText}>Log Some Reading</Text>
+      <Dropdown
+        style={styles.dropdown}
+        data={bookDropdownData}
+        search
+        maxHeight={300}
+        labelField="label"
+        valueField="value"
+        searchPlaceholder="Select title"
+        value={id}
+        onChange={(item: { value: string }) => {
+          setId(item.value);
+        }}
+      />
+      {titleError && <Text style={styles.errorMessage}>{titleError}</Text>}
+      <TextInput
+        keyboardType="numeric"
+        placeholder="Current page"
+        value={currentPage}
+        style={currentPageError && styles.inputError}
+        onChangeText={setCurrentPage}
+      />
+      {currentPageError && (
+        <Text style={styles.errorMessage}>{currentPageError}</Text>
+      )}
+      <View style={{ flexDirection: "row" }}>
+        <Pressable
+          style={[styles.button, styles.buttonSubmit]}
+          onPress={handleSubmitPress}
+        >
+          <Text style={styles.textStyle}>Submit</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.button, styles.buttonCancel]}
+          onPress={handleCancelPress}
+        >
+          <Text style={styles.textStyle}>Cancel</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  button: {
+    borderRadius: 20,
+    margin: 10,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonCancel: {
+    backgroundColor: "rgb(243, 33, 33)",
+  },
+  buttonOpen: {
+    backgroundColor: "#F194FF",
+  },
+  buttonSubmit: {
+    backgroundColor: "#2196F3",
+  },
+  dropdown: {
+    margin: 16,
+    height: 50,
+    width: 150,
+    backgroundColor: "#EEEEEE",
+    borderRadius: 22,
+    paddingHorizontal: 8,
+  },
+  errorMessage: {
+    color: "red",
+  },
+  inputError: {
+    backgroundColor: "#ff00002a",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+  },
+});
