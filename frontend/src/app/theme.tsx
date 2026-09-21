@@ -1,6 +1,15 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export interface Theme {
+const THEME_STORAGE_KEY = "theme";
+
+interface Theme {
   name: string;
   background: string;
   text: string;
@@ -51,12 +60,26 @@ export const ThemeContext = createContext<ThemeContextValue | undefined>(
 export default function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState(themes.forest);
 
+  useEffect(() => {
+    async function loadTheme() {
+      const storedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+
+      if (storedTheme) {
+        setTheme(JSON.parse(storedTheme));
+      }
+    }
+
+    loadTheme();
+  }, []);
+
   return (
     <ThemeContext.Provider
       value={{
         theme,
         setTheme: (themeName) => {
-          setTheme(themes[themeName]);
+          const newTheme = themes[themeName];
+          setTheme(newTheme);
+          AsyncStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(newTheme));
         },
       }}
     >
