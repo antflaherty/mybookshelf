@@ -40,7 +40,7 @@ export const ThemeContext = createContext<ThemeContextValue | undefined>(
   undefined,
 );
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export default function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState(THEMES.forest);
 
   return (
