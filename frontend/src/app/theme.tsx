@@ -6,6 +6,8 @@ export interface Theme {
   text: string;
   primary: string;
   secondary: string;
+  errorText: string;
+  errorInputBackground: string;
   inputBackground: string;
   inputText: string;
 }
@@ -17,6 +19,8 @@ const themes: { [name: string]: Theme } = {
     text: "#def2a2",
     primary: "#925808",
     secondary: "#287a41",
+    errorText: "#f09875",
+    errorInputBackground: "#f4c4aa",
     inputBackground: "#f4d8aa",
     inputText: "#0f2904",
   },
@@ -26,6 +30,8 @@ const themes: { [name: string]: Theme } = {
     text: "#000000",
     primary: "#ffffff",
     secondary: "#abd8fd",
+    errorText: "#521700",
+    errorInputBackground: "#f4c4aa",
     inputBackground: "#c9e1f5",
     inputText: "#000000",
   },

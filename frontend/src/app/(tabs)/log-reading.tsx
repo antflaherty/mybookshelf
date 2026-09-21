@@ -102,7 +102,14 @@ export default function LogReadingModalScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={{ color: theme.text }}>Log Some Reading</Text>
       <Dropdown
-        style={[styles.dropdown, { backgroundColor: theme.inputBackground }]}
+        style={[
+          styles.dropdown,
+          {
+            backgroundColor: titleError
+              ? theme.errorInputBackground
+              : theme.inputBackground,
+          },
+        ]}
         data={bookDropdownData}
         search
         maxHeight={300}
@@ -114,19 +121,26 @@ export default function LogReadingModalScreen() {
           setId(item.value);
         }}
       />
-      {titleError && <Text style={styles.errorMessage}>{titleError}</Text>}
+      {titleError && (
+        <Text style={{ color: theme.errorText }}>{titleError}</Text>
+      )}
       <TextInput
         keyboardType="numeric"
         placeholder="Current page"
         value={currentPage}
         style={[
-          currentPageError && styles.inputError,
-          { backgroundColor: theme.inputBackground, color: theme.inputText },
+          styles.input,
+          {
+            backgroundColor: currentPageError
+              ? theme.errorInputBackground
+              : theme.inputBackground,
+            color: theme.inputText,
+          },
         ]}
         onChangeText={setCurrentPage}
       />
       {currentPageError && (
-        <Text style={styles.errorMessage}>{currentPageError}</Text>
+        <Text style={{ color: theme.errorText }}>{currentPageError}</Text>
       )}
       <View style={{ flexDirection: "row" }}>
         <ThemedPressable variant="primary" onPress={handleSubmitPress}>
@@ -158,10 +172,11 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     paddingHorizontal: 8,
   },
-  errorMessage: {
-    color: "red",
-  },
-  inputError: {
-    backgroundColor: "#ff00002a",
+  input: {
+    margin: 16,
+    height: 50,
+    width: 150,
+    borderRadius: 22,
+    paddingHorizontal: 8,
   },
 });
