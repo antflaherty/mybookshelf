@@ -1,5 +1,5 @@
 import { Dropdown } from "react-native-element-dropdown";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import { useTheme, THEME_NAMES } from "@/app/theme";
 
 export default function SettingsScreen() {
@@ -12,6 +12,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Text style={{ color: theme.text }}>Theme</Text>
       <Dropdown
         style={[styles.dropdown, { backgroundColor: theme.inputBackground }]}
         data={themeDropdownData}
