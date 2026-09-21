@@ -10,7 +10,7 @@ export interface Theme {
   inputText: string;
 }
 
-export const THEMES: { [name: string]: Theme } = {
+const themes: { [name: string]: Theme } = {
   forest: {
     name: "forest",
     background: "#02551b",
@@ -31,6 +31,8 @@ export const THEMES: { [name: string]: Theme } = {
   },
 };
 
+export const THEME_NAMES = Object.keys(themes);
+
 interface ThemeContextValue {
   theme: Theme;
   setTheme: (themeName: string) => void;
@@ -41,14 +43,14 @@ export const ThemeContext = createContext<ThemeContextValue | undefined>(
 );
 
 export default function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState(THEMES.forest);
+  const [theme, setTheme] = useState(themes.forest);
 
   return (
     <ThemeContext.Provider
       value={{
         theme,
         setTheme: (themeName) => {
-          setTheme(THEMES[themeName]);
+          setTheme(themes[themeName]);
         },
       }}
     >

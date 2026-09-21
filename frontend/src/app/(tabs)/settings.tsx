@@ -1,11 +1,11 @@
 import { Dropdown } from "react-native-element-dropdown";
 import { View, StyleSheet } from "react-native";
-import { useTheme, THEMES } from "@/app/theme";
+import { useTheme, THEME_NAMES } from "@/app/theme";
 
 export default function SettingsScreen() {
   const { theme, setTheme } = useTheme();
 
-  const themeDropdownData = Object.keys(THEMES).map((name) => ({
+  const themeDropdownData = THEME_NAMES.map((name) => ({
     label: name,
     value: name,
   }));
