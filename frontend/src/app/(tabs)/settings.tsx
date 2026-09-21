@@ -16,6 +16,8 @@ export default function SettingsScreen() {
       <Text style={{ color: theme.text }}>Theme</Text>
       <Dropdown
         style={[styles.dropdown, { backgroundColor: theme.inputBackground }]}
+        placeholderStyle={{ color: theme.inputText }}
+        selectedTextStyle={{ color: theme.inputText }}
         data={themeDropdownData}
         maxHeight={300}
         labelField="label"

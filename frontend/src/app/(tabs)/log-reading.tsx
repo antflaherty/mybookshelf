@@ -103,6 +103,8 @@ export default function LogReadingModalScreen() {
               : theme.inputBackground,
           },
         ]}
+        placeholderStyle={{ color: theme.inputText }}
+        selectedTextStyle={{ color: theme.inputText }}
         data={bookDropdownData}
         search
         maxHeight={300}
