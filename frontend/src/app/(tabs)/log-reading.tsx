@@ -12,7 +12,7 @@ import * as z from "zod";
 import { Dropdown } from "react-native-element-dropdown";
 import { Book } from "@/lib/definitions";
 import { router, useFocusEffect } from "expo-router";
-import { useTheme } from "@/app/theme";
+import { useTheme } from "@/theme/theme-provider";
 import ThemedPressable from "@/components/themed-pressable";
 
 const ReadingProgressSchema = z.object({

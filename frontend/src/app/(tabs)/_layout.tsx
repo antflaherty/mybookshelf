@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { AntDesign } from "@react-native-vector-icons/ant-design";
-import { useTheme } from "@/app/theme";
+import { useTheme } from "@/theme/theme-provider";
 
 export default function TabLayout() {
   const { theme } = useTheme();

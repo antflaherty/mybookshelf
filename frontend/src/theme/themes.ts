@@ -1,15 +1,4 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const THEME_STORAGE_KEY = "theme";
-
-interface Theme {
+export interface Theme {
   name: string;
   background: string;
   text: string;
@@ -21,7 +10,7 @@ interface Theme {
   inputText: string;
 }
 
-const themes: { [name: string]: Theme } = {
+export const THEMES: { [name: string]: Theme } = {
   forest: {
     name: "forest",
     background: "#02551b",
@@ -101,54 +90,4 @@ const themes: { [name: string]: Theme } = {
   },
 };
 
-export const THEME_NAMES = Object.keys(themes);
-
-interface ThemeContextValue {
-  theme: Theme;
-  setTheme: (themeName: string) => void;
-}
-
-export const ThemeContext = createContext<ThemeContextValue | undefined>(
-  undefined,
-);
-
-export default function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState(themes.forest);
-
-  useEffect(() => {
-    async function loadTheme() {
-      const storedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-
-      if (storedTheme) {
-        setTheme(JSON.parse(storedTheme));
-      }
-    }
-
-    loadTheme();
-  }, []);
-
-  return (
-    <ThemeContext.Provider
-      value={{
-        theme,
-        setTheme: (themeName) => {
-          const newTheme = themes[themeName];
-          setTheme(newTheme);
-          AsyncStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(newTheme));
-        },
-      }}
-    >
-      {children}
-    </ThemeContext.Provider>
-  );
-}
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-
-  if (!context) {
-    throw new Error("useTheme must be used inside a ThemeProvider");
-  }
-
-  return context;
-}
+export const THEME_NAMES = Object.keys(THEMES);

@@ -1,7 +1,7 @@
 import ReadingProgressList from "@/components/reading-progress-list";
 import { Book, ReadingProgress } from "@/lib/definitions";
 import { getReadingProgress } from "@/api/apiClient";
-import { useTheme } from "@/app/theme";
+import { useTheme } from "@/theme/theme-provider";
 import { useFocusEffect } from "expo-router/build/react-navigation";
 import { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";

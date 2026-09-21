@@ -1,6 +1,6 @@
 import { ComponentProps } from "react";
 import { Pressable } from "react-native";
-import { useTheme } from "@/app/theme";
+import { useTheme } from "@/theme/theme-provider";
 
 type ThemedPressableProps = ComponentProps<typeof Pressable> & {
   variant?: "primary" | "secondary";

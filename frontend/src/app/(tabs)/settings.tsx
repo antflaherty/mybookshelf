@@ -1,6 +1,7 @@
 import { Dropdown } from "react-native-element-dropdown";
 import { View, StyleSheet, Text } from "react-native";
-import { useTheme, THEME_NAMES } from "@/app/theme";
+import { useTheme } from "@/theme/theme-provider";
+import { THEME_NAMES } from "@/theme/themes";
 
 export default function SettingsScreen() {
   const { theme, setTheme } = useTheme();

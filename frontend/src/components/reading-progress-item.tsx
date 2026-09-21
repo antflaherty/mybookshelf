@@ -1,5 +1,5 @@
 import { Book, ReadingProgress } from "@/lib/definitions";
-import { useTheme } from "@/app/theme";
+import { useTheme } from "@/theme/theme-provider";
 import { Text, View } from "react-native";
 
 interface ReadingProgressItemProps {
