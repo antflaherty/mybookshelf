@@ -3,9 +3,10 @@ import { Book, ReadingProgress } from "@/lib/definitions";
 import { getReadingProgress } from "@/api/apiClient";
 import { useTheme } from "@/app/theme";
 import { useFocusEffect } from "expo-router/build/react-navigation";
-import { Link } from "expo-router";
 import { useCallback, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import ThemedPressable from "@/components/themed-pressable";
+import { router } from "expo-router";
 
 export default function Index() {
   const [readingProgressList, setReadingProgressList] = useState<
@@ -27,12 +28,9 @@ export default function Index() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Link
-        style={{ backgroundColor: theme.primary, color: theme.text }}
-        href="/log-reading"
-      >
-        Log Reading
-      </Link>
+      <ThemedPressable onPress={() => router.push("/log-reading")}>
+        <Text style={{ color: theme.text }}>Log Reading</Text>
+      </ThemedPressable>
       <ReadingProgressList
         progressList={readingProgressList}
       ></ReadingProgressList>

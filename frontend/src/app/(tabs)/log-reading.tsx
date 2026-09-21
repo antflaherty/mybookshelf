@@ -13,6 +13,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import { Book } from "@/lib/definitions";
 import { router, useFocusEffect } from "expo-router";
 import { useTheme } from "@/app/theme";
+import ThemedPressable from "@/components/themed-pressable";
 
 const ReadingProgressSchema = z.object({
   id: z.string().min(1),
@@ -99,9 +100,7 @@ export default function LogReadingModalScreen() {
   }
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={[styles.modalText, { color: theme.text }]}>
-        Log Some Reading
-      </Text>
+      <Text style={{ color: theme.text }}>Log Some Reading</Text>
       <Dropdown
         style={[styles.dropdown, { backgroundColor: theme.inputBackground }]}
         data={bookDropdownData}
@@ -130,18 +129,12 @@ export default function LogReadingModalScreen() {
         <Text style={styles.errorMessage}>{currentPageError}</Text>
       )}
       <View style={{ flexDirection: "row" }}>
-        <Pressable
-          style={[styles.button, { backgroundColor: theme.primary }]}
-          onPress={handleSubmitPress}
-        >
-          <Text style={[styles.textStyle, { color: theme.text }]}>Submit</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.button, { backgroundColor: theme.secondary }]}
-          onPress={handleCancelPress}
-        >
-          <Text style={[styles.textStyle, { color: theme.text }]}>Cancel</Text>
-        </Pressable>
+        <ThemedPressable variant="primary" onPress={handleSubmitPress}>
+          <Text style={{ color: theme.text }}>Submit</Text>
+        </ThemedPressable>
+        <ThemedPressable variant="secondary" onPress={handleCancelPress}>
+          <Text style={{ color: theme.text }}>Cancel</Text>
+        </ThemedPressable>
       </View>
     </View>
   );
@@ -158,26 +151,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  button: {
-    borderRadius: 20,
-    margin: 10,
-    padding: 10,
-    elevation: 2,
-  },
-  buttonCancel: {
-    backgroundColor: "rgb(243, 33, 33)",
-  },
-  buttonOpen: {
-    backgroundColor: "#F194FF",
-  },
-  buttonSubmit: {
-    backgroundColor: "#2196F3",
-  },
   dropdown: {
     margin: 16,
     height: 50,
     width: 150,
-    backgroundColor: "#EEEEEE",
     borderRadius: 22,
     paddingHorizontal: 8,
   },
@@ -186,14 +163,5 @@ const styles = StyleSheet.create({
   },
   inputError: {
     backgroundColor: "#ff00002a",
-  },
-  textStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center",
   },
 });
