@@ -1,13 +1,6 @@
 import { getBooks, logReadingProgress } from "@/api/apiClient";
 import { useCallback, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import * as z from "zod";
 import { Dropdown } from "react-native-element-dropdown";
 import { Book } from "@/lib/definitions";
