@@ -40,7 +40,7 @@ export async function logReadingProgress(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(readingProgress),
+    body: JSON.stringify({readingProgress, bookId: readingProgress.id}),
   });
 
   if (!response.ok) {

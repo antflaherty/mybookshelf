@@ -1,6 +1,9 @@
 package main
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+)
 
 func queryAllBooks(db *sql.DB) (*[]book, error) {
 	sqlString := "SELECT Id, Title, Author, PageCount FROM Books"
@@ -26,4 +29,18 @@ func queryAllBooks(db *sql.DB) (*[]book, error) {
 	}
 
 	return &books, nil
+}
+
+func queryBookById(db *sql.DB, id string) (*book, error) {
+	sqlString := "SELECT * FROM Books WHERE Id = ?"
+	row := db.QueryRow(sqlString, id)
+	b := &book{}
+	err := row.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount)
+	fmt.Println(id)
+	fmt.Println(err)
+	fmt.Println(b)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
