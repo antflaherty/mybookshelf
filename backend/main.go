@@ -11,23 +11,6 @@ import (
 	_ "github.com/glebarez/go-sqlite"
 )
 
-type book struct {
-	ID        string `json:"id"`
-	Title     string `json:"title"`
-	Author    string `json:"author"`
-	PageCount int    `json:"pageCount"`
-}
-
-type readingProgress struct {
-	BookID      string `json:"bookId"`
-	CurrentPage int    `json:"currentPage"`
-}
-
-type qualifiedReadingProgress struct {
-	book
-	readingProgress
-}
-
 func main() {
 	db, err := sql.Open("sqlite", "./local.db")
 	if err != nil {
