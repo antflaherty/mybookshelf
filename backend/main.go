@@ -32,25 +32,8 @@ func main() {
 
 func getBooksHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sqlString := "SELECT Id, Title, Author, PageCount FROM Books"
-
-		rows, err := db.Query(sqlString)
+		books, err := queryAllBooks(db)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
-		defer rows.Close()
-
-		var books []book
-		for rows.Next() {
-			b := &book{}
-			err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			}
-			books = append(books, *b)
-		}
-
-		if err = rows.Err(); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 
