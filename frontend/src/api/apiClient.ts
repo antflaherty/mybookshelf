@@ -1,6 +1,6 @@
 import { Book, ReadingProgress } from "@/lib/definitions";
 
-const API_URL = "http://localhost:8080";
+const API_URL = "http://192.168.2.207:8080";
 const BOOKS_ROUTE = "/books";
 const READING_PROGRESS_ROUTE = "/readingProgress";
 
@@ -40,7 +40,7 @@ export async function logReadingProgress(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({readingProgress, bookId: readingProgress.id}),
+    body: JSON.stringify({...readingProgress, bookId: readingProgress.id}),
   });
 
   if (!response.ok) {
