@@ -11,20 +11,16 @@ import (
 	_ "github.com/glebarez/go-sqlite"
 )
 
-type bookId struct {
-	Id string `json:"id"`
-}
-
 type book struct {
-	bookId
+	ID        string `json:"id"`
 	Title     string `json:"title"`
 	Author    string `json:"author"`
 	PageCount int    `json:"pageCount"`
 }
 
 type readingProgress struct {
-	bookId
-	CurrentPage int `json:"currentPage"`
+	BookID      string `json:"bookId"`
+	CurrentPage int    `json:"currentPage"`
 }
 
 type qualifiedReadingProgress struct {
@@ -64,7 +60,7 @@ func getBooksHandler(db *sql.DB) gin.HandlerFunc {
 		var books []book
 		for rows.Next() {
 			b := &book{}
-			err := rows.Scan(&b.Id, &b.Title, &b.Author, &b.PageCount)
+			err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			}
@@ -92,7 +88,7 @@ func getReadingProgressHandler(db *sql.DB) gin.HandlerFunc {
 		var allReadingProgress []qualifiedReadingProgress
 		for rows.Next() {
 			readingProgress := &qualifiedReadingProgress{}
-			err := rows.Scan(&readingProgress.book.Id, &readingProgress.CurrentPage, &readingProgress.Title, &readingProgress.Author, &readingProgress.PageCount)
+			err := rows.Scan(&readingProgress.book.ID, &readingProgress.CurrentPage, &readingProgress.Title, &readingProgress.Author, &readingProgress.PageCount)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			}
@@ -116,7 +112,7 @@ func postReadingProgressHandler(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		book, err := getBookById(db, readingProgress.Id)
+		book, err := getBookById(db, readingProgress.BookID)
 
 		if err != nil {
 			c.JSON(http.StatusNotFound, err.Error())
@@ -140,7 +136,7 @@ func getBookById(db *sql.DB, id string) (*book, error) {
 	sqlString := "SELECT * FROM Books WHERE Id = ?"
 	row := db.QueryRow(sqlString, id)
 	b := &book{}
-	err := row.Scan(&b.Id, &b.Title, &b.Author, &b.PageCount)
+	err := row.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount)
 	if err == nil {
 		return b, nil
 	}
@@ -148,7 +144,7 @@ func getBookById(db *sql.DB, id string) (*book, error) {
 }
 
 func upsertReadingProgress(db *sql.DB, rp *readingProgress) error {
-	existingRp, err := getReadingProgressByBookId(db, rp.Id)
+	existingRp, err := getReadingProgressByBookId(db, rp.BookID)
 
 	if err != nil {
 		return err
@@ -157,12 +153,12 @@ func upsertReadingProgress(db *sql.DB, rp *readingProgress) error {
 	if existingRp == nil {
 		sqlString := "INSERT INTO ReadingProgress (BookId, CurrentPage) VALUES (?, ?);"
 
-		_, err := db.Exec(sqlString, rp.Id, rp.CurrentPage)
+		_, err := db.Exec(sqlString, rp.BookID, rp.CurrentPage)
 		return err
 	}
 
 	sqlString := `UPDATE ReadingProgress SET CurrentPage = ? WHERE BookId = ?;`
-	_, err = db.Exec(sqlString, rp.CurrentPage, rp.Id)
+	_, err = db.Exec(sqlString, rp.CurrentPage, rp.BookID)
 	return err
 }
 
@@ -170,7 +166,7 @@ func getReadingProgressByBookId(db *sql.DB, bookId string) (*readingProgress, er
 	sqlString := "SELECT * FROM ReadingProgress WHERE BookId = ?"
 	row := db.QueryRow(sqlString, bookId)
 	rp := &readingProgress{}
-	err := row.Scan(&rp.Id, &rp.CurrentPage)
+	err := row.Scan(&rp.BookID, &rp.CurrentPage)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
