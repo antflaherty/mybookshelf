@@ -1,21 +1,19 @@
-import ReadingProgressItem from "@/components/reading-progress-item";
-import { Book, ReadingProgress } from "@/lib/definitions";
+import BookmarkItem from "@/components/reading-progress-item";
+import { Book, Bookmark } from "@/lib/definitions";
 import { View } from "react-native";
 
-interface ReadingProgressListProps {
-  progressList: (Book & ReadingProgress)[];
+interface BookmarkListProps {
+  progressList: (Book & Bookmark)[];
 }
 
-export default function ReadingProgressList({
-  progressList,
-}: ReadingProgressListProps) {
+export default function BookmarkList({ progressList }: BookmarkListProps) {
   return (
     <View>
       {progressList.map((progressItem) => (
-        <ReadingProgressItem
+        <BookmarkItem
           key={progressItem.title}
           progressItem={progressItem}
-        ></ReadingProgressItem>
+        ></BookmarkItem>
       ))}
     </View>
   );

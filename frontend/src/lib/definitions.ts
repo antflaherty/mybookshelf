@@ -5,7 +5,7 @@ export interface Book {
   pageCount: number;
 }
 
-export interface ReadingProgress {
+export interface Bookmark {
   id: string;
   currentPage: number;
 }

@@ -1,14 +1,12 @@
-import { Book, ReadingProgress } from "@/lib/definitions";
+import { Book, Bookmark } from "@/lib/definitions";
 import { useTheme } from "@/theme/theme-provider";
 import { Text, View } from "react-native";
 
-interface ReadingProgressItemProps {
-  progressItem: Book & ReadingProgress;
+interface BookmarkItemProps {
+  progressItem: Book & Bookmark;
 }
 
-export default function ReadingProgressItem({
-  progressItem,
-}: ReadingProgressItemProps) {
+export default function BookmarkItem({ progressItem }: BookmarkItemProps) {
   const { theme } = useTheme();
 
   return (

@@ -1,4 +1,4 @@
-import { getBooks, logReadingProgress } from "@/api/apiClient";
+import { getBooks, logBookmark } from "@/api/apiClient";
 import { useCallback, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import * as z from "zod";
@@ -9,7 +9,7 @@ import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import ThemedPressable from "@/components/themed-pressable";
 
-const ReadingProgressSchema = z.object({
+const BookmarkSchema = z.object({
   id: z.string().min(1),
   currentPage: z.coerce.number().min(1),
 });
@@ -62,14 +62,14 @@ export default function LogReadingModalScreen() {
     try {
       clearErrors();
 
-      const rawReadingProgress = {
+      const rawBookmark = {
         id,
         currentPage,
       };
 
-      const readingProgress = ReadingProgressSchema.parse(rawReadingProgress);
+      const bookmark = BookmarkSchema.parse(rawBookmark);
 
-      await logReadingProgress(accessToken, readingProgress);
+      await logBookmark(accessToken, bookmark);
 
       Alert.alert("Reading Logged!");
 

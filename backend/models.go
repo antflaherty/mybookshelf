@@ -13,12 +13,12 @@ type book struct {
 	PageCount int    `json:"pageCount"`
 }
 
-type readingProgress struct {
+type bookmark struct {
 	BookID      string `json:"bookId"`
 	CurrentPage int    `json:"currentPage"`
 }
 
-type qualifiedReadingProgress struct {
+type qualifiedBookmark struct {
 	book
-	readingProgress
+	bookmark
 }

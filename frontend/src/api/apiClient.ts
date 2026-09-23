@@ -1,10 +1,10 @@
-import { Book, ReadingProgress, User } from "@/lib/definitions";
+import { Book, Bookmark, User } from "@/lib/definitions";
 
 const API_URL = "http://192.168.2.207:8080";
 const REGISTER_ROUTE = "/auth/register";
 const LOGIN_ROUTE = "/auth/login";
 const BOOKS_ROUTE = "/books";
-const READING_PROGRESS_ROUTE = "/readingProgress";
+const READING_PROGRESS_ROUTE = "/bookmark";
 
 export async function register(user: User) {
   const url = API_URL + REGISTER_ROUTE;
@@ -44,9 +44,9 @@ export async function login(user: User): Promise<string> {
   return result.access_token;
 }
 
-export async function getReadingProgress(
+export async function getBookmark(
   accessToken: string | null,
-): Promise<(Book & ReadingProgress)[]> {
+): Promise<(Book & Bookmark)[]> {
   const url = API_URL + READING_PROGRESS_ROUTE;
   const response = await authorizedFetch(accessToken, url, "GET");
 
@@ -70,9 +70,9 @@ export async function getBooks(accessToken: string | null): Promise<Book[]> {
   return result ?? [];
 }
 
-export async function logReadingProgress(
+export async function logBookmark(
   accessToken: string | null,
-  readingProgress: ReadingProgress,
+  bookmark: Bookmark,
 ): Promise<void> {
   const url = `${API_URL}${READING_PROGRESS_ROUTE}`;
 
@@ -80,7 +80,7 @@ export async function logReadingProgress(
     accessToken,
     url,
     "POST",
-    JSON.stringify({ ...readingProgress, bookId: readingProgress.id }),
+    JSON.stringify({ ...bookmark, bookId: bookmark.id }),
   );
 
   if (!response.ok) {

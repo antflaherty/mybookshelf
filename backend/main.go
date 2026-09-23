@@ -34,9 +34,9 @@ func main() {
 	protected.Use(auth.AuthMiddleware(config.jwtSecret))
 
 	protected.GET("/books", getBooksHandler(db))
-	protected.GET("/readingProgress", getReadingProgressHandler(db))
+	protected.GET("/bookmark", getBookmarkHandler(db))
 
-	protected.POST("/readingProgress", postReadingProgressHandler(db))
+	protected.POST("/bookmark", postBookmarkHandler(db))
 
 	router.Run("0.0.0.0:8080")
 }

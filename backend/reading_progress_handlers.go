@@ -7,42 +7,42 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func getReadingProgressHandler(db *sql.DB) gin.HandlerFunc {
+func getBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		allReadingProgress, err := queryAllReadingProgress(db)
+		allBookmark, err := queryAllBookmark(db)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, allReadingProgress)
+		c.JSON(http.StatusOK, allBookmark)
 	}
 }
 
-func postReadingProgressHandler(db *sql.DB) gin.HandlerFunc {
+func postBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var readingProgress readingProgress
+		var bookmark bookmark
 
-		if err := c.ShouldBindJSON(&readingProgress); err != nil {
+		if err := c.ShouldBindJSON(&bookmark); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		book, err := queryBookById(db, readingProgress.BookID)
+		book, err := queryBookById(db, bookmark.BookID)
 
 		if err != nil {
 			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 
-		err = upsertReadingProgress(db, &readingProgress)
+		err = upsertBookmark(db, &bookmark)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		updatedReadingProgress := qualifiedReadingProgress{book: *book, CurrentPage: readingProgress.CurrentPage}
-		c.JSON(http.StatusOK, updatedReadingProgress)
+		updatedBookmark := qualifiedBookmark{book: *book, CurrentPage: bookmark.CurrentPage}
+		c.JSON(http.StatusOK, updatedBookmark)
 	}
 }

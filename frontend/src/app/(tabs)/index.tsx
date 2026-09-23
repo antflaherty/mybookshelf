@@ -1,6 +1,6 @@
-import ReadingProgressList from "@/components/reading-progress-list";
-import { Book, ReadingProgress } from "@/lib/definitions";
-import { getReadingProgress } from "@/api/apiClient";
+import BookmarkList from "@/components/reading-progress-list";
+import { Book, Bookmark } from "@/lib/definitions";
+import { getBookmark } from "@/api/apiClient";
 import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import { useFocusEffect } from "expo-router/build/react-navigation";
@@ -10,22 +10,20 @@ import ThemedPressable from "@/components/themed-pressable";
 import { router } from "expo-router";
 
 export default function Index() {
-  const [readingProgressList, setReadingProgressList] = useState<
-    (Book & ReadingProgress)[]
-  >([]);
+  const [bookmarkList, setBookmarkList] = useState<(Book & Bookmark)[]>([]);
 
   const { theme } = useTheme();
 
   const { accessToken } = useAuth();
 
-  async function loadReadingProgress() {
-    const data = await getReadingProgress(accessToken);
-    setReadingProgressList(data);
+  async function loadBookmark() {
+    const data = await getBookmark(accessToken);
+    setBookmarkList(data);
   }
 
   useFocusEffect(
     useCallback(() => {
-      loadReadingProgress();
+      loadBookmark();
     }, []),
   );
 
@@ -34,9 +32,7 @@ export default function Index() {
       <ThemedPressable onPress={() => router.push("/log-reading")}>
         <Text style={{ color: theme.text }}>Log Reading</Text>
       </ThemedPressable>
-      <ReadingProgressList
-        progressList={readingProgressList}
-      ></ReadingProgressList>
+      <BookmarkList progressList={bookmarkList}></BookmarkList>
     </View>
   );
 }
