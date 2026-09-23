@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/antflaherty/mybookshelf/backend/auth"
@@ -63,8 +64,17 @@ func loginHandler(config config, db *sql.DB) gin.HandlerFunc {
 
 		user, err := queryUserByEmail(db, request.Email)
 
+		if errors.Is(err, sql.ErrNoRows) {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid email or password",
+			})
+			return
+		}
+
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
 			return
 		}
 
@@ -107,7 +117,7 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 }
 
 func queryUserByEmail(db *sql.DB, email string) (*User, error) {
-	sqlString := "SELECT ID, PasswordHash FROM users WHERE Email = ?"
+	sqlString := "SELECT id, password_hash FROM users WHERE email = ?"
 	row := db.QueryRow(sqlString, email)
 	user := &User{}
 	err := row.Scan(&user.ID, &user.PasswordHash)

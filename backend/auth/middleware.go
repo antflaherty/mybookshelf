@@ -9,7 +9,7 @@ import (
 
 const UserIDKey = "userID"
 
-func AuthMiddleware(secret string) gin.HandlerFunc {
+func AuthMiddleware(secret []byte) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
 

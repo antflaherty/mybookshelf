@@ -9,7 +9,7 @@ import (
 
 const tokenTimeLimit = 15
 
-func CreateAccessToken(userID string, secret string) (string, error) {
+func CreateAccessToken(userID string, secret []byte) (string, error) {
 	now := time.Now()
 
 	claims := jwt.MapClaims{
@@ -23,7 +23,7 @@ func CreateAccessToken(userID string, secret string) (string, error) {
 	return token.SignedString(secret)
 }
 
-func verifyAccessToken(tokenString string, secret string) (string, error) {
+func verifyAccessToken(tokenString string, secret []byte) (string, error) {
 	token, err := jwt.Parse(
 		tokenString,
 		func(token *jwt.Token) (any, error) {

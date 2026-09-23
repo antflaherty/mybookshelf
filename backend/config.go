@@ -8,7 +8,7 @@ import (
 )
 
 type config struct {
-	jwtSecret string
+	jwtSecret []byte
 }
 
 func loadConfig() (config, error) {
@@ -20,5 +20,5 @@ func loadConfig() (config, error) {
 		return config{}, fmt.Errorf("JWT_SECRET environment variable is required")
 	}
 
-	return config{jwtSecret}, nil
+	return config{[]byte(jwtSecret)}, nil
 }
