@@ -32,7 +32,7 @@ export default function Index() {
       <ThemedPressable onPress={() => router.push("/log-reading")}>
         <Text style={{ color: theme.text }}>Log Reading</Text>
       </ThemedPressable>
-      <BookmarkList progressList={bookmarkList}></BookmarkList>
+      <BookmarkList bookmarks={bookmarkList}></BookmarkList>
     </View>
   );
 }

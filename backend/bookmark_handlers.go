@@ -9,7 +9,7 @@ import (
 
 func getBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		allBookmark, err := queryAllBookmarks(db)
+		allBookmark, err := queryAllBookmarks(db, c.GetString("userID"))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -19,23 +19,31 @@ func getBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
+type postBookmarkRequest struct {
+	BookID      string `json:"bookId"`
+	CurrentPage int    `json:"currentPage"`
+}
+
 func postBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var bookmark bookmark
+		var request postBookmarkRequest
 
-		if err := c.ShouldBindJSON(&bookmark); err != nil {
+		if err := c.ShouldBindJSON(&request); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		book, err := queryBookById(db, bookmark.BookID)
+		book, err := queryBookById(db, request.BookID)
 
 		if err != nil {
 			c.JSON(http.StatusNotFound, err.Error())
 			return
 		}
 
-		err = upsertBookmark(db, &bookmark)
+		userID := c.GetString("userID")
+		bookmark := &bookmark{UserID: userID, BookID: request.BookID, CurrentPage: request.CurrentPage}
+
+		err = upsertBookmark(db, bookmark)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())

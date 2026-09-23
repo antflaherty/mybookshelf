@@ -1,11 +1,14 @@
 package main
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+)
 
-func queryAllBookmarks(db *sql.DB) (*[]qualifiedBookmark, error) {
-	sqlString := "SELECT Bookmark.BookId, Bookmark.CurrentPage, Books.Title, Books.Author, Books.PageCount FROM Bookmark INNER JOIN Books ON Bookmark.BookId=Books.Id"
+func queryAllBookmarks(db *sql.DB, userID string) (*[]qualifiedBookmark, error) {
+	sqlString := "SELECT Bookmark.BookId, Bookmark.CurrentPage, Books.Title, Books.Author, Books.PageCount FROM Bookmark INNER JOIN Books ON Bookmark.BookId=Books.Id WHERE user_id = ?"
 
-	rows, err := db.Query(sqlString)
+	rows, err := db.Query(sqlString, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -18,6 +21,8 @@ func queryAllBookmarks(db *sql.DB) (*[]qualifiedBookmark, error) {
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println(bookmark)
+
 		allBookmarks = append(allBookmarks, *bookmark)
 	}
 
@@ -28,9 +33,9 @@ func queryAllBookmarks(db *sql.DB) (*[]qualifiedBookmark, error) {
 	return &allBookmarks, nil
 }
 
-func queryBookmarkByBookId(db *sql.DB, bookId string) (*bookmark, error) {
-	sqlString := "SELECT * FROM Bookmark WHERE BookId = ?"
-	row := db.QueryRow(sqlString, bookId)
+func queryBookmarkByBookIdAndUserId(db *sql.DB, bookId string, userID string) (*bookmark, error) {
+	sqlString := "SELECT bookId, currentPage FROM Bookmark WHERE BookId = ? AND user_id = ?"
+	row := db.QueryRow(sqlString, bookId, userID)
 	bm := &bookmark{}
 	err := row.Scan(&bm.BookID, &bm.CurrentPage)
 	if err != nil {
@@ -43,20 +48,20 @@ func queryBookmarkByBookId(db *sql.DB, bookId string) (*bookmark, error) {
 }
 
 func upsertBookmark(db *sql.DB, bm *bookmark) error {
-	existingRp, err := queryBookmarkByBookId(db, bm.BookID)
+	existingBookmark, err := queryBookmarkByBookIdAndUserId(db, bm.BookID, bm.UserID)
 
 	if err != nil {
 		return err
 	}
 
-	if existingRp == nil {
-		sqlString := "INSERT INTO Bookmark (BookId, CurrentPage) VALUES (?, ?);"
+	if existingBookmark == nil {
+		sqlString := "INSERT INTO Bookmark (user_id, BookId, CurrentPage) VALUES (?, ?, ?);"
 
-		_, err := db.Exec(sqlString, bm.BookID, bm.CurrentPage)
+		_, err := db.Exec(sqlString, bm.UserID, bm.BookID, bm.CurrentPage)
 		return err
 	}
 
-	sqlString := `UPDATE Bookmark SET CurrentPage = ? WHERE BookId = ?;`
-	_, err = db.Exec(sqlString, bm.CurrentPage, bm.BookID)
+	sqlString := `UPDATE Bookmark SET CurrentPage = ? WHERE BookId = ? AND user_id = ?;`
+	_, err = db.Exec(sqlString, bm.CurrentPage, bm.BookID, bm.UserID)
 	return err
 }

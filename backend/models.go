@@ -14,6 +14,7 @@ type book struct {
 }
 
 type bookmark struct {
+	UserID      string
 	BookID      string `json:"bookId"`
 	CurrentPage int    `json:"currentPage"`
 }
