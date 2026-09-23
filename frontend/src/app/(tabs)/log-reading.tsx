@@ -6,6 +6,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import { Book } from "@/lib/definitions";
 import { router, useFocusEffect } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
+import { useAuth } from "@/auth/auth-context";
 import ThemedPressable from "@/components/themed-pressable";
 
 const ReadingProgressSchema = z.object({
@@ -24,12 +25,14 @@ export default function LogReadingModalScreen() {
 
   const { theme } = useTheme();
 
+  const { accessToken } = useAuth();
+
   const bookDropdownData = books.map((book) => {
     return { value: book.id, label: book.title };
   });
 
   async function loadAllBooks() {
-    const data = await getBooks();
+    const data = await getBooks(accessToken);
     setBooks(data);
   }
 
@@ -66,7 +69,7 @@ export default function LogReadingModalScreen() {
 
       const readingProgress = ReadingProgressSchema.parse(rawReadingProgress);
 
-      await logReadingProgress(readingProgress);
+      await logReadingProgress(accessToken, readingProgress);
 
       Alert.alert("Reading Logged!");
 
