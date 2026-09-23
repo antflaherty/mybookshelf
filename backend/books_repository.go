@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 func queryAllBooks(db *sql.DB) (*[]book, error) {
@@ -36,9 +35,6 @@ func queryBookById(db *sql.DB, id string) (*book, error) {
 	row := db.QueryRow(sqlString, id)
 	b := &book{}
 	err := row.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount)
-	fmt.Println(id)
-	fmt.Println(err)
-	fmt.Println(b)
 	if err != nil {
 		return nil, err
 	}

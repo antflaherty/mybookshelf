@@ -2,9 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
+	"github.com/antflaherty/mybookshelf/backend/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -23,8 +23,6 @@ func registerHandler(db *sql.DB) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
-		fmt.Println(request.Password)
 
 		passwordHash, err := bcrypt.GenerateFromPassword(
 			[]byte(request.Password),
@@ -54,6 +52,42 @@ func registerHandler(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
+func loginHandler(config config, db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request registerRequest
+
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		user, err := queryUserByEmail(db, request.Email)
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword(
+			[]byte(user.PasswordHash),
+			[]byte(request.Password),
+		)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
+			return
+		}
+
+		jwt, err := auth.CreateAccessToken(user.ID, config.jwtSecret)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"access_token": jwt,
+			"token_type": "Bearer"})
+	}
+}
+
 func createUser(db *sql.DB, user *User) (*User, error) {
 	user.ID = uuid.NewString()
 
@@ -69,5 +103,16 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 		return nil, err
 	}
 
+	return user, nil
+}
+
+func queryUserByEmail(db *sql.DB, email string) (*User, error) {
+	sqlString := "SELECT ID, PasswordHash FROM users WHERE Email = ?"
+	row := db.QueryRow(sqlString, email)
+	user := &User{}
+	err := row.Scan(&user.ID, &user.PasswordHash)
+	if err != nil {
+		return nil, err
+	}
 	return user, nil
 }
