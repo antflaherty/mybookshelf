@@ -4,7 +4,7 @@ const API_URL = "http://192.168.2.207:8080";
 const REGISTER_ROUTE = "/auth/register";
 const LOGIN_ROUTE = "/auth/login";
 const BOOKS_ROUTE = "/books";
-const READING_PROGRESS_ROUTE = "/bookmark";
+const READING_PROGRESS_ROUTE = "/bookmarks";
 
 export async function register(user: User) {
   const url = API_URL + REGISTER_ROUTE;
@@ -44,7 +44,7 @@ export async function login(user: User): Promise<string> {
   return result.access_token;
 }
 
-export async function getBookmark(
+export async function getBookmarks(
   accessToken: string | null,
 ): Promise<(Book & Bookmark)[]> {
   const url = API_URL + READING_PROGRESS_ROUTE;

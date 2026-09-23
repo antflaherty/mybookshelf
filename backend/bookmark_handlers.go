@@ -9,7 +9,7 @@ import (
 
 func getBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		allBookmark, err := queryAllBookmark(db)
+		allBookmark, err := queryAllBookmarks(db)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

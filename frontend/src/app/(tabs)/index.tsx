@@ -1,6 +1,6 @@
 import BookmarkList from "@/components/reading-progress-list";
 import { Book, Bookmark } from "@/lib/definitions";
-import { getBookmark } from "@/api/apiClient";
+import { getBookmarks } from "@/api/apiClient";
 import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import { useFocusEffect } from "expo-router/build/react-navigation";
@@ -17,7 +17,7 @@ export default function Index() {
   const { accessToken } = useAuth();
 
   async function loadBookmark() {
-    const data = await getBookmark(accessToken);
+    const data = await getBookmarks(accessToken);
     setBookmarkList(data);
   }
 

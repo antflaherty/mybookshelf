@@ -2,7 +2,7 @@ package main
 
 import "database/sql"
 
-func queryAllBookmark(db *sql.DB) (*[]qualifiedBookmark, error) {
+func queryAllBookmarks(db *sql.DB) (*[]qualifiedBookmark, error) {
 	sqlString := "SELECT Bookmark.BookId, Bookmark.CurrentPage, Books.Title, Books.Author, Books.PageCount FROM Bookmark INNER JOIN Books ON Bookmark.BookId=Books.Id"
 
 	rows, err := db.Query(sqlString)
@@ -11,21 +11,21 @@ func queryAllBookmark(db *sql.DB) (*[]qualifiedBookmark, error) {
 	}
 	defer rows.Close()
 
-	var allBookmark []qualifiedBookmark
+	var allBookmarks []qualifiedBookmark
 	for rows.Next() {
 		bookmark := &qualifiedBookmark{}
 		err := rows.Scan(&bookmark.book.ID, &bookmark.CurrentPage, &bookmark.Title, &bookmark.Author, &bookmark.PageCount)
 		if err != nil {
 			return nil, err
 		}
-		allBookmark = append(allBookmark, *bookmark)
+		allBookmarks = append(allBookmarks, *bookmark)
 	}
 
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return &allBookmark, nil
+	return &allBookmarks, nil
 }
 
 func queryBookmarkByBookId(db *sql.DB, bookId string) (*bookmark, error) {
