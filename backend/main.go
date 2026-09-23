@@ -27,6 +27,8 @@ func main() {
 
 	router := gin.Default()
 
+	router.POST("/auth/register", registerHandler(db))
+
 	protected := router.Group("/")
 	protected.Use(auth.AuthMiddleware(config.jwtSecret))
 
