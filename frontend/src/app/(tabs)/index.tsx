@@ -2,6 +2,7 @@ import ReadingProgressList from "@/components/reading-progress-list";
 import { Book, ReadingProgress } from "@/lib/definitions";
 import { getReadingProgress } from "@/api/apiClient";
 import { useTheme } from "@/theme/theme-provider";
+import { useAuth } from "@/auth/auth-context";
 import { useFocusEffect } from "expo-router/build/react-navigation";
 import { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -15,8 +16,10 @@ export default function Index() {
 
   const { theme } = useTheme();
 
+  const { accessToken } = useAuth();
+
   async function loadReadingProgress() {
-    const data = await getReadingProgress();
+    const data = await getReadingProgress(accessToken);
     setReadingProgressList(data);
   }
 
