@@ -9,3 +9,7 @@ export function storeAccessToken(accessToken: string) {
 export function getAccessToken(): string | null {
     return SecureStore.getItem(accessTokenKey);
 }
+
+export async function deleteAccessToken() {
+    await SecureStore.deleteItemAsync(accessTokenKey);
+}

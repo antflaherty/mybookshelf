@@ -5,7 +5,11 @@ import {
   useEffect,
   useState,
 } from "react";
-import { getAccessToken, storeAccessToken } from "@/storage/secureStore";
+import {
+  deleteAccessToken,
+  getAccessToken,
+  storeAccessToken,
+} from "@/storage/secureStore";
 import { User } from "@/lib/definitions";
 import { login as apiLogin } from "@/api/apiClient";
 
@@ -13,6 +17,7 @@ interface AuthContextValue {
   accessToken: string | null;
   isLoggedIn: boolean;
   login: (user: User) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -39,9 +44,12 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
     setAccessToken(accessToken);
 
-    console.log(accessToken);
-
     storeAccessToken(accessToken);
+  }
+
+  async function logout() {
+    setAccessToken(null);
+    await deleteAccessToken();
   }
 
   return (
@@ -50,6 +58,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         accessToken,
         isLoggedIn: !!accessToken,
         login,
+        logout,
       }}
     >
       {children}

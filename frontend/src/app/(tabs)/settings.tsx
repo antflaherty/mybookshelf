@@ -1,10 +1,13 @@
 import { Dropdown } from "react-native-element-dropdown";
 import { View, StyleSheet, Text } from "react-native";
 import { useTheme } from "@/theme/theme-provider";
+import { useAuth } from "@/auth/auth-context";
 import { THEME_NAMES } from "@/theme/themes";
+import ThemedPressable from "@/components/themed-pressable";
 
 export default function SettingsScreen() {
   const { theme, setTheme } = useTheme();
+  const { logout } = useAuth();
 
   const themeDropdownData = THEME_NAMES.map((name) => ({
     label: name,
@@ -28,6 +31,9 @@ export default function SettingsScreen() {
           setTheme(item.value);
         }}
       />
+      <ThemedPressable onPress={logout}>
+        <Text style={{ color: theme.text }}>log out</Text>
+      </ThemedPressable>
     </View>
   );
 }
