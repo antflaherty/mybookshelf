@@ -7,11 +7,13 @@ import { Book } from "@/lib/definitions";
 import { router, useFocusEffect } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
+import { useShelf } from "@/context/shelf-provider";
 import ThemedPressable from "@/components/themed-pressable";
 
 const BookmarkSchema = z.object({
   id: z.string().min(1),
   currentPage: z.coerce.number().min(1),
+  shelfId: z.string().min(1),
 });
 
 export default function LogReadingModalScreen() {
@@ -26,6 +28,8 @@ export default function LogReadingModalScreen() {
   const { theme } = useTheme();
 
   const { accessToken } = useAuth();
+
+  const { shelves } = useShelf();
 
   const bookDropdownData = books.map((book) => {
     return { value: book.id, label: book.title };
@@ -65,6 +69,7 @@ export default function LogReadingModalScreen() {
       const rawBookmark = {
         id,
         currentPage,
+        shelfId: shelves[0].id,
       };
 
       const bookmark = BookmarkSchema.parse(rawBookmark);

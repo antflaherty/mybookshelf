@@ -1,10 +1,11 @@
-import { Book, Bookmark, User } from "@/lib/definitions";
+import { Book, Bookmark, Shelf, User } from "@/lib/definitions";
 
 const API_URL = "http://192.168.2.207:8080";
 const REGISTER_ROUTE = "/auth/register";
 const LOGIN_ROUTE = "/auth/login";
 const BOOKS_ROUTE = "/books";
 const READING_PROGRESS_ROUTE = "/bookmarks";
+const SHELVES_ROUTE = "/shelves";
 
 export async function register(user: User) {
   const url = API_URL + REGISTER_ROUTE;
@@ -44,6 +45,18 @@ export async function login(user: User): Promise<string> {
   return result.access_token;
 }
 
+export async function getShelves(accessToken: string | null): Promise<Shelf[]> {
+  const url = API_URL + SHELVES_ROUTE;
+  const response = await authorizedFetch(accessToken, url, "GET");
+
+  if (!response.ok) {
+    throw new Error(`Response status: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return result ?? [];
+}
+
 export async function getBookmarks(
   accessToken: string | null,
 ): Promise<(Book & Bookmark)[]> {
@@ -72,7 +85,7 @@ export async function getBooks(accessToken: string | null): Promise<Book[]> {
 
 export async function placeBookmark(
   accessToken: string | null,
-  bookmark: Bookmark,
+  bookmark: Bookmark
 ): Promise<void> {
   const url = `${API_URL}${READING_PROGRESS_ROUTE}`;
 
@@ -80,7 +93,7 @@ export async function placeBookmark(
     accessToken,
     url,
     "POST",
-    JSON.stringify({ ...bookmark, bookId: bookmark.id }),
+    JSON.stringify({ ...bookmark, bookId: bookmark.id, shelfId: bookmark.shelfId }),
   );
 
   if (!response.ok) {

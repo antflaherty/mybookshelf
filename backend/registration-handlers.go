@@ -113,7 +113,27 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 		return nil, err
 	}
 
+	err = createDefaultShelfForUser(db, user.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return user, nil
+}
+
+func createDefaultShelfForUser(db *sql.DB, userID string) error {
+	shelfID := uuid.NewString()
+
+	_, err := db.Exec(
+		`INSERT INTO shelf (id, user_id, name)
+			 VALUES (?, ?, ?)`,
+		shelfID,
+		userID,
+		"currently reading",
+	)
+
+	return err
 }
 
 func queryUserByEmail(db *sql.DB, email string) (*User, error) {

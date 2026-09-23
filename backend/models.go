@@ -13,8 +13,15 @@ type book struct {
 	PageCount int    `json:"pageCount"`
 }
 
+type shelf struct {
+	ID     string `json:"id"`
+	UserID string `json:"userId"`
+	Name   string `json:"name"`
+}
+
 type bookmark struct {
 	UserID      string
+	ShelfID     string
 	BookID      string `json:"bookId"`
 	CurrentPage int    `json:"currentPage"`
 }

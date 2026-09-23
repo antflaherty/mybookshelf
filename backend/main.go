@@ -35,6 +35,7 @@ func main() {
 
 	protected.GET("/books", getBooksHandler(db))
 	protected.GET("/bookmarks", getBookmarkHandler(db))
+	protected.GET("/shelves", getShelvesHandler(db))
 
 	protected.POST("/bookmarks", postBookmarkHandler(db))
 

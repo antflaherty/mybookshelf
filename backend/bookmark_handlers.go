@@ -21,6 +21,7 @@ func getBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 
 type postBookmarkRequest struct {
 	BookID      string `json:"bookId"`
+	ShelfID     string `json:"shelfId"`
 	CurrentPage int    `json:"currentPage"`
 }
 
@@ -41,7 +42,7 @@ func postBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 		}
 
 		userID := c.GetString("userID")
-		bookmark := &bookmark{UserID: userID, BookID: request.BookID, CurrentPage: request.CurrentPage}
+		bookmark := &bookmark{UserID: userID, BookID: request.BookID, ShelfID: request.ShelfID, CurrentPage: request.CurrentPage}
 
 		err = upsertBookmark(db, bookmark)
 

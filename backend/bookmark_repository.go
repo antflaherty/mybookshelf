@@ -53,13 +53,13 @@ func upsertBookmark(db *sql.DB, bm *bookmark) error {
 	}
 
 	if existingBookmark == nil {
-		sqlString := "INSERT INTO Bookmark (user_id, BookId, CurrentPage) VALUES (?, ?, ?);"
+		sqlString := "INSERT INTO Bookmark (user_id, shelf_id, BookId, CurrentPage) VALUES (?, ?, ?, ?);"
 
-		_, err := db.Exec(sqlString, bm.UserID, bm.BookID, bm.CurrentPage)
+		_, err := db.Exec(sqlString, bm.UserID, bm.ShelfID, bm.BookID, bm.CurrentPage)
 		return err
 	}
 
-	sqlString := `UPDATE Bookmark SET CurrentPage = ? WHERE BookId = ? AND user_id = ?;`
-	_, err = db.Exec(sqlString, bm.CurrentPage, bm.BookID, bm.UserID)
+	sqlString := `UPDATE Bookmark SET shelf_id = ?, CurrentPage = ?WHERE BookId = ? AND user_id = ?;`
+	_, err = db.Exec(sqlString, bm.ShelfID, bm.CurrentPage, bm.BookID, bm.UserID)
 	return err
 }
