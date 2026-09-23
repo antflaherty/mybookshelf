@@ -70,7 +70,7 @@ export async function getBooks(accessToken: string | null): Promise<Book[]> {
   return result ?? [];
 }
 
-export async function logBookmark(
+export async function placeBookmark(
   accessToken: string | null,
   bookmark: Bookmark,
 ): Promise<void> {

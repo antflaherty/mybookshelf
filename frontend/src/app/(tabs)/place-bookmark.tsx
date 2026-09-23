@@ -1,4 +1,4 @@
-import { getBooks, logBookmark } from "@/api/apiClient";
+import { getBooks, placeBookmark } from "@/api/apiClient";
 import { useCallback, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import * as z from "zod";
@@ -69,7 +69,7 @@ export default function LogReadingModalScreen() {
 
       const bookmark = BookmarkSchema.parse(rawBookmark);
 
-      await logBookmark(accessToken, bookmark);
+      await placeBookmark(accessToken, bookmark);
 
       Alert.alert("Reading Logged!");
 
@@ -96,7 +96,7 @@ export default function LogReadingModalScreen() {
   }
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={{ color: theme.text }}>Log Some Reading</Text>
+      <Text style={{ color: theme.text }}>place your bookmark</Text>
       <Dropdown
         style={[
           styles.dropdown,

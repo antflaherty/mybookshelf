@@ -27,9 +27,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="log-reading"
+        name="place-bookmark"
         options={{
-          title: "Log Reading",
+          title: "place bookmark",
           tabBarIcon: ({ size }) => (
             <AntDesign name="book" color={theme.primary} size={size} />
           ),

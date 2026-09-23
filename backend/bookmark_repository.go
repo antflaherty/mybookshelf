@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 func queryAllBookmarks(db *sql.DB, userID string) (*[]qualifiedBookmark, error) {
@@ -21,7 +20,6 @@ func queryAllBookmarks(db *sql.DB, userID string) (*[]qualifiedBookmark, error) 
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(bookmark)
 
 		allBookmarks = append(allBookmarks, *bookmark)
 	}

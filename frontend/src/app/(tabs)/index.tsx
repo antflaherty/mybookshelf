@@ -29,8 +29,8 @@ export default function Index() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <ThemedPressable onPress={() => router.push("/log-reading")}>
-        <Text style={{ color: theme.text }}>Log Reading</Text>
+      <ThemedPressable onPress={() => router.push("/place-bookmark")}>
+        <Text style={{ color: theme.text }}>place bookmark</Text>
       </ThemedPressable>
       <BookmarkList bookmarks={bookmarkList}></BookmarkList>
     </View>

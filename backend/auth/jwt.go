@@ -7,7 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const tokenTimeLimit = 15
+const tokenTimeLimit = 24 * 60
 
 func CreateAccessToken(userID string, secret []byte) (string, error) {
 	now := time.Now()
