@@ -5,6 +5,7 @@ import ThemedPressable from "@/components/themed-pressable";
 import { searchBooks } from "@/api/apiClient";
 import { useAuth } from "@/auth/auth-context";
 import { Book } from "@/lib/definitions";
+import BookSearchResultList from "@/components/book-search-result-list";
 
 export default function SearchBooksScreen() {
   const [title, setTitle] = useState("");
@@ -18,7 +19,6 @@ export default function SearchBooksScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={{ color: theme.text }}>title</Text>
       <TextInput
         placeholder="title"
         value={title}
@@ -34,11 +34,9 @@ export default function SearchBooksScreen() {
       <ThemedPressable variant="primary" onPress={handleSearchPress}>
         <Text style={{ color: theme.text }}>search</Text>
       </ThemedPressable>
-      {books.map((book) => (
-        <Text key={book.id} style={{ color: theme.text }}>
-          {book.title} | {book.author}
-        </Text>
-      ))}
+      {!!books.length && (
+        <BookSearchResultList books={books}></BookSearchResultList>
+      )}
     </View>
   );
 }
