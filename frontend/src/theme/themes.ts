@@ -1,6 +1,7 @@
 export interface Theme {
   name: string;
   background: string;
+  surface: string;
   text: string;
   primary: string;
   secondary: string;
@@ -14,6 +15,7 @@ export const THEMES: { [name: string]: Theme } = {
   forest: {
     name: "forest",
     background: "#02551b",
+    surface: "#032b0f",
     text: "#def2a2",
     primary: "#925808",
     secondary: "#287a41",
@@ -25,6 +27,7 @@ export const THEMES: { [name: string]: Theme } = {
   sky: {
     name: "sky",
     background: "#6ebeff",
+    surface: "#8cc7f7",
     text: "#000000",
     primary: "#ffffff",
     secondary: "#abd8fd",
@@ -36,6 +39,7 @@ export const THEMES: { [name: string]: Theme } = {
   sunset: {
     name: "sunset",
     background: "#7a2e2e",
+    surface: "#914635",
     text: "#ffe4b5",
     primary: "#ffb703",
     secondary: "#c94c4c",
@@ -47,6 +51,7 @@ export const THEMES: { [name: string]: Theme } = {
   ocean: {
     name: "ocean",
     background: "#064663",
+    surface: "#053449",
     text: "#d9f3ff",
     primary: "#00a8cc",
     secondary: "#087e8b",
@@ -58,6 +63,7 @@ export const THEMES: { [name: string]: Theme } = {
   lavender: {
     name: "lavender",
     background: "#4b3f72",
+    surface: "#423766",
     text: "#f1e8ff",
     primary: "#d8b4fe",
     secondary: "#7666a8",
@@ -68,7 +74,8 @@ export const THEMES: { [name: string]: Theme } = {
   },
   autumn: {
     name: "autumn",
-    background: "#6b3e26",
+    background: "#5c321c",
+    surface: "#6b3e26",
     text: "#ffe8c2",
     primary: "#e09f3e",
     secondary: "#9e5a3c",
@@ -80,6 +87,7 @@ export const THEMES: { [name: string]: Theme } = {
   midnight: {
     name: "midnight",
     background: "#111827",
+    surface: "#14203b",
     text: "#e5e7eb",
     primary: "#60a5fa",
     secondary: "#374151",
