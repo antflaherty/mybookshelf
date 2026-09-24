@@ -38,6 +38,15 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="search-books"
+          options={{
+            title: "search",
+            tabBarIcon: ({ size }) => (
+              <AntDesign name="search" color={theme.primary} size={size} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="settings"
           options={{
             title: "Settings",

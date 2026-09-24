@@ -65,13 +65,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  dropdown: {
-    margin: 16,
-    height: 50,
-    width: 150,
-    borderRadius: 22,
-    paddingHorizontal: 8,
-  },
   input: {
     margin: 16,
     height: 50,

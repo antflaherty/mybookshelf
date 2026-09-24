@@ -28,9 +28,10 @@ export default function LogReadingModalScreen() {
 
   const { shelves, loadShelves } = useShelf();
 
-  const bookDropdownData = shelves[0].bookmarks.map((book) => {
-    return { value: book.id, label: book.title };
-  });
+  const bookDropdownData =
+    shelves[0]?.bookmarks.map((book) => {
+      return { value: book.id, label: book.title };
+    }) || [];
 
   function clearAndGoBack() {
     setId("");

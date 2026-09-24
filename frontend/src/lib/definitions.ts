@@ -15,7 +15,7 @@ export interface Shelf {
   id: string;
   name: string;
   userId: string;
-  bookmarks: (Book & Bookmark)[]
+  bookmarks: (Book & Bookmark)[];
 }
 
 export interface User {
