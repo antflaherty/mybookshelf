@@ -7,6 +7,7 @@ import (
 )
 
 type openLibraryBookResponse struct {
+	Key         string   `json:"key"`
 	Title       string   `json:"title"`
 	AuthorNames []string `json:"author_name"`
 }
@@ -20,7 +21,7 @@ func searchBooksByTitle(title string) ([]book, error) {
 
 	params := url.Values{}
 	params.Set("q", "title:"+title)
-	params.Set("fields", "title,author_name")
+	params.Set("fields", "key,title,author_name")
 
 	requestURL := baseURL + "?" + params.Encode()
 
@@ -47,7 +48,7 @@ func searchBooksByTitle(title string) ([]book, error) {
 		if len(bookResponse.AuthorNames) > 0 {
 			author = bookResponse.AuthorNames[0]
 		}
-		book := book{Title: bookResponse.Title, Author: author, PageCount: 0}
+		book := book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: 0}
 		books[i] = book
 	}
 

@@ -33,7 +33,7 @@ func main() {
 	protected := router.Group("/")
 	protected.Use(auth.AuthMiddleware(config.jwtSecret))
 
-	protected.GET("/books", getBooksHandler(db))
+	router.GET("/books", getBooksHandler())
 	protected.GET("/bookmarks", getBookmarkHandler(db))
 	protected.GET("/shelves", getShelvesHandler(db))
 
