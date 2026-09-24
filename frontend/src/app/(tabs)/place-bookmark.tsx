@@ -29,7 +29,7 @@ export default function LogReadingModalScreen() {
 
   const { accessToken } = useAuth();
 
-  const { shelves } = useShelf();
+  const { shelves, loadShelves } = useShelf();
 
   const bookDropdownData = books.map((book) => {
     return { value: book.id, label: book.title };
@@ -75,6 +75,7 @@ export default function LogReadingModalScreen() {
       const bookmark = BookmarkSchema.parse(rawBookmark);
 
       await placeBookmark(accessToken, bookmark);
+      await loadShelves();
 
       Alert.alert("Reading Logged!");
 

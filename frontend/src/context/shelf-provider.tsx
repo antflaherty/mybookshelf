@@ -11,6 +11,7 @@ import {
 
 interface ShelfContextValue {
   shelves: Shelf[];
+  loadShelves: () => Promise<void>;
 }
 
 const ShelfContext = createContext<ShelfContextValue | undefined>(undefined);
@@ -20,11 +21,10 @@ export default function ShelfProvider({ children }: { children: ReactNode }) {
 
   const { accessToken } = useAuth();
 
+  async function loadShelves() {
+    setShelves(await getShelves(accessToken));
+  }
   useEffect(() => {
-    async function loadShelves() {
-      setShelves(await getShelves(accessToken));
-    }
-
     loadShelves();
   }, []);
 
@@ -32,6 +32,7 @@ export default function ShelfProvider({ children }: { children: ReactNode }) {
     <ShelfContext.Provider
       value={{
         shelves,
+        loadShelves,
       }}
     >
       {children}

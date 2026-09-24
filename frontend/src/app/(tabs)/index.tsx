@@ -1,38 +1,21 @@
 import BookmarkList from "@/components/reading-progress-list";
-import { Book, Bookmark } from "@/lib/definitions";
-import { getBookmarks } from "@/api/apiClient";
 import { useTheme } from "@/theme/theme-provider";
-import { useAuth } from "@/auth/auth-context";
-import { useFocusEffect } from "expo-router/build/react-navigation";
-import { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import ThemedPressable from "@/components/themed-pressable";
 import { router } from "expo-router";
+import { useShelf } from "@/context/shelf-provider";
 
 export default function Index() {
-  const [bookmarkList, setBookmarkList] = useState<(Book & Bookmark)[]>([]);
-
   const { theme } = useTheme();
 
-  const { accessToken } = useAuth();
-
-  async function loadBookmark() {
-    const data = await getBookmarks(accessToken);
-    setBookmarkList(data);
-  }
-
-  useFocusEffect(
-    useCallback(() => {
-      loadBookmark();
-    }, []),
-  );
+  const { shelves } = useShelf();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <ThemedPressable onPress={() => router.push("/place-bookmark")}>
         <Text style={{ color: theme.text }}>place bookmark</Text>
       </ThemedPressable>
-      <BookmarkList bookmarks={bookmarkList}></BookmarkList>
+      <BookmarkList bookmarks={shelves[0]?.bookmarks || []}></BookmarkList>
     </View>
   );
 }

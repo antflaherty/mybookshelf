@@ -5,7 +5,7 @@ import (
 )
 
 func queryAllBookmarks(db *sql.DB, userID string) (*[]qualifiedBookmark, error) {
-	sqlString := "SELECT Bookmark.BookId, Bookmark.CurrentPage, Books.Title, Books.Author, Books.PageCount FROM Bookmark INNER JOIN Books ON Bookmark.BookId=Books.Id WHERE user_id = ?"
+	sqlString := "SELECT Bookmark.shelf_id, Bookmark.BookId, Bookmark.CurrentPage, Books.Title, Books.Author, Books.PageCount FROM Bookmark INNER JOIN Books ON Bookmark.BookId=Books.Id WHERE user_id = ?"
 
 	rows, err := db.Query(sqlString, userID)
 	if err != nil {
@@ -16,7 +16,7 @@ func queryAllBookmarks(db *sql.DB, userID string) (*[]qualifiedBookmark, error) 
 	var allBookmarks []qualifiedBookmark
 	for rows.Next() {
 		bookmark := &qualifiedBookmark{}
-		err := rows.Scan(&bookmark.book.ID, &bookmark.CurrentPage, &bookmark.Title, &bookmark.Author, &bookmark.PageCount)
+		err := rows.Scan(&bookmark.ShelfID, &bookmark.book.ID, &bookmark.CurrentPage, &bookmark.Title, &bookmark.Author, &bookmark.PageCount)
 		if err != nil {
 			return nil, err
 		}

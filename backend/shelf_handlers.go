@@ -9,10 +9,29 @@ import (
 
 func getShelvesHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		allShelves, err := queryAllShelves(db, c.GetString("userID"))
+		userID := c.GetString("userID")
+
+		allShelves, err := queryAllShelves(db, userID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+
+		allBookmarks, err := queryAllBookmarks(db, userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		shelfById := make(map[string]*shelf, len(*allShelves))
+
+		for i := range *allShelves {
+			shelf := &(*allShelves)[i]
+			shelfById[shelf.ID] = shelf
+		}
+
+		for _, bookmark := range *allBookmarks {
+			shelfById[bookmark.ShelfID].Bookmarks = append(shelfById[bookmark.ShelfID].Bookmarks, bookmark)
 		}
 
 		c.JSON(http.StatusOK, allShelves)
