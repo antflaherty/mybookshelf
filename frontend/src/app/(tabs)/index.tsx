@@ -1,4 +1,3 @@
-import BookmarkList from "@/components/reading-progress-list";
 import { useTheme } from "@/theme/theme-provider";
 import { StyleSheet, Text, View } from "react-native";
 import ThemedPressable from "@/components/themed-pressable";
