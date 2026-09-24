@@ -1,10 +1,9 @@
-import { getBooks, placeBookmark } from "@/api/apiClient";
-import { useCallback, useState } from "react";
+import { placeBookmark } from "@/api/apiClient";
+import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import * as z from "zod";
 import { Dropdown } from "react-native-element-dropdown";
-import { Book } from "@/lib/definitions";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
@@ -17,8 +16,6 @@ const BookmarkSchema = z.object({
 });
 
 export default function LogReadingModalScreen() {
-  const [books, setBooks] = useState<Book[]>([]);
-
   const [id, setId] = useState("");
   const [currentPage, setCurrentPage] = useState("");
 
@@ -31,20 +28,9 @@ export default function LogReadingModalScreen() {
 
   const { shelves, loadShelves } = useShelf();
 
-  const bookDropdownData = books.map((book) => {
+  const bookDropdownData = shelves[0].bookmarks.map((book) => {
     return { value: book.id, label: book.title };
   });
-
-  async function loadAllBooks() {
-    const data = await getBooks(accessToken);
-    setBooks(data);
-  }
-
-  useFocusEffect(
-    useCallback(() => {
-      loadAllBooks();
-    }, []),
-  );
 
   function clearAndGoBack() {
     setId("");
