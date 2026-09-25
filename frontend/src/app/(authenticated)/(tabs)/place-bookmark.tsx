@@ -8,7 +8,7 @@ import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import ThemedPressable from "@/components/themed-pressable";
-import { Book } from "@/lib/definitions";
+import { Book, Bookmark } from "@/lib/definitions";
 
 const BookmarkSchema = z.object({
   id: z.string().min(1),
@@ -17,17 +17,19 @@ const BookmarkSchema = z.object({
 });
 
 export default function LogReadingModalScreen() {
-  const { book: bookParam } = useLocalSearchParams<{
-    book: string;
+  const { bookmark: bookmarkParam } = useLocalSearchParams<{
+    bookmark: string;
   }>();
 
-  let book: Book | undefined;
-  if (bookParam !== undefined) {
-    book = JSON.parse(bookParam);
+  let bookmark: (Book & Bookmark) | undefined;
+  if (bookmarkParam !== undefined) {
+    bookmark = JSON.parse(bookmarkParam);
   }
 
-  const [id, setId] = useState(book?.id || "");
-  const [currentPage, setCurrentPage] = useState("");
+  const [id, setId] = useState(bookmark?.id || "");
+  const [currentPage, setCurrentPage] = useState(
+    !!bookmark ? `${bookmark.currentPage}` : "",
+  );
 
   const [titleError, setTitleError] = useState("");
   const [currentPageError, setCurrentPageError] = useState("");

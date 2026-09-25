@@ -19,15 +19,15 @@ export default function BookScreen() {
   const { accessToken } = useAuth();
   const { shelves, loadShelves } = useShelf();
 
-  const isBookOnShelf = shelves.some((shelf) =>
-    shelf.bookmarks.some((bookmark) => bookmark.id === book.id),
-  );
+  const bookmark = shelves
+    .map((shelf) => shelf.bookmarks.find((bookmark) => bookmark.id === book.id))
+    .find((bookmark) => bookmark !== undefined);
 
   function handlePlaceBookmarkPress() {
     router.push({
       pathname: "/place-bookmark",
       params: {
-        book: JSON.stringify(book),
+        bookmark: JSON.stringify(bookmark),
       },
     });
   }
@@ -73,7 +73,7 @@ export default function BookScreen() {
           onChangeText={setPageCount}
         />
       </View>
-      {isBookOnShelf ? (
+      {!!bookmark ? (
         <ThemedPressable variant="primary" onPress={handlePlaceBookmarkPress}>
           <Text style={{ color: theme.text }}>place bookmark</Text>
         </ThemedPressable>
