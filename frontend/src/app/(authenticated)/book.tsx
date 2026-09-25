@@ -8,7 +8,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { createBook, placeBookmark } from "@/api/apiClient";
 import { useState } from "react";
 
-export default function SearchBooksScreen() {
+export default function BookScreen() {
   const [pageCount, setPageCount] = useState("0");
   const { theme } = useTheme();
   const { accessToken } = useAuth();
@@ -19,6 +19,19 @@ export default function SearchBooksScreen() {
   }>();
 
   const book: Book = JSON.parse(bookParam);
+
+  const isBookOnShelf = shelves.some((shelf) =>
+    shelf.bookmarks.some((bookmark) => bookmark.id === book.id),
+  );
+
+  function handlePlaceBookmarkPress() {
+    router.push({
+      pathname: "/place-bookmark",
+      params: {
+        book: JSON.stringify(book),
+      },
+    });
+  }
 
   async function handleAddToShelfPress() {
     const bookWithId = await createBook(accessToken, {
@@ -61,9 +74,15 @@ export default function SearchBooksScreen() {
           onChangeText={setPageCount}
         />
       </View>
-      <ThemedPressable variant="primary" onPress={handleAddToShelfPress}>
-        <Text style={{ color: theme.text }}>add to shelf</Text>
-      </ThemedPressable>
+      {isBookOnShelf ? (
+        <ThemedPressable variant="primary" onPress={handlePlaceBookmarkPress}>
+          <Text style={{ color: theme.text }}>place bookmark</Text>
+        </ThemedPressable>
+      ) : (
+        <ThemedPressable variant="primary" onPress={handleAddToShelfPress}>
+          <Text style={{ color: theme.text }}>add to shelf</Text>
+        </ThemedPressable>
+      )}
     </View>
   );
 }

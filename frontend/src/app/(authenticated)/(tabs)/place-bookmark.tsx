@@ -3,11 +3,12 @@ import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import * as z from "zod";
 import { Dropdown } from "react-native-element-dropdown";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import ThemedPressable from "@/components/themed-pressable";
+import { Book } from "@/lib/definitions";
 
 const BookmarkSchema = z.object({
   id: z.string().min(1),
@@ -16,7 +17,16 @@ const BookmarkSchema = z.object({
 });
 
 export default function LogReadingModalScreen() {
-  const [id, setId] = useState("");
+  const { book: bookParam } = useLocalSearchParams<{
+    book: string;
+  }>();
+
+  let book: Book | undefined;
+  if (bookParam !== undefined) {
+    book = JSON.parse(bookParam);
+  }
+
+  const [id, setId] = useState(book?.id || "");
   const [currentPage, setCurrentPage] = useState("");
 
   const [titleError, setTitleError] = useState("");
