@@ -22,7 +22,9 @@ export default function ShelfProvider({ children }: { children: ReactNode }) {
   const { accessToken } = useAuth();
 
   async function loadShelves() {
-    setShelves(await getShelves(accessToken));
+    setShelves(
+      (await getShelves(accessToken)).sort((a, b) => a.sortOrder - b.sortOrder),
+    );
   }
   useEffect(() => {
     loadShelves();

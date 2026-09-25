@@ -13,6 +13,7 @@ export interface Bookmark {
 
 export interface Shelf {
   id: string;
+  sortOrder: number;
   name: string;
   userId: string;
   bookmarks: (Book & Bookmark)[];

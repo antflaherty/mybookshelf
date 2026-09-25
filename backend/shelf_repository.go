@@ -3,7 +3,7 @@ package main
 import "database/sql"
 
 func queryAllShelves(db *sql.DB, userID string) (*[]shelf, error) {
-	sqlString := "SELECT id, name FROM shelf WHERE user_id = ?"
+	sqlString := "SELECT id, sort_order, name FROM shelf WHERE user_id = ?"
 
 	rows, err := db.Query(sqlString, userID)
 	if err != nil {
@@ -14,7 +14,7 @@ func queryAllShelves(db *sql.DB, userID string) (*[]shelf, error) {
 	var allShelves []shelf
 	for rows.Next() {
 		shelf := &shelf{}
-		err := rows.Scan(&shelf.ID, &shelf.Name)
+		err := rows.Scan(&shelf.ID, &shelf.SortOrder, &shelf.Name)
 		if err != nil {
 			return nil, err
 		}

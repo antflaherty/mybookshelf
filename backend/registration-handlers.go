@@ -41,7 +41,7 @@ func registerHandler(db *sql.DB) gin.HandlerFunc {
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "failed to create user",
+				"error": err.Error(),
 			})
 			return
 		}
@@ -113,7 +113,7 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 		return nil, err
 	}
 
-	err = createDefaultShelfForUser(db, user.ID)
+	err = createDefaultShelvesForUser(db, user.ID)
 
 	if err != nil {
 		return nil, err
@@ -122,18 +122,38 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 	return user, nil
 }
 
-func createDefaultShelfForUser(db *sql.DB, userID string) error {
-	shelfID := uuid.NewString()
+func createDefaultShelvesForUser(db *sql.DB, userID string) error {
+	defaultShelves := []shelf{
+		{ID: uuid.NewString(), SortOrder: 0, UserID: userID, Name: "to be read"},
+		{ID: uuid.NewString(), SortOrder: 1, UserID: userID, Name: "currently reading"},
+		{ID: uuid.NewString(), SortOrder: 2, UserID: userID, Name: "finished"},
+	}
 
-	_, err := db.Exec(
-		`INSERT INTO shelf (id, user_id, name)
-			 VALUES (?, ?, ?)`,
-		shelfID,
-		userID,
-		"currently reading",
-	)
+	transaction, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer transaction.Rollback()
 
-	return err
+	stmt, err := transaction.Prepare(`
+		INSERT INTO shelf (id, sort_order, user_id, name)
+		VALUES (?, ?, ?, ?)
+	`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, shelf := range defaultShelves {
+		_, err := stmt.Exec(
+			shelf.ID, shelf.SortOrder, shelf.UserID, shelf.Name,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return transaction.Commit()
 }
 
 func queryUserByEmail(db *sql.DB, email string) (*User, error) {

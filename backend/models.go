@@ -15,6 +15,7 @@ type book struct {
 
 type shelf struct {
 	ID        string              `json:"id"`
+	SortOrder int                 `json:"sortOrder"`
 	UserID    string              `json:"userId"`
 	Name      string              `json:"name"`
 	Bookmarks []qualifiedBookmark `json:"bookmarks"`
