@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 func getBooksHandler() gin.HandlerFunc {
@@ -23,26 +22,27 @@ func getBooksHandler() gin.HandlerFunc {
 	}
 }
 
-type postBookRequest struct {
-	Title     string `json:"title"`
-	Author    string `json:"author"`
-	PageCount int    `json:"pageCount"`
-}
-
 func postBookHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var request postBookRequest
+		var book book
 
-		if err := c.ShouldBindJSON(&request); err != nil {
+		if err := c.ShouldBindJSON(&book); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		bookID := uuid.NewString()
+		bookInDb, err := queryBookById(db, book.ID)
+		if err != nil && err != sql.ErrNoRows {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
 
-		book := &book{ID: bookID, Title: request.Title, Author: request.Author, PageCount: request.PageCount}
+		if bookInDb != nil {
+			c.JSON(http.StatusOK, bookInDb)
+			return
+		}
 
-		err := insertBook(db, book)
+		err = insertBook(db, &book)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())

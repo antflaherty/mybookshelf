@@ -27,6 +27,7 @@ func getShelvesHandler(db *sql.DB) gin.HandlerFunc {
 
 		for i := range *allShelves {
 			shelf := &(*allShelves)[i]
+			shelf.Bookmarks = []qualifiedBookmark{}
 			shelfById[shelf.ID] = shelf
 		}
 
