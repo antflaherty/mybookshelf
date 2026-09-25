@@ -33,10 +33,11 @@ func main() {
 	protected := router.Group("/")
 	protected.Use(auth.AuthMiddleware(config.jwtSecret))
 
-	router.GET("/books", getBooksHandler())
+	protected.GET("/books", getBooksHandler())
 	protected.GET("/bookmarks", getBookmarkHandler(db))
 	protected.GET("/shelves", getShelvesHandler(db))
 
+	protected.POST("/books", postBookHandler(db))
 	protected.POST("/bookmarks", postBookmarkHandler(db))
 
 	router.Run("0.0.0.0:8080")

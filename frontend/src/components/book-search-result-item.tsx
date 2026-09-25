@@ -1,6 +1,7 @@
 import { Book } from "@/lib/definitions";
 import { useTheme } from "@/theme/theme-provider";
-import { Text, View, StyleSheet } from "react-native";
+import { router } from "expo-router";
+import { Text, View, StyleSheet, Pressable } from "react-native";
 
 interface BookSearchResultItemProps {
   book: Book;
@@ -12,14 +13,25 @@ export default function BookSearchResultItem({
   const { theme } = useTheme();
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface }]}>
-      <Text style={{ color: theme.text, fontWeight: "bold" }}>
-        {book.title}
-      </Text>
-      <Text style={{ color: theme.text, fontStyle: "italic" }}>
-        {book.author}
-      </Text>
-    </View>
+    <Pressable
+      onPress={() => {
+        router.push({
+          pathname: "/book",
+          params: {
+            book: JSON.stringify(book),
+          },
+        });
+      }}
+    >
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <Text style={{ color: theme.text, fontWeight: "bold" }}>
+          {book.title}
+        </Text>
+        <Text style={{ color: theme.text, fontStyle: "italic" }}>
+          {book.author}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 

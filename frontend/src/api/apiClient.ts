@@ -1,6 +1,6 @@
 import { Book, Bookmark, Shelf, User } from "@/lib/definitions";
 
-const API_URL = "http://192.168.2.207:8080";
+const API_URL = "http://192.168.0.108:8080";
 const REGISTER_ROUTE = "/auth/register";
 const LOGIN_ROUTE = "/auth/login";
 const BOOKS_ROUTE = "/books";
@@ -89,6 +89,27 @@ export async function searchBooks(
 
   const result = await response.json();
   return result ?? [];
+}
+
+export async function createBook(
+  accessToken: string | null,
+  book: Book,
+): Promise<Book> {
+  const url = `${API_URL}${BOOKS_ROUTE}`;
+
+  const response = await authorizedFetch(
+    accessToken,
+    url,
+    "POST",
+    JSON.stringify(book),
+  );
+
+  if (!response.ok) {
+    console.error(await response.text());
+    throw new Error(`HTTP error! Status: ${response.status}`);
+  }
+
+  return await response.json();
 }
 
 export async function placeBookmark(

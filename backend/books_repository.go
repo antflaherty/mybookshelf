@@ -40,3 +40,12 @@ func queryBookById(db *sql.DB, id string) (*book, error) {
 	}
 	return b, nil
 }
+
+func insertBook(db *sql.DB, book *book) error {
+
+	sqlString := "INSERT INTO books (id, title, author, PageCount) VALUES (?, ?, ?, ?);"
+
+	_, err := db.Exec(sqlString, book.ID, book.Title, book.Author, book.PageCount)
+	return err
+
+}
