@@ -10,7 +10,7 @@ export default function BookmarkList({ bookmarks }: BookmarkListProps) {
   return (
     <View>
       {bookmarks.map((bookmark) => (
-        <BookmarkItem key={bookmark.title} bookmark={bookmark}></BookmarkItem>
+        <BookmarkItem key={bookmark.id} bookmark={bookmark}></BookmarkItem>
       ))}
     </View>
   );
