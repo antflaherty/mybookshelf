@@ -45,19 +45,22 @@ export default function SearchBooksScreen() {
       <Text style={{ color: theme.text, fontStyle: "italic" }}>
         {book.author}
       </Text>
-      <TextInput
-        keyboardType="numeric"
-        placeholder="page count"
-        value={pageCount}
-        style={[
-          styles.input,
-          {
-            backgroundColor: theme.inputBackground,
-            color: theme.inputText,
-          },
-        ]}
-        onChangeText={setPageCount}
-      />
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Text style={{ color: theme.text }}>page count:</Text>
+        <TextInput
+          keyboardType="numeric"
+          placeholder="page count"
+          value={pageCount}
+          style={[
+            styles.input,
+            {
+              backgroundColor: theme.inputBackground,
+              color: theme.inputText,
+            },
+          ]}
+          onChangeText={setPageCount}
+        />
+      </View>
       <ThemedPressable variant="primary" onPress={handleAddToShelfPress}>
         <Text style={{ color: theme.text }}>add to shelf</Text>
       </ThemedPressable>
@@ -76,10 +79,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   input: {
-    margin: 16,
+    margin: 10,
     height: 50,
-    width: 150,
-    borderRadius: 22,
+    width: 60,
+    borderRadius: 19,
     paddingHorizontal: 8,
   },
 });
