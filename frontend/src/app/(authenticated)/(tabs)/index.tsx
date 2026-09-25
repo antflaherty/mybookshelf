@@ -1,5 +1,5 @@
 import { useTheme } from "@/theme/theme-provider";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import ThemedPressable from "@/components/themed-pressable";
 import { router } from "expo-router";
 import { useShelf } from "@/context/shelf-provider";
@@ -16,7 +16,17 @@ export default function Index() {
         <Text style={{ color: theme.text }}>place bookmark</Text>
       </ThemedPressable>
       {shelves.map((shelf) => (
-        <ShelfView shelf={shelf} key={shelf.id}></ShelfView>
+        <Pressable
+          key={shelf.id}
+          onPress={() => {
+            router.push({
+              pathname: "/shelf/[id]",
+              params: { id: shelf.id },
+            });
+          }}
+        >
+          <ShelfView shelf={shelf}></ShelfView>
+        </Pressable>
       ))}
     </View>
   );

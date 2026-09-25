@@ -13,10 +13,17 @@ export default function AuthenticatedLayout() {
         <Stack.Screen
           name="book"
           options={{
-            headerTintColor: theme.background,
             headerBackButtonDisplayMode: "generic",
             headerTransparent: true,
             title: "",
+          }}
+        />
+        <Stack.Screen
+          name="shelf/[id]"
+          options={{
+            headerTintColor: theme.text,
+            headerBackButtonDisplayMode: "generic",
+            headerStyle: { backgroundColor: theme.background },
           }}
         />
       </Stack>
