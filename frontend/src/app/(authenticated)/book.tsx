@@ -9,16 +9,15 @@ import { createBook, placeBookmark } from "@/api/apiClient";
 import { useState } from "react";
 
 export default function BookScreen() {
-  const [pageCount, setPageCount] = useState("0");
-  const { theme } = useTheme();
-  const { accessToken } = useAuth();
-  const { shelves, loadShelves } = useShelf();
-
   const { book: bookParam } = useLocalSearchParams<{
     book: string;
   }>();
 
   const book: Book = JSON.parse(bookParam);
+  const [pageCount, setPageCount] = useState(`${book.pageCount}`);
+  const { theme } = useTheme();
+  const { accessToken } = useAuth();
+  const { shelves, loadShelves } = useShelf();
 
   const isBookOnShelf = shelves.some((shelf) =>
     shelf.bookmarks.some((bookmark) => bookmark.id === book.id),
