@@ -50,13 +50,20 @@ export default function SearchBooksScreen() {
         <ThemedPressable variant="primary" onPress={handleSearchPress}>
           <Text style={{ color: theme.text }}>search</Text>
         </ThemedPressable>
-        {isLoading ? (
-          <ActivityIndicator color={theme.loading} size="large" />
-        ) : (
-          !!books.length && (
-            <BookSearchResultList books={books}></BookSearchResultList>
-          )
-        )}
+        <View
+          style={{
+            height: "70%",
+            justifyContent: "center",
+          }}
+        >
+          {isLoading ? (
+            <ActivityIndicator color={theme.loading} size="large" />
+          ) : (
+            !!books.length && (
+              <BookSearchResultList books={books}></BookSearchResultList>
+            )
+          )}
+        </View>
       </View>
     </CurrentShelfContext.Provider>
   );

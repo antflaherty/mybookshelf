@@ -12,7 +12,7 @@ export default function BookSearchResultList({
   return (
     <View
       style={{
-        flex: 0.8,
+        flex: 1,
         width: "100%",
       }}
     >
