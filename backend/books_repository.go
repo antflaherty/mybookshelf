@@ -31,6 +31,7 @@ func queryAllBooks(db *sql.DB) (*[]book, error) {
 }
 
 func queryBookById(db *sql.DB, id string) (*book, error) {
+	// something wrong here - didn't select a book when inserting from a different user
 	sqlString := "SELECT * FROM Books WHERE Id = ?"
 	row := db.QueryRow(sqlString, id)
 	b := &book{}

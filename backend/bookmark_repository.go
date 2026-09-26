@@ -5,7 +5,7 @@ import (
 )
 
 func queryAllBookmarks(db *sql.DB, userID string) (*[]qualifiedBookmark, error) {
-	sqlString := "SELECT Bookmark.shelf_id, Bookmark.BookId, Bookmark.CurrentPage, Books.Title, Books.Author, Books.PageCount FROM Bookmark INNER JOIN Books ON Bookmark.BookId=Books.Id WHERE user_id = ?"
+	sqlString := "SELECT Bookmark.shelf_id, Bookmark.book_id, Bookmark.current_page, Books.Title, Books.Author, Books.PageCount FROM Bookmark INNER JOIN Books ON Bookmark.book_id=Books.Id WHERE user_id = ?"
 
 	rows, err := db.Query(sqlString, userID)
 	if err != nil {
@@ -32,7 +32,7 @@ func queryAllBookmarks(db *sql.DB, userID string) (*[]qualifiedBookmark, error) 
 }
 
 func queryBookmarkByBookIdAndUserId(db *sql.DB, bookId string, userID string) (*bookmark, error) {
-	sqlString := "SELECT bookId, currentPage FROM Bookmark WHERE BookId = ? AND user_id = ?"
+	sqlString := "SELECT book_id, current_page FROM bookmark WHERE book_id = ? AND user_id = ?"
 	row := db.QueryRow(sqlString, bookId, userID)
 	bm := &bookmark{}
 	err := row.Scan(&bm.BookID, &bm.CurrentPage)
@@ -53,13 +53,13 @@ func upsertBookmark(db *sql.DB, bm *bookmark) error {
 	}
 
 	if existingBookmark == nil {
-		sqlString := "INSERT INTO Bookmark (user_id, shelf_id, BookId, CurrentPage) VALUES (?, ?, ?, ?);"
+		sqlString := "INSERT INTO bookmark (user_id, shelf_id, book_id, current_page) VALUES (?, ?, ?, ?);"
 
 		_, err := db.Exec(sqlString, bm.UserID, bm.ShelfID, bm.BookID, bm.CurrentPage)
 		return err
 	}
 
-	sqlString := `UPDATE Bookmark SET shelf_id = ?, CurrentPage = ?WHERE BookId = ? AND user_id = ?;`
+	sqlString := `UPDATE bookmark SET shelf_id = ?, current_page = ?WHERE book_id = ? AND user_id = ?;`
 	_, err = db.Exec(sqlString, bm.ShelfID, bm.CurrentPage, bm.BookID, bm.UserID)
 	return err
 }

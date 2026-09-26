@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -30,12 +31,14 @@ func postBookHandler(db *sql.DB) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		fmt.Println(book)
 
 		bookInDb, err := queryBookById(db, book.ID)
 		if err != nil && err != sql.ErrNoRows {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
+		fmt.Println(bookInDb)
 
 		if bookInDb != nil {
 			c.JSON(http.StatusOK, bookInDb)
