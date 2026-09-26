@@ -4,10 +4,12 @@ import BookSearchResultItem from "./book-search-result-item";
 
 interface BookSearchResultListProps {
   books: Book[];
+  onBookSelected: () => void;
 }
 
 export default function BookSearchResultList({
   books,
+  onBookSelected,
 }: BookSearchResultListProps) {
   return (
     <View
@@ -23,7 +25,10 @@ export default function BookSearchResultList({
         data={books}
         keyExtractor={(book) => book.id}
         renderItem={({ item }) => (
-          <BookSearchResultItem book={item}></BookSearchResultItem>
+          <BookSearchResultItem
+            book={item}
+            onBookSelected={onBookSelected}
+          ></BookSearchResultItem>
         )}
       />
     </View>

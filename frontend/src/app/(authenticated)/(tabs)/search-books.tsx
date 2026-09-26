@@ -6,14 +6,14 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import ThemedPressable from "@/components/themed-pressable";
 import { searchBooks } from "@/api/apiClient";
 import { useAuth } from "@/auth/auth-context";
 import { Book } from "@/lib/definitions";
 import { CurrentShelfContext } from "@/context/current-shelf-provider";
 import BookSearchResultList from "@/components/book-search-result-list";
-import { useLocalSearchParams } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 
 export default function SearchBooksScreen() {
   const { shelfId } = useLocalSearchParams<{
@@ -31,6 +31,21 @@ export default function SearchBooksScreen() {
     setBooks(searchBookResult);
     setIsLoading(false);
   }
+
+  const preserveSearch = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (!preserveSearch.current) {
+          setTitle("");
+          setBooks([]);
+        }
+
+        preserveSearch.current = false;
+      };
+    }, []),
+  );
 
   return (
     <CurrentShelfContext.Provider value={shelfId}>
@@ -60,7 +75,12 @@ export default function SearchBooksScreen() {
             <ActivityIndicator color={theme.loading} size="large" />
           ) : (
             !!books.length && (
-              <BookSearchResultList books={books}></BookSearchResultList>
+              <BookSearchResultList
+                books={books}
+                onBookSelected={() => {
+                  preserveSearch.current = true;
+                }}
+              ></BookSearchResultList>
             )
           )}
         </View>

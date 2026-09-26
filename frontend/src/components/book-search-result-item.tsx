@@ -6,10 +6,12 @@ import { Text, View, StyleSheet, Pressable } from "react-native";
 
 interface BookSearchResultItemProps {
   book: Book;
+  onBookSelected: () => void;
 }
 
 export default function BookSearchResultItem({
   book,
+  onBookSelected,
 }: BookSearchResultItemProps) {
   const { theme } = useTheme();
   const shelfId = useCurrentShelf();
@@ -17,6 +19,7 @@ export default function BookSearchResultItem({
   return (
     <Pressable
       onPress={() => {
+        onBookSelected();
         router.push({
           pathname: "/book",
           params: {
