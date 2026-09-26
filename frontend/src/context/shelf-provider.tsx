@@ -34,8 +34,14 @@ export default function ShelfProvider({ children }: { children: ReactNode }) {
     );
   }
   useEffect(() => {
-    loadShelves();
-  }, []);
+    async function load() {
+      const shelves = await getShelves(accessToken);
+
+      setShelves(shelves.sort((a, b) => a.sortOrder - b.sortOrder));
+    }
+
+    load();
+  }, [accessToken]);
 
   return (
     <ShelfContext.Provider
