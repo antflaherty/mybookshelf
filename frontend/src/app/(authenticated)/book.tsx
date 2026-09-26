@@ -18,7 +18,7 @@ export default function BookScreen() {
   const [pageCount, setPageCount] = useState(`${book.pageCount}`);
   const { theme } = useTheme();
   const { accessToken } = useAuth();
-  const { shelves, toBeRead, loadShelves } = useShelf();
+  const { shelves, toBeRead, currentlyReading, loadShelves } = useShelf();
 
   const bookmark = shelves
     .map((shelf) => shelf.bookmarks.find((bookmark) => bookmark.id === book.id))
@@ -50,6 +50,20 @@ export default function BookScreen() {
     router.push("/");
   }
 
+  async function handleStartReadingPress() {
+    await placeBookmark(accessToken, {
+      ...bookmark!,
+      shelfId: currentlyReading.id,
+    });
+    await loadShelves();
+
+    router.push("/");
+  }
+
+  const showAddToShelf = !bookmark;
+  const showStartReading = !!bookmark && shelfId === toBeRead.id;
+  const showPlaceBookmark = !!bookmark && shelfId === currentlyReading.id;
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={{ color: theme.text, fontWeight: "bold" }}>
@@ -74,13 +88,19 @@ export default function BookScreen() {
           onChangeText={setPageCount}
         />
       </View>
-      {!!bookmark ? (
+      {showPlaceBookmark && (
         <ThemedPressable variant="primary" onPress={handlePlaceBookmarkPress}>
           <Text style={{ color: theme.text }}>place bookmark</Text>
         </ThemedPressable>
-      ) : (
+      )}
+      {showAddToShelf && (
         <ThemedPressable variant="primary" onPress={handleAddToShelfPress}>
           <Text style={{ color: theme.text }}>add to shelf</Text>
+        </ThemedPressable>
+      )}
+      {showStartReading && (
+        <ThemedPressable variant="primary" onPress={handleStartReadingPress}>
+          <Text style={{ color: theme.text }}>start reading</Text>
         </ThemedPressable>
       )}
     </View>
