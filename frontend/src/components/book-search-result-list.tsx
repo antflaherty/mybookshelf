@@ -13,7 +13,7 @@ export default function BookSearchResultList({
     <View
       style={{
         flex: 1,
-        width: "100%",
+        width: "80%",
       }}
     >
       <FlatList
