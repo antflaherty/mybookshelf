@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
-import { User } from "@/lib/definitions";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
