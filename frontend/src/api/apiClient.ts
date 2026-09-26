@@ -59,7 +59,7 @@ export async function getShelves(accessToken: string | null): Promise<Shelf[]> {
 
 export async function getBookmarks(
   accessToken: string | null,
-): Promise<(Book & Bookmark)[]> {
+): Promise<(Bookmark)[]> {
   const url = API_URL + BOOKMARKS_ROUTE;
   const response = await authorizedFetch(accessToken, url, "GET");
 
@@ -112,9 +112,15 @@ export async function createBook(
   return await response.json();
 }
 
+export interface PlaceBookmarkRequest {
+  id: string;
+  shelfId: string;
+  currentPage: number;
+}
+
 export async function placeBookmark(
   accessToken: string | null,
-  bookmark: Bookmark,
+  request: PlaceBookmarkRequest,
 ): Promise<void> {
   const url = `${API_URL}${BOOKMARKS_ROUTE}`;
 
@@ -122,11 +128,7 @@ export async function placeBookmark(
     accessToken,
     url,
     "POST",
-    JSON.stringify({
-      ...bookmark,
-      bookId: bookmark.id,
-      shelfId: bookmark.shelfId,
-    }),
+    JSON.stringify(request),
   );
 
   if (!response.ok) {

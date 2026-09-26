@@ -18,7 +18,7 @@ func QueryAllBookmarks(db *sql.DB, userID string) (*[]domain.QualifiedBookmark, 
 	var allBookmarks []domain.QualifiedBookmark
 	for rows.Next() {
 		bookmark := &domain.QualifiedBookmark{}
-		err := rows.Scan(&bookmark.ShelfID, &bookmark.Book.ID, &bookmark.CurrentPage, &bookmark.Title, &bookmark.Author, &bookmark.PageCount)
+		err := rows.Scan(&bookmark.ShelfID, &bookmark.Book.ID, &bookmark.CurrentPage, &bookmark.Book.Title, &bookmark.Book.Author, &bookmark.Book.PageCount)
 		if err != nil {
 			return nil, err
 		}

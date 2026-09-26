@@ -8,7 +8,7 @@ import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import ThemedPressable from "@/components/themed-pressable";
-import { Book, Bookmark } from "@/lib/definitions";
+import { Bookmark } from "@/lib/definitions";
 
 const BookmarkSchema = z.object({
   id: z.string().min(1),
@@ -21,12 +21,12 @@ export default function PlaceBookmarkScreen() {
     bookmark: string;
   }>();
 
-  let bookmark: (Book & Bookmark) | undefined;
+  let bookmark: Bookmark | undefined;
   if (bookmarkParam !== undefined) {
     bookmark = JSON.parse(bookmarkParam);
   }
 
-  const [id, setId] = useState(bookmark?.id || "");
+  const [id, setId] = useState(bookmark?.book.id || "");
   const [currentPage, setCurrentPage] = useState(
     !!bookmark ? `${bookmark.currentPage}` : "",
   );
@@ -41,8 +41,8 @@ export default function PlaceBookmarkScreen() {
   const { currentlyReading, finished, loadShelves } = useShelf();
 
   const bookDropdownData =
-    currentlyReading?.bookmarks.map((book) => {
-      return { value: book.id, label: book.title };
+    currentlyReading?.bookmarks.map((bm) => {
+      return { value: bm.book.id, label: bm.book.title };
     }) || [];
 
   function clearAndGoBack() {
@@ -76,8 +76,8 @@ export default function PlaceBookmarkScreen() {
       let alertMessage = "bookmark placed";
 
       const pageCount = currentlyReading.bookmarks.find(
-        ({ id: bookId }) => bookId === id,
-      )?.pageCount;
+        ({ book: { id: bookId } }) => bookId === id,
+      )?.book.pageCount;
       if (pageCount === bookmark.currentPage) {
         bookmark.shelfId = finished.id;
         alertMessage = "you finished a book!";

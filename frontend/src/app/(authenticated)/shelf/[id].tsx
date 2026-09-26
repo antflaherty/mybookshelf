@@ -21,7 +21,7 @@ export default function ShelfScreen() {
             <Text style={{ color: theme.text }}>shelf not found</Text>
           ) : (
             <BookSearchResultList
-              books={shelf.bookmarks}
+              books={shelf.bookmarks.map((bookmark) => bookmark.book)}
             ></BookSearchResultList>
           )}
           <ThemedPressable>

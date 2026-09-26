@@ -6,9 +6,9 @@ export interface Book {
 }
 
 export interface Bookmark {
-  id: string;
   shelfId: string;
   currentPage: number;
+  book: Book;
 }
 
 export interface Shelf {
@@ -16,7 +16,7 @@ export interface Shelf {
   sortOrder: number;
   name: string;
   userId: string;
-  bookmarks: (Book & Bookmark)[];
+  bookmarks: (Bookmark)[];
 }
 
 export interface User {

@@ -1,9 +1,9 @@
-import { Book, Bookmark } from "@/lib/definitions";
+import { Bookmark } from "@/lib/definitions";
 import { useTheme } from "@/theme/theme-provider";
 import { Text, View } from "react-native";
 
 interface BookmarkItemProps {
-  bookmark: Book & Bookmark;
+  bookmark: Bookmark;
 }
 
 export default function BookmarkItem({ bookmark }: BookmarkItemProps) {
@@ -12,7 +12,8 @@ export default function BookmarkItem({ bookmark }: BookmarkItemProps) {
   return (
     <View>
       <Text style={{ color: theme.text }}>
-        {bookmark.title}: {bookmark.currentPage} / {bookmark.pageCount}
+        {bookmark.book.title}: {bookmark.currentPage} /{" "}
+        {bookmark.book.pageCount}
       </Text>
     </View>
   );

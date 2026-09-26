@@ -9,13 +9,13 @@ type Book struct {
 
 type Bookmark struct {
 	UserID      string
-	ShelfID     string
-	BookID      string `json:"bookId"`
-	CurrentPage int    `json:"currentPage"`
+	ShelfID     string `json:"shelfId"`
+	BookID      string
+	CurrentPage int `json:"currentPage"`
 }
 
 type QualifiedBookmark struct {
-	Book
+	Book Book `json:"book"`
 	Bookmark
 }
 

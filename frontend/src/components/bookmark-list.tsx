@@ -1,16 +1,16 @@
 import BookmarkItem from "@/components/bookmark-item";
-import { Book, Bookmark } from "@/lib/definitions";
+import { Bookmark } from "@/lib/definitions";
 import { View } from "react-native";
 
 interface BookmarkListProps {
-  bookmarks: (Book & Bookmark)[];
+  bookmarks: Bookmark[];
 }
 
 export default function BookmarkList({ bookmarks }: BookmarkListProps) {
   return (
     <View>
       {bookmarks.map((bookmark) => (
-        <BookmarkItem key={bookmark.id} bookmark={bookmark}></BookmarkItem>
+        <BookmarkItem key={bookmark.book.id} bookmark={bookmark}></BookmarkItem>
       ))}
     </View>
   );
