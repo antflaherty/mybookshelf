@@ -113,7 +113,7 @@ export async function createBook(
 }
 
 export interface PlaceBookmarkRequest {
-  id: string;
+  bookId: string;
   shelfId: string;
   currentPage: number;
 }

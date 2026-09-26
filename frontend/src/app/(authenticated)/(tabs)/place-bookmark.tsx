@@ -11,7 +11,7 @@ import ThemedPressable from "@/components/themed-pressable";
 import { Bookmark } from "@/lib/definitions";
 
 const BookmarkSchema = z.object({
-  id: z.string().min(1),
+  bookId: z.string().min(1),
   currentPage: z.coerce.number().min(1),
   shelfId: z.string().min(1),
 });
@@ -66,7 +66,7 @@ export default function PlaceBookmarkScreen() {
       clearErrors();
 
       const rawBookmark = {
-        id,
+        bookId: id,
         currentPage,
         shelfId: currentlyReading.id,
       };
