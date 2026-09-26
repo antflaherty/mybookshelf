@@ -9,8 +9,15 @@ import {
   useState,
 } from "react";
 
+const TO_BE_READ = "to be read";
+const CURRENTLY_READING = "currently reading";
+const FINISHED = "finished";
+
 interface ShelfContextValue {
   shelves: Shelf[];
+  toBeRead: Shelf;
+  currentlyReading: Shelf;
+  finished: Shelf;
   loadShelves: () => Promise<void>;
 }
 
@@ -34,6 +41,11 @@ export default function ShelfProvider({ children }: { children: ReactNode }) {
     <ShelfContext.Provider
       value={{
         shelves,
+        toBeRead: shelves.find(({ name }) => name === TO_BE_READ)!,
+        currentlyReading: shelves.find(
+          ({ name }) => name === CURRENTLY_READING,
+        )!,
+        finished: shelves.find(({ name }) => name === FINISHED)!,
         loadShelves,
       }}
     >
