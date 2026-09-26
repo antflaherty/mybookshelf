@@ -1,5 +1,5 @@
 import { useTheme } from "@/theme/theme-provider";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import ThemedPressable from "@/components/themed-pressable";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
@@ -7,6 +7,7 @@ import { Book } from "@/lib/definitions";
 import { router, useLocalSearchParams } from "expo-router";
 import { createBook, placeBookmark } from "@/api/apiClient";
 import { useState } from "react";
+import AntDesign from "@react-native-vector-icons/ant-design";
 
 export default function BookScreen() {
   const { book: bookParam, shelfId } = useLocalSearchParams<{
@@ -26,6 +27,8 @@ export default function BookScreen() {
   const [pageCount, setPageCount] = useState(
     `${bookmark?.book.pageCount || book.pageCount}`,
   );
+  const [isEditingPageCount, setIsEditingPageCount] = useState(false);
+
   const { theme } = useTheme();
   const { accessToken } = useAuth();
 
@@ -85,22 +88,43 @@ export default function BookScreen() {
       <Text style={{ color: theme.text, fontStyle: "italic" }}>
         {book.author}
       </Text>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={{ color: theme.text }}>page count:</Text>
-        <TextInput
-          keyboardType="numeric"
-          placeholder="page count"
-          value={pageCount}
-          style={[
-            styles.input,
-            {
-              backgroundColor: theme.inputBackground,
-              color: theme.inputText,
-            },
-          ]}
-          onChangeText={setPageCount}
-        />
-      </View>
+
+      {isEditingPageCount ? (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <TextInput
+            keyboardType="numeric"
+            placeholder="page count"
+            value={pageCount}
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.inputBackground,
+                color: theme.inputText,
+              },
+            ]}
+            onChangeText={setPageCount}
+          />
+          <Pressable
+            onPress={() => {
+              setIsEditingPageCount(false);
+            }}
+          >
+            <AntDesign name="check" style={{ color: theme.text }}></AntDesign>
+          </Pressable>
+        </View>
+      ) : (
+        <Text style={{ color: theme.text }}>
+          {pageCount} pages{" "}
+          <Pressable
+            onPress={() => {
+              setIsEditingPageCount(true);
+            }}
+          >
+            <AntDesign name="edit" style={{ color: theme.text }}></AntDesign>
+          </Pressable>
+        </Text>
+      )}
+
       {showPlaceBookmark && (
         <ThemedPressable variant="primary" onPress={handlePlaceBookmarkPress}>
           <Text style={{ color: theme.text }}>place bookmark</Text>
