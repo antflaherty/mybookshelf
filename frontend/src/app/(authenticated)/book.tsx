@@ -73,7 +73,12 @@ export default function BookScreen() {
 
     await loadShelves();
 
-    router.push("/");
+    router.push({
+      pathname: "/place-bookmark",
+      params: {
+        bookmark: JSON.stringify(bookmark),
+      },
+    });
   }
 
   const showAddToShelf = !bookmark;
