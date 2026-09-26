@@ -84,6 +84,7 @@ export async function searchBooks(
   const response = await authorizedFetch(accessToken, url, "GET");
 
   if (!response.ok) {
+    console.error(await response.text());
     throw new Error(`Response status: ${response.status}`);
   }
 

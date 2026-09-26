@@ -9,9 +9,10 @@ import (
 )
 
 type openLibraryBookResponse struct {
-	Key         string   `json:"key"`
-	Title       string   `json:"title"`
-	AuthorNames []string `json:"author_name"`
+	Key                 string   `json:"key"`
+	Title               string   `json:"title"`
+	AuthorNames         []string `json:"author_name"`
+	NumberOfPagesMedian int      `json:"number_of_pages_median"`
 }
 
 type openLibrarySearchResponse struct {
@@ -26,7 +27,7 @@ func (service OpenLibrarySearchService) SearchBooksByTitle(title string) ([]doma
 
 	params := url.Values{}
 	params.Set("q", "title:"+title)
-	params.Set("fields", "key,title,author_name")
+	params.Set("fields", "key,title,author_name,number_of_pages_median")
 
 	requestURL := baseURL + "?" + params.Encode()
 
@@ -53,7 +54,8 @@ func (service OpenLibrarySearchService) SearchBooksByTitle(title string) ([]doma
 		if len(bookResponse.AuthorNames) > 0 {
 			author = bookResponse.AuthorNames[0]
 		}
-		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: 0}
+
+		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian}
 		allBooks[i] = book
 	}
 
