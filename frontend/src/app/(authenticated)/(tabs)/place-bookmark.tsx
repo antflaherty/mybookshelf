@@ -57,11 +57,34 @@ export default function PlaceBookmarkScreen() {
     setCurrentPageError("");
   }
 
-  function handleCancelPress() {
+  async function handleBookCompletedPress() {
+    if (!id || !currentlyReading) {
+      setTitleError("choose a book");
+      return;
+    }
+    clearErrors();
+
+    const currentBookmark = currentlyReading.bookmarks.find(
+      ({ book }) => book.id === id,
+    );
+
+    if (!currentBookmark) {
+      throw new Error("book not found on shelf");
+    }
+
+    const placeBookMarkRequest = {
+      bookId: id,
+      currentPage: currentBookmark?.book.pageCount,
+      shelfId: finished.id,
+    };
+
+    await placeBookmark(accessToken, placeBookMarkRequest);
+    await loadShelves();
+
     clearAndGoBack();
   }
 
-  async function handleSubmitPress() {
+  async function handlePlaceBookmarkPress() {
     try {
       clearErrors();
 
@@ -156,11 +179,11 @@ export default function PlaceBookmarkScreen() {
         <Text style={{ color: theme.errorText }}>{currentPageError}</Text>
       )}
       <View style={{ flexDirection: "row" }}>
-        <ThemedPressable variant="primary" onPress={handleSubmitPress}>
-          <Text style={{ color: theme.text }}>Submit</Text>
+        <ThemedPressable variant="primary" onPress={handlePlaceBookmarkPress}>
+          <Text style={{ color: theme.text }}>place bookmark</Text>
         </ThemedPressable>
-        <ThemedPressable variant="secondary" onPress={handleCancelPress}>
-          <Text style={{ color: theme.text }}>Cancel</Text>
+        <ThemedPressable variant="secondary" onPress={handleBookCompletedPress}>
+          <Text style={{ color: theme.text }}>book completed</Text>
         </ThemedPressable>
       </View>
     </View>
