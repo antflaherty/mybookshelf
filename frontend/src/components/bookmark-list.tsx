@@ -1,4 +1,4 @@
-import BookmarkItem from "@/components/reading-progress-item";
+import BookmarkItem from "@/components/bookmark-item";
 import { Book, Bookmark } from "@/lib/definitions";
 import { View } from "react-native";
 

@@ -1,7 +1,7 @@
 import { Shelf } from "@/lib/definitions";
 import { useTheme } from "@/theme/theme-provider";
 import { View, Text, StyleSheet } from "react-native";
-import BookmarkList from "./reading-progress-list";
+import BookmarkList from "./bookmark-list";
 
 interface ShelfCardProps {
   shelf: Shelf;
