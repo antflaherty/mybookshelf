@@ -1,7 +1,6 @@
 import { Stack } from "expo-router";
 import ThemeProvider from "@/theme/theme-provider";
-import AuthProvider from "@/auth/auth-context";
-import { useAuth } from "@/auth/auth-context";
+import AuthProvider, { useAuth } from "@/auth/auth-context";
 
 export default function RootLayout() {
   return (
