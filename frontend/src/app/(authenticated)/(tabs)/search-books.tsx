@@ -5,9 +5,14 @@ import ThemedPressable from "@/components/themed-pressable";
 import { searchBooks } from "@/api/apiClient";
 import { useAuth } from "@/auth/auth-context";
 import { Book } from "@/lib/definitions";
+import { CurrentShelfContext } from "@/context/current-shelf-provider";
 import BookSearchResultList from "@/components/book-search-result-list";
+import { useLocalSearchParams } from "expo-router";
 
 export default function SearchBooksScreen() {
+  const { shelfId } = useLocalSearchParams<{
+    shelfId: string;
+  }>();
   const [title, setTitle] = useState("");
   const [books, setBooks] = useState<Book[]>([]);
   const { theme } = useTheme();
@@ -18,26 +23,28 @@ export default function SearchBooksScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <TextInput
-        placeholder="title"
-        value={title}
-        style={[
-          styles.input,
-          {
-            backgroundColor: theme.inputBackground,
-            color: theme.inputText,
-          },
-        ]}
-        onChangeText={setTitle}
-      />
-      <ThemedPressable variant="primary" onPress={handleSearchPress}>
-        <Text style={{ color: theme.text }}>search</Text>
-      </ThemedPressable>
-      {!!books.length && (
-        <BookSearchResultList books={books}></BookSearchResultList>
-      )}
-    </View>
+    <CurrentShelfContext.Provider value={shelfId}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <TextInput
+          placeholder="title"
+          value={title}
+          style={[
+            styles.input,
+            {
+              backgroundColor: theme.inputBackground,
+              color: theme.inputText,
+            },
+          ]}
+          onChangeText={setTitle}
+        />
+        <ThemedPressable variant="primary" onPress={handleSearchPress}>
+          <Text style={{ color: theme.text }}>search</Text>
+        </ThemedPressable>
+        {!!books.length && (
+          <BookSearchResultList books={books}></BookSearchResultList>
+        )}
+      </View>
+    </CurrentShelfContext.Provider>
   );
 }
 const styles = StyleSheet.create({

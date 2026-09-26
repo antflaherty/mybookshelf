@@ -17,6 +17,7 @@ export default function Index() {
       </ThemedPressable>
       {shelves.map((shelf) => (
         <Pressable
+          style={{ width: "100%", alignItems: "center" }}
           key={shelf.id}
           onPress={() => {
             router.push({

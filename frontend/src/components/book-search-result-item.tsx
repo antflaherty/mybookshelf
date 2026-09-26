@@ -1,5 +1,6 @@
 import { Book } from "@/lib/definitions";
 import { useTheme } from "@/theme/theme-provider";
+import { useCurrentShelf } from "@/context/current-shelf-provider";
 import { router } from "expo-router";
 import { Text, View, StyleSheet, Pressable } from "react-native";
 
@@ -11,6 +12,7 @@ export default function BookSearchResultItem({
   book,
 }: BookSearchResultItemProps) {
   const { theme } = useTheme();
+  const shelfId = useCurrentShelf();
 
   return (
     <Pressable
@@ -19,6 +21,7 @@ export default function BookSearchResultItem({
           pathname: "/book",
           params: {
             book: JSON.stringify(book),
+            shelfId,
           },
         });
       }}

@@ -9,15 +9,16 @@ import { createBook, placeBookmark } from "@/api/apiClient";
 import { useState } from "react";
 
 export default function BookScreen() {
-  const { book: bookParam } = useLocalSearchParams<{
+  const { book: bookParam, shelfId } = useLocalSearchParams<{
     book: string;
+    shelfId: string;
   }>();
 
   const book: Book = JSON.parse(bookParam);
   const [pageCount, setPageCount] = useState(`${book.pageCount}`);
   const { theme } = useTheme();
   const { accessToken } = useAuth();
-  const { shelves, loadShelves } = useShelf();
+  const { shelves, toBeRead, loadShelves } = useShelf();
 
   const bookmark = shelves
     .map((shelf) => shelf.bookmarks.find((bookmark) => bookmark.id === book.id))
@@ -41,7 +42,7 @@ export default function BookScreen() {
     const bookmark = {
       id: bookWithId.id,
       currentPage: 0,
-      shelfId: shelves[0].id,
+      shelfId: shelfId || toBeRead.id,
     };
     await placeBookmark(accessToken, bookmark);
     await loadShelves();
