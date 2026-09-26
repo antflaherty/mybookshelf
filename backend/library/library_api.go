@@ -18,7 +18,10 @@ type openLibrarySearchResponse struct {
 	Docs []openLibraryBookResponse `json:"docs"`
 }
 
-func SearchBooksByTitle(title string) ([]domain.Book, error) {
+type OpenLibrarySearchService struct {
+}
+
+func (service OpenLibrarySearchService) SearchBooksByTitle(title string) ([]domain.Book, error) {
 	baseURL := "https://openlibrary.org/search.json"
 
 	params := url.Values{}
@@ -55,4 +58,8 @@ func SearchBooksByTitle(title string) ([]domain.Book, error) {
 	}
 
 	return allBooks, nil
+}
+
+func NewOpenLibrarySearchService() *OpenLibrarySearchService {
+	return &OpenLibrarySearchService{}
 }

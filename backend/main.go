@@ -5,6 +5,7 @@ import (
 	"github.com/antflaherty/mybookshelf/backend/bookmarks"
 	"github.com/antflaherty/mybookshelf/backend/books"
 	"github.com/antflaherty/mybookshelf/backend/config"
+	"github.com/antflaherty/mybookshelf/backend/library"
 	"github.com/antflaherty/mybookshelf/backend/shelves"
 	"github.com/gin-gonic/gin"
 
@@ -37,7 +38,7 @@ func main() {
 	protected := router.Group("/")
 	protected.Use(auth.AuthMiddleware(config.JwtSecret))
 
-	protected.GET("/books", books.GetBooksHandler())
+	protected.GET("/books", books.GetBooksHandler(library.NewOpenLibrarySearchService()))
 	protected.GET("/bookmarks", bookmarks.GetBookmarkHandler(db))
 	protected.GET("/shelves", shelves.GetShelvesHandler(db))
 

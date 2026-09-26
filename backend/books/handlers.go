@@ -6,15 +6,14 @@ import (
 	"net/http"
 
 	"github.com/antflaherty/mybookshelf/backend/domain"
-	"github.com/antflaherty/mybookshelf/backend/library"
 	"github.com/gin-gonic/gin"
 )
 
-func GetBooksHandler() gin.HandlerFunc {
+func GetBooksHandler(searchService BookSearchProvider) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		title := c.Query("title")
 
-		books, err := library.SearchBooksByTitle(title)
+		books, err := searchService.SearchBooksByTitle(title)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
