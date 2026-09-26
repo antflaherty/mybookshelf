@@ -3,11 +3,11 @@ import { useTheme } from "@/theme/theme-provider";
 import { View, Text, StyleSheet } from "react-native";
 import BookmarkList from "./reading-progress-list";
 
-interface ShelfCard {
+interface ShelfCardProps {
   shelf: Shelf;
 }
 
-export default function ShelfCard({ shelf }: ShelfCard) {
+export default function ShelfCard({ shelf }: ShelfCardProps) {
   const { theme } = useTheme();
 
   return (
