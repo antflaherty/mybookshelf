@@ -16,7 +16,8 @@ export default function BookScreen() {
   }>();
   const book: Book = JSON.parse(bookParam);
 
-  const { shelves, toBeRead, finished, loadShelves } = useShelf();
+  const { shelves, toBeRead, currentlyReading, finished, loadShelves } =
+    useShelf();
 
   const bookmark = shelves
     .map((shelf) =>
@@ -66,7 +67,7 @@ export default function BookScreen() {
     const placeBookmarkRequest = {
       bookId: bookmark.book.id,
       currentPage: 0,
-      shelfId: shelfId || toBeRead.id,
+      shelfId: currentlyReading.id,
     };
     await placeBookmark(accessToken, placeBookmarkRequest);
 
