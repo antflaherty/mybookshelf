@@ -4,7 +4,7 @@ import BookSearchResultItem from "./book-search-result-item";
 
 interface BookSearchResultListProps {
   books: Book[];
-  onBookSelected: () => void;
+  onBookSelected?: () => void;
 }
 
 export default function BookSearchResultList({

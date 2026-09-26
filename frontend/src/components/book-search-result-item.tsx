@@ -6,7 +6,7 @@ import { Text, View, StyleSheet, Pressable } from "react-native";
 
 interface BookSearchResultItemProps {
   book: Book;
-  onBookSelected: () => void;
+  onBookSelected?: () => void;
 }
 
 export default function BookSearchResultItem({
@@ -19,7 +19,7 @@ export default function BookSearchResultItem({
   return (
     <Pressable
       onPress={() => {
-        onBookSelected();
+        onBookSelected?.();
         router.push({
           pathname: "/book",
           params: {
