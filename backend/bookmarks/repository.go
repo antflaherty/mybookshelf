@@ -1,10 +1,12 @@
-package main
+package bookmarks
 
 import (
 	"database/sql"
+
+	"github.com/antflaherty/mybookshelf/backend/domain"
 )
 
-func queryAllBookmarks(db *sql.DB, userID string) (*[]qualifiedBookmark, error) {
+func QueryAllBookmarks(db *sql.DB, userID string) (*[]domain.QualifiedBookmark, error) {
 	sqlString := "SELECT Bookmark.shelf_id, Bookmark.book_id, Bookmark.current_page, Books.Title, Books.Author, Books.PageCount FROM Bookmark INNER JOIN Books ON Bookmark.book_id=Books.Id WHERE user_id = ?"
 
 	rows, err := db.Query(sqlString, userID)
@@ -13,10 +15,10 @@ func queryAllBookmarks(db *sql.DB, userID string) (*[]qualifiedBookmark, error) 
 	}
 	defer rows.Close()
 
-	var allBookmarks []qualifiedBookmark
+	var allBookmarks []domain.QualifiedBookmark
 	for rows.Next() {
-		bookmark := &qualifiedBookmark{}
-		err := rows.Scan(&bookmark.ShelfID, &bookmark.book.ID, &bookmark.CurrentPage, &bookmark.Title, &bookmark.Author, &bookmark.PageCount)
+		bookmark := &domain.QualifiedBookmark{}
+		err := rows.Scan(&bookmark.ShelfID, &bookmark.Book.ID, &bookmark.CurrentPage, &bookmark.Title, &bookmark.Author, &bookmark.PageCount)
 		if err != nil {
 			return nil, err
 		}
@@ -31,10 +33,10 @@ func queryAllBookmarks(db *sql.DB, userID string) (*[]qualifiedBookmark, error) 
 	return &allBookmarks, nil
 }
 
-func queryBookmarkByBookIdAndUserId(db *sql.DB, bookId string, userID string) (*bookmark, error) {
+func queryBookmarkByBookIdAndUserId(db *sql.DB, bookId string, userID string) (*domain.Bookmark, error) {
 	sqlString := "SELECT book_id, current_page FROM bookmark WHERE book_id = ? AND user_id = ?"
 	row := db.QueryRow(sqlString, bookId, userID)
-	bm := &bookmark{}
+	bm := &domain.Bookmark{}
 	err := row.Scan(&bm.BookID, &bm.CurrentPage)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -45,7 +47,7 @@ func queryBookmarkByBookIdAndUserId(db *sql.DB, bookId string, userID string) (*
 	return bm, nil
 }
 
-func upsertBookmark(db *sql.DB, bm *bookmark) error {
+func upsertBookmark(db *sql.DB, bm *domain.Bookmark) error {
 	existingBookmark, err := queryBookmarkByBookIdAndUserId(db, bm.BookID, bm.UserID)
 
 	if err != nil {

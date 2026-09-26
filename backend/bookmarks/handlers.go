@@ -1,15 +1,17 @@
-package main
+package bookmarks
 
 import (
 	"database/sql"
 	"net/http"
 
+	"github.com/antflaherty/mybookshelf/backend/books"
+	"github.com/antflaherty/mybookshelf/backend/domain"
 	"github.com/gin-gonic/gin"
 )
 
-func getBookmarkHandler(db *sql.DB) gin.HandlerFunc {
+func GetBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		allBookmark, err := queryAllBookmarks(db, c.GetString("userID"))
+		allBookmark, err := QueryAllBookmarks(db, c.GetString("userID"))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -25,7 +27,7 @@ type postBookmarkRequest struct {
 	CurrentPage int    `json:"currentPage"`
 }
 
-func postBookmarkHandler(db *sql.DB) gin.HandlerFunc {
+func PostBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request postBookmarkRequest
 
@@ -34,7 +36,7 @@ func postBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		book, err := queryBookById(db, request.BookID)
+		book, err := books.QueryBookById(db, request.BookID)
 
 		if err != nil {
 			c.JSON(http.StatusNotFound, err.Error())
@@ -42,7 +44,7 @@ func postBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 		}
 
 		userID := c.GetString("userID")
-		bookmark := &bookmark{UserID: userID, BookID: request.BookID, ShelfID: request.ShelfID, CurrentPage: request.CurrentPage}
+		bookmark := &domain.Bookmark{UserID: userID, BookID: request.BookID, ShelfID: request.ShelfID, CurrentPage: request.CurrentPage}
 
 		err = upsertBookmark(db, bookmark)
 
@@ -51,7 +53,7 @@ func postBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		updatedBookmark := qualifiedBookmark{book: *book, CurrentPage: bookmark.CurrentPage}
+		updatedBookmark := domain.QualifiedBookmark{Book: *book, CurrentPage: bookmark.CurrentPage}
 		c.JSON(http.StatusOK, updatedBookmark)
 	}
 }

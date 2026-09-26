@@ -2,6 +2,10 @@ package main
 
 import (
 	"github.com/antflaherty/mybookshelf/backend/auth"
+	"github.com/antflaherty/mybookshelf/backend/bookmarks"
+	"github.com/antflaherty/mybookshelf/backend/books"
+	"github.com/antflaherty/mybookshelf/backend/config"
+	"github.com/antflaherty/mybookshelf/backend/shelves"
 	"github.com/gin-gonic/gin"
 
 	"database/sql"
@@ -11,7 +15,7 @@ import (
 )
 
 func main() {
-	config, err := loadConfig()
+	config, err := config.LoadConfig()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -27,18 +31,18 @@ func main() {
 
 	router := gin.Default()
 
-	router.POST("/auth/register", registerHandler(db))
-	router.POST("/auth/login", loginHandler(config, db))
+	router.POST("/auth/register", auth.RegisterHandler(db))
+	router.POST("/auth/login", auth.LoginHandler(config, db))
 
 	protected := router.Group("/")
-	protected.Use(auth.AuthMiddleware(config.jwtSecret))
+	protected.Use(auth.AuthMiddleware(config.JwtSecret))
 
-	protected.GET("/books", getBooksHandler())
-	protected.GET("/bookmarks", getBookmarkHandler(db))
-	protected.GET("/shelves", getShelvesHandler(db))
+	protected.GET("/books", books.GetBooksHandler())
+	protected.GET("/bookmarks", bookmarks.GetBookmarkHandler(db))
+	protected.GET("/shelves", shelves.GetShelvesHandler(db))
 
-	protected.POST("/books", postBookHandler(db))
-	protected.POST("/bookmarks", postBookmarkHandler(db))
+	protected.POST("/books", books.PostBookHandler(db))
+	protected.POST("/bookmarks", bookmarks.PostBookmarkHandler(db))
 
 	router.Run("0.0.0.0:8080")
 }

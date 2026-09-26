@@ -9,7 +9,7 @@ import (
 
 const tokenTimeLimit = 24 * 60
 
-func CreateAccessToken(userID string, secret []byte) (string, error) {
+func createAccessToken(userID string, secret []byte) (string, error) {
 	now := time.Now()
 
 	claims := jwt.MapClaims{

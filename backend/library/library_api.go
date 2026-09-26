@@ -1,9 +1,11 @@
-package main
+package library
 
 import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+
+	"github.com/antflaherty/mybookshelf/backend/domain"
 )
 
 type openLibraryBookResponse struct {
@@ -16,7 +18,7 @@ type openLibrarySearchResponse struct {
 	Docs []openLibraryBookResponse `json:"docs"`
 }
 
-func searchBooksByTitle(title string) ([]book, error) {
+func SearchBooksByTitle(title string) ([]domain.Book, error) {
 	baseURL := "https://openlibrary.org/search.json"
 
 	params := url.Values{}
@@ -40,7 +42,7 @@ func searchBooksByTitle(title string) ([]book, error) {
 		return nil, err
 	}
 
-	books := make([]book, len(searchResponse.Docs))
+	allBooks := make([]domain.Book, len(searchResponse.Docs))
 
 	for i, bookResponse := range searchResponse.Docs {
 		author := ""
@@ -48,9 +50,9 @@ func searchBooksByTitle(title string) ([]book, error) {
 		if len(bookResponse.AuthorNames) > 0 {
 			author = bookResponse.AuthorNames[0]
 		}
-		book := book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: 0}
-		books[i] = book
+		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: 0}
+		allBooks[i] = book
 	}
 
-	return books, nil
+	return allBooks, nil
 }

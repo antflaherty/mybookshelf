@@ -1,8 +1,12 @@
-package main
+package shelves
 
-import "database/sql"
+import (
+	"database/sql"
 
-func queryAllShelves(db *sql.DB, userID string) (*[]shelf, error) {
+	"github.com/antflaherty/mybookshelf/backend/domain"
+)
+
+func queryAllShelves(db *sql.DB, userID string) (*[]domain.Shelf, error) {
 	sqlString := "SELECT id, sort_order, name FROM shelf WHERE user_id = ?"
 
 	rows, err := db.Query(sqlString, userID)
@@ -11,9 +15,9 @@ func queryAllShelves(db *sql.DB, userID string) (*[]shelf, error) {
 	}
 	defer rows.Close()
 
-	var allShelves []shelf
+	var allShelves []domain.Shelf
 	for rows.Next() {
-		shelf := &shelf{}
+		shelf := &domain.Shelf{}
 		err := rows.Scan(&shelf.ID, &shelf.SortOrder, &shelf.Name)
 		if err != nil {
 			return nil, err

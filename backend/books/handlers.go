@@ -1,18 +1,20 @@
-package main
+package books
 
 import (
 	"database/sql"
 	"fmt"
 	"net/http"
 
+	"github.com/antflaherty/mybookshelf/backend/domain"
+	"github.com/antflaherty/mybookshelf/backend/library"
 	"github.com/gin-gonic/gin"
 )
 
-func getBooksHandler() gin.HandlerFunc {
+func GetBooksHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		title := c.Query("title")
 
-		books, err := searchBooksByTitle(title)
+		books, err := library.SearchBooksByTitle(title)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -23,9 +25,9 @@ func getBooksHandler() gin.HandlerFunc {
 	}
 }
 
-func postBookHandler(db *sql.DB) gin.HandlerFunc {
+func PostBookHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var book book
+		var book domain.Book
 
 		if err := c.ShouldBindJSON(&book); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -33,7 +35,7 @@ func postBookHandler(db *sql.DB) gin.HandlerFunc {
 		}
 		fmt.Println(book)
 
-		bookInDb, err := queryBookById(db, book.ID)
+		bookInDb, err := QueryBookById(db, book.ID)
 		if err != nil && err != sql.ErrNoRows {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return

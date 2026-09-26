@@ -1,10 +1,12 @@
-package main
+package books
 
 import (
 	"database/sql"
+
+	"github.com/antflaherty/mybookshelf/backend/domain"
 )
 
-func queryAllBooks(db *sql.DB) (*[]book, error) {
+func QueryAllBooks(db *sql.DB) (*[]domain.Book, error) {
 	sqlString := "SELECT Id, Title, Author, PageCount FROM Books"
 
 	rows, err := db.Query(sqlString)
@@ -13,9 +15,9 @@ func queryAllBooks(db *sql.DB) (*[]book, error) {
 	}
 	defer rows.Close()
 
-	var books []book
+	var books []domain.Book
 	for rows.Next() {
-		b := &book{}
+		b := &domain.Book{}
 		err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount)
 		if err != nil {
 			return nil, err
@@ -30,11 +32,10 @@ func queryAllBooks(db *sql.DB) (*[]book, error) {
 	return &books, nil
 }
 
-func queryBookById(db *sql.DB, id string) (*book, error) {
-	// something wrong here - didn't select a book when inserting from a different user
+func QueryBookById(db *sql.DB, id string) (*domain.Book, error) {
 	sqlString := "SELECT * FROM Books WHERE Id = ?"
 	row := db.QueryRow(sqlString, id)
-	b := &book{}
+	b := &domain.Book{}
 	err := row.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount)
 	if err != nil {
 		return nil, err
@@ -42,7 +43,7 @@ func queryBookById(db *sql.DB, id string) (*book, error) {
 	return b, nil
 }
 
-func insertBook(db *sql.DB, book *book) error {
+func insertBook(db *sql.DB, book *domain.Book) error {
 
 	sqlString := "INSERT INTO books (id, title, author, PageCount) VALUES (?, ?, ?, ?);"
 

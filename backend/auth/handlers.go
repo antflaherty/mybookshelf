@@ -1,11 +1,12 @@
-package main
+package auth
 
 import (
 	"database/sql"
 	"errors"
 	"net/http"
 
-	"github.com/antflaherty/mybookshelf/backend/auth"
+	"github.com/antflaherty/mybookshelf/backend/config"
+	"github.com/antflaherty/mybookshelf/backend/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -16,7 +17,7 @@ type registerRequest struct {
 	Password string `json:"password"`
 }
 
-func registerHandler(db *sql.DB) gin.HandlerFunc {
+func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request registerRequest
 
@@ -53,7 +54,7 @@ func registerHandler(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
-func loginHandler(config config, db *sql.DB) gin.HandlerFunc {
+func LoginHandler(config config.Config, db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request registerRequest
 
@@ -87,7 +88,7 @@ func loginHandler(config config, db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		jwt, err := auth.CreateAccessToken(user.ID, config.jwtSecret)
+		jwt, err := createAccessToken(user.ID, config.JwtSecret)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -123,7 +124,7 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 }
 
 func createDefaultShelvesForUser(db *sql.DB, userID string) error {
-	defaultShelves := []shelf{
+	defaultShelves := []domain.Shelf{
 		{ID: uuid.NewString(), SortOrder: 0, UserID: userID, Name: "to be read"},
 		{ID: uuid.NewString(), SortOrder: 1, UserID: userID, Name: "currently reading"},
 		{ID: uuid.NewString(), SortOrder: 2, UserID: userID, Name: "finished"},
