@@ -60,12 +60,19 @@ export default function BookScreen() {
   }
 
   async function handleStartReadingPress() {
+    let bookId;
     if (!bookmark) {
-      throw new Error("no bookmark");
+      const bookWithId = await createBook(accessToken, {
+        ...book,
+        pageCount: parseInt(pageCount),
+      });
+      bookId = bookWithId.id;
+    } else {
+      bookId = bookmark.book.id;
     }
 
     const placeBookmarkRequest = {
-      bookId: bookmark.book.id,
+      bookId,
       currentPage: 0,
       shelfId: currentlyReading.id,
     };
@@ -76,13 +83,13 @@ export default function BookScreen() {
     router.push({
       pathname: "/place-bookmark",
       params: {
-        bookmark: JSON.stringify(bookmark),
+        bookmark: JSON.stringify({ currentPage: 0, book }),
       },
     });
   }
 
   const showAddToShelf = !bookmark;
-  const showStartReading = !!bookmark && shelfId === toBeRead.id;
+  const showStartReading = !bookmark || bookmark.shelfId === toBeRead.id;
   const showPlaceBookmark =
     !!bookmark && shelfId !== toBeRead.id && shelfId !== finished.id;
 
@@ -142,7 +149,10 @@ export default function BookScreen() {
         </ThemedPressable>
       )}
       {showStartReading && (
-        <ThemedPressable variant="primary" onPress={handleStartReadingPress}>
+        <ThemedPressable
+          variant={showAddToShelf ? "secondary" : "primary"}
+          onPress={handleStartReadingPress}
+        >
           <Text style={{ color: theme.text }}>start reading</Text>
         </ThemedPressable>
       )}
