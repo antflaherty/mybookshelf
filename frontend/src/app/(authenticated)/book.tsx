@@ -25,6 +25,8 @@ export default function BookScreen() {
     )
     .find((bookmark) => bookmark !== undefined);
 
+  const shelfName = shelves.find(({ id }) => id === shelfId)?.name;
+
   const [pageCount, setPageCount] = useState(
     `${bookmark?.book.pageCount || book.pageCount}`,
   );
@@ -145,7 +147,9 @@ export default function BookScreen() {
       )}
       {showAddToShelf && (
         <ThemedPressable variant="primary" onPress={handleAddToShelfPress}>
-          <Text style={{ color: theme.text }}>add to shelf</Text>
+          <Text
+            style={{ color: theme.text }}
+          >{`add to ${shelfName || "shelf"}`}</Text>
         </ThemedPressable>
       )}
       {showStartReading && (

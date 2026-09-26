@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 import { AntDesign } from "@react-native-vector-icons/ant-design";
 import { useTheme } from "@/theme/theme-provider";
 
@@ -42,6 +42,16 @@ export default function TabLayout() {
           tabBarIcon: ({ size }) => (
             <AntDesign name="search" color={theme.primary} size={size} />
           ),
+        }}
+        listeners={{
+          tabPress: () => {
+            router.push({
+              pathname: "/search-books",
+              params: {
+                shelfId: "",
+              },
+            });
+          },
         }}
       />
       <Tabs.Screen
