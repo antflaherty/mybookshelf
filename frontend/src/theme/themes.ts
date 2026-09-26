@@ -9,6 +9,7 @@ export interface Theme {
   errorInputBackground: string;
   inputBackground: string;
   inputText: string;
+  loading: string;
 }
 
 export const THEMES: { [name: string]: Theme } = {
@@ -23,6 +24,7 @@ export const THEMES: { [name: string]: Theme } = {
     errorInputBackground: "#f4c4aa",
     inputBackground: "#f4d8aa",
     inputText: "#0f2904",
+    loading: "#def2a2",
   },
   sky: {
     name: "sky",
@@ -35,6 +37,7 @@ export const THEMES: { [name: string]: Theme } = {
     errorInputBackground: "#f4c4aa",
     inputBackground: "#c9e1f5",
     inputText: "#000000",
+    loading: "#000000",
   },
   sunset: {
     name: "sunset",
@@ -47,6 +50,7 @@ export const THEMES: { [name: string]: Theme } = {
     errorInputBackground: "#b85c5c",
     inputBackground: "#f4d8aa",
     inputText: "#3a1515",
+    loading: "#ffe4b5",
   },
   ocean: {
     name: "ocean",
@@ -59,6 +63,7 @@ export const THEMES: { [name: string]: Theme } = {
     errorInputBackground: "#8f5c5c",
     inputBackground: "#c9e9f2",
     inputText: "#032b3a",
+    loading: "#d9f3ff",
   },
   lavender: {
     name: "lavender",
@@ -71,6 +76,7 @@ export const THEMES: { [name: string]: Theme } = {
     errorInputBackground: "#8f6875",
     inputBackground: "#e6ddf5",
     inputText: "#251d3a",
+    loading: "#f1e8ff",
   },
   autumn: {
     name: "autumn",
@@ -83,6 +89,7 @@ export const THEMES: { [name: string]: Theme } = {
     errorInputBackground: "#9e6860",
     inputBackground: "#f2d5ad",
     inputText: "#321a0e",
+    loading: "#ffe8c2",
   },
   midnight: {
     name: "midnight",
@@ -95,6 +102,7 @@ export const THEMES: { [name: string]: Theme } = {
     errorInputBackground: "#4b2525",
     inputBackground: "#1f2937",
     inputText: "#f3f4f6",
+    loading: "#e5e7eb",
   },
 };
 

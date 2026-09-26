@@ -18,6 +18,7 @@ interface ShelfContextValue {
   toBeRead: Shelf;
   currentlyReading: Shelf;
   finished: Shelf;
+  isLoading: boolean;
   loadShelves: () => Promise<void>;
 }
 
@@ -25,19 +26,23 @@ const ShelfContext = createContext<ShelfContextValue | undefined>(undefined);
 
 export default function ShelfProvider({ children }: { children: ReactNode }) {
   const [shelves, setShelves] = useState<Shelf[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { accessToken } = useAuth();
 
   async function loadShelves() {
+    setIsLoading(true);
     setShelves(
       (await getShelves(accessToken)).sort((a, b) => a.sortOrder - b.sortOrder),
     );
+    setIsLoading(false);
   }
   useEffect(() => {
     async function load() {
       const shelves = await getShelves(accessToken);
 
       setShelves(shelves.sort((a, b) => a.sortOrder - b.sortOrder));
+      setIsLoading(false);
     }
 
     load();
@@ -52,6 +57,7 @@ export default function ShelfProvider({ children }: { children: ReactNode }) {
           ({ name }) => name === CURRENTLY_READING,
         )!,
         finished: shelves.find(({ name }) => name === FINISHED)!,
+        isLoading,
         loadShelves,
       }}
     >
