@@ -15,15 +15,16 @@ export default function BookScreen() {
   }>();
   const book: Book = JSON.parse(bookParam);
 
-  const { shelves, toBeRead, currentlyReading, finished, loadShelves } =
-    useShelf();
+  const { shelves, toBeRead, finished, loadShelves } = useShelf();
 
   const bookmark = shelves
-    .map((shelf) => shelf.bookmarks.find((bookmark) => bookmark.id === book.id))
+    .map((shelf) =>
+      shelf.bookmarks.find((bookmark) => bookmark.book.id === book.id),
+    )
     .find((bookmark) => bookmark !== undefined);
 
   const [pageCount, setPageCount] = useState(
-    `${bookmark?.pageCount || book.pageCount}`,
+    `${bookmark?.book.pageCount || book.pageCount}`,
   );
   const { theme } = useTheme();
   const { accessToken } = useAuth();
@@ -43,22 +44,29 @@ export default function BookScreen() {
       pageCount: parseInt(pageCount),
     });
 
-    const bookmark = {
-      id: bookWithId.id,
+    const placeBookmarkRequest = {
+      bookId: bookWithId.id,
       currentPage: 0,
       shelfId: shelfId || toBeRead.id,
     };
-    await placeBookmark(accessToken, bookmark);
+    await placeBookmark(accessToken, placeBookmarkRequest);
     await loadShelves();
 
     router.push("/");
   }
 
   async function handleStartReadingPress() {
-    await placeBookmark(accessToken, {
-      ...bookmark!,
-      shelfId: currentlyReading.id,
-    });
+    if (!bookmark) {
+      throw new Error("no bookmark");
+    }
+
+    const placeBookmarkRequest = {
+      bookId: bookmark.book.id,
+      currentPage: 0,
+      shelfId: shelfId || toBeRead.id,
+    };
+    await placeBookmark(accessToken, placeBookmarkRequest);
+
     await loadShelves();
 
     router.push("/");
