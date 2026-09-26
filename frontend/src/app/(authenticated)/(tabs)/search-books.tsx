@@ -1,5 +1,11 @@
 import { useTheme } from "@/theme/theme-provider";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useState } from "react";
 import ThemedPressable from "@/components/themed-pressable";
 import { searchBooks } from "@/api/apiClient";
@@ -15,11 +21,15 @@ export default function SearchBooksScreen() {
   }>();
   const [title, setTitle] = useState("");
   const [books, setBooks] = useState<Book[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { theme } = useTheme();
   const { accessToken } = useAuth();
 
   async function handleSearchPress() {
-    setBooks(await searchBooks(accessToken, title));
+    setIsLoading(true);
+    const searchBookResult = await searchBooks(accessToken, title);
+    setBooks(searchBookResult);
+    setIsLoading(false);
   }
 
   return (
@@ -40,8 +50,12 @@ export default function SearchBooksScreen() {
         <ThemedPressable variant="primary" onPress={handleSearchPress}>
           <Text style={{ color: theme.text }}>search</Text>
         </ThemedPressable>
-        {!!books.length && (
-          <BookSearchResultList books={books}></BookSearchResultList>
+        {isLoading ? (
+          <ActivityIndicator color={theme.loading} size="large" />
+        ) : (
+          !!books.length && (
+            <BookSearchResultList books={books}></BookSearchResultList>
+          )
         )}
       </View>
     </CurrentShelfContext.Provider>
