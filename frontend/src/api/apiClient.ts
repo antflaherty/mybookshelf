@@ -1,6 +1,6 @@
 import { Book, Bookmark, Shelf, User } from "@/lib/definitions";
 
-const API_URL = "http://192.168.0.108:8080";
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const REGISTER_ROUTE = "/auth/register";
 const LOGIN_ROUTE = "/auth/login";
 const BOOKS_ROUTE = "/books";
