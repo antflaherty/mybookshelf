@@ -4,7 +4,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const REGISTER_ROUTE = "/auth/register";
 const LOGIN_ROUTE = "/auth/login";
 const BOOKS_ROUTE = "/books";
-const READING_PROGRESS_ROUTE = "/bookmarks";
+const BOOKMARKS_ROUTE = "/bookmarks";
 const SHELVES_ROUTE = "/shelves";
 
 export async function register(user: User) {
@@ -60,7 +60,7 @@ export async function getShelves(accessToken: string | null): Promise<Shelf[]> {
 export async function getBookmarks(
   accessToken: string | null,
 ): Promise<(Book & Bookmark)[]> {
-  const url = API_URL + READING_PROGRESS_ROUTE;
+  const url = API_URL + BOOKMARKS_ROUTE;
   const response = await authorizedFetch(accessToken, url, "GET");
 
   if (!response.ok) {
@@ -116,7 +116,7 @@ export async function placeBookmark(
   accessToken: string | null,
   bookmark: Bookmark,
 ): Promise<void> {
-  const url = `${API_URL}${READING_PROGRESS_ROUTE}`;
+  const url = `${API_URL}${BOOKMARKS_ROUTE}`;
 
   const response = await authorizedFetch(
     accessToken,
