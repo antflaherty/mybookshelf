@@ -13,16 +13,20 @@ export default function BookScreen() {
     book: string;
     shelfId: string;
   }>();
-
   const book: Book = JSON.parse(bookParam);
-  const [pageCount, setPageCount] = useState(`${book.pageCount}`);
-  const { theme } = useTheme();
-  const { accessToken } = useAuth();
-  const { shelves, toBeRead, currentlyReading, loadShelves } = useShelf();
+
+  const { shelves, toBeRead, currentlyReading, finished, loadShelves } =
+    useShelf();
 
   const bookmark = shelves
     .map((shelf) => shelf.bookmarks.find((bookmark) => bookmark.id === book.id))
     .find((bookmark) => bookmark !== undefined);
+
+  const [pageCount, setPageCount] = useState(
+    `${bookmark?.pageCount || book.pageCount}`,
+  );
+  const { theme } = useTheme();
+  const { accessToken } = useAuth();
 
   function handlePlaceBookmarkPress() {
     router.push({
@@ -62,7 +66,8 @@ export default function BookScreen() {
 
   const showAddToShelf = !bookmark;
   const showStartReading = !!bookmark && shelfId === toBeRead.id;
-  const showPlaceBookmark = !!bookmark && shelfId === currentlyReading.id;
+  const showPlaceBookmark =
+    !!bookmark && shelfId !== toBeRead.id && shelfId !== finished.id;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
