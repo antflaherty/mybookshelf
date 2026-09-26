@@ -38,7 +38,7 @@ export default function PlaceBookmarkScreen() {
 
   const { accessToken } = useAuth();
 
-  const { currentlyReading, loadShelves } = useShelf();
+  const { currentlyReading, finished, loadShelves } = useShelf();
 
   const bookDropdownData =
     currentlyReading?.bookmarks.map((book) => {
@@ -73,10 +73,20 @@ export default function PlaceBookmarkScreen() {
 
       const bookmark = BookmarkSchema.parse(rawBookmark);
 
+      let alertMessage = "bookmark placed";
+
+      const pageCount = currentlyReading.bookmarks.find(
+        ({ id: bookId }) => bookId === id,
+      )?.pageCount;
+      if (pageCount === bookmark.currentPage) {
+        bookmark.shelfId = finished.id;
+        alertMessage = "you finished a book!";
+      }
+
       await placeBookmark(accessToken, bookmark);
       await loadShelves();
 
-      Alert.alert("Reading Logged!");
+      Alert.alert(alertMessage);
 
       clearAndGoBack();
     } catch (error) {
