@@ -16,7 +16,7 @@ const BookmarkSchema = z.object({
   shelfId: z.string().min(1),
 });
 
-export default function LogReadingModalScreen() {
+export default function PlaceBookmarkScreen() {
   const { bookmark: bookmarkParam } = useLocalSearchParams<{
     bookmark: string;
   }>();
@@ -38,10 +38,10 @@ export default function LogReadingModalScreen() {
 
   const { accessToken } = useAuth();
 
-  const { shelves, loadShelves } = useShelf();
+  const { currentlyReading, loadShelves } = useShelf();
 
   const bookDropdownData =
-    shelves[0]?.bookmarks.map((book) => {
+    currentlyReading?.bookmarks.map((book) => {
       return { value: book.id, label: book.title };
     }) || [];
 
@@ -68,7 +68,7 @@ export default function LogReadingModalScreen() {
       const rawBookmark = {
         id,
         currentPage,
-        shelfId: shelves[0].id,
+        shelfId: currentlyReading.id,
       };
 
       const bookmark = BookmarkSchema.parse(rawBookmark);
