@@ -15,6 +15,7 @@ import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { createBook, placeBookmark, getBookDetails } from "@/api/apiClient";
 import { useCallback, useState } from "react";
 import AntDesign from "@react-native-vector-icons/ant-design";
+import GenrePill from "@/components/genre-pill";
 
 export default function BookScreen() {
   const { book: bookParam, shelfId } = useLocalSearchParams<{
@@ -137,7 +138,13 @@ export default function BookScreen() {
       <Text style={{ color: theme.text, fontStyle: "italic" }}>
         {book.author}
       </Text>
-
+      {bookDetails && (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {bookDetails?.genres.map((genre) => (
+            <GenrePill key={genre} genre={genre}></GenrePill>
+          ))}
+        </View>
+      )}
       {isEditingPageCount ? (
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <TextInput
