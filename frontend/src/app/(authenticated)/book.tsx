@@ -1,12 +1,19 @@
 import { useTheme } from "@/theme/theme-provider";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import ThemedPressable from "@/components/themed-pressable";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
-import { Book } from "@/lib/definitions";
-import { router, useLocalSearchParams } from "expo-router";
-import { createBook, placeBookmark } from "@/api/apiClient";
-import { useState } from "react";
+import { Book, BookDetails } from "@/lib/definitions";
+import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
+import { createBook, placeBookmark, getBookDetails } from "@/api/apiClient";
+import { useCallback, useState } from "react";
 import AntDesign from "@react-native-vector-icons/ant-design";
 
 export default function BookScreen() {
@@ -31,9 +38,25 @@ export default function BookScreen() {
     `${bookmark?.book.pageCount || book.pageCount}`,
   );
   const [isEditingPageCount, setIsEditingPageCount] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [bookDetails, setBookDetails] = useState<BookDetails | undefined>(
+    undefined,
+  );
 
   const { theme } = useTheme();
   const { accessToken } = useAuth();
+
+  useFocusEffect(
+    useCallback(() => {
+      async function loadBookDetails() {
+        setIsLoading(true);
+        const bookDetails = await getBookDetails(accessToken, book.id);
+        setBookDetails(bookDetails);
+        setIsLoading(false);
+      }
+      loadBookDetails();
+    }, [accessToken, book]),
+  );
 
   function handlePlaceBookmarkPress() {
     router.push({
@@ -149,6 +172,23 @@ export default function BookScreen() {
             <AntDesign name="edit" style={{ color: theme.text }}></AntDesign>
           </Pressable>
         </Text>
+      )}
+
+      {isLoading && (
+        <ActivityIndicator
+          color={theme.loading}
+          size="large"
+        ></ActivityIndicator>
+      )}
+      {bookDetails && (
+        <View>
+          <Text style={{ color: theme.text }}> {bookDetails.blurb}</Text>
+          {bookDetails.genres.map((genre) => (
+            <Text key={genre} style={{ color: theme.text }}>
+              {genre}
+            </Text>
+          ))}
+        </View>
       )}
 
       {showPlaceBookmark && (

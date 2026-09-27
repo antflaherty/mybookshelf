@@ -5,6 +5,12 @@ export interface Book {
   pageCount: number;
 }
 
+export interface BookDetails {
+  id: string;
+  blurb: string;
+  genres: string[];
+}
+
 export interface Bookmark {
   shelfId: string;
   currentPage: number;
@@ -16,7 +22,7 @@ export interface Shelf {
   sortOrder: number;
   name: string;
   userId: string;
-  bookmarks: (Bookmark)[];
+  bookmarks: Bookmark[];
 }
 
 export interface User {

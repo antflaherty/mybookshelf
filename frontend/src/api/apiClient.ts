@@ -1,4 +1,4 @@
-import { Book, Bookmark, Shelf, User } from "@/lib/definitions";
+import { Book, BookDetails, Bookmark, Shelf, User } from "@/lib/definitions";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const REGISTER_ROUTE = "/auth/register";
@@ -59,7 +59,7 @@ export async function getShelves(accessToken: string | null): Promise<Shelf[]> {
 
 export async function getBookmarks(
   accessToken: string | null,
-): Promise<(Bookmark)[]> {
+): Promise<Bookmark[]> {
   const url = API_URL + BOOKMARKS_ROUTE;
   const response = await authorizedFetch(accessToken, url, "GET");
 
@@ -90,6 +90,26 @@ export async function searchBooks(
 
   const result = await response.json();
   return result ?? [];
+}
+
+export async function getBookDetails(
+  accessToken: string | null,
+  bookId: string,
+): Promise<BookDetails> {
+  const params = new URLSearchParams({
+    id: bookId,
+  });
+
+  const url = `${API_URL}${BOOKS_ROUTE}?${params.toString()}`;
+
+  const response = await authorizedFetch(accessToken, url, "GET");
+
+  if (!response.ok) {
+    console.error(await response.text());
+    throw new Error(`Response status: ${response.status}`);
+  }
+
+  return await response.json();
 }
 
 export async function createBook(
