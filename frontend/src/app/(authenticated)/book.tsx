@@ -190,11 +190,6 @@ export default function BookScreen() {
       {bookDetails && (
         <View>
           <Text style={{ color: theme.text }}> {bookDetails.blurb}</Text>
-          {bookDetails.genres.map((genre) => (
-            <Text key={genre} style={{ color: theme.text }}>
-              {genre}
-            </Text>
-          ))}
         </View>
       )}
 
