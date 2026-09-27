@@ -9,18 +9,39 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetBooksHandler(searchService BookSearchProvider) gin.HandlerFunc {
+func GetBooksHandler(searchService BookSearchProvider, bookDetailsService BookDetailsProvider) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		title := c.Query("title")
+		id := c.Query("id")
 
-		books, err := searchService.SearchBooksByTitle(title)
-
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if (title != "" && id != "") || (title == "" && id == "") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "specify exactly one of title or id"})
 			return
 		}
 
-		c.JSON(http.StatusOK, books)
+		if title != "" {
+			books, err := searchService.SearchBooksByTitle(title)
+
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, books)
+			return
+		}
+
+		if id != "" {
+			bookDetails, err := bookDetailsService.GetBookDetails(id)
+
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, bookDetails)
+			return
+		}
 	}
 }
 

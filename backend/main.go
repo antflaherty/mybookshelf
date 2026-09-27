@@ -38,7 +38,9 @@ func main() {
 	protected := router.Group("/")
 	protected.Use(auth.AuthMiddleware(config.JwtSecret))
 
-	protected.GET("/books", books.GetBooksHandler(library.NewOpenLibrarySearchService()))
+	openLibrarySearchService := library.NewOpenLibrarySearchService()
+
+	protected.GET("/books", books.GetBooksHandler(openLibrarySearchService, openLibrarySearchService))
 	protected.GET("/bookmarks", bookmarks.GetBookmarkHandler(db))
 	protected.GET("/shelves", shelves.GetShelvesHandler(db))
 

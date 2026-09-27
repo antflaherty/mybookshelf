@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/antflaherty/mybookshelf/backend/books"
 	"github.com/antflaherty/mybookshelf/backend/domain"
 )
 
-type openLibraryBookResponse struct {
+type openLibrarySearchBookResponse struct {
 	Key                 string   `json:"key"`
 	Title               string   `json:"title"`
 	AuthorNames         []string `json:"author_name"`
@@ -16,7 +17,19 @@ type openLibraryBookResponse struct {
 }
 
 type openLibrarySearchResponse struct {
-	Docs []openLibraryBookResponse `json:"docs"`
+	Docs []openLibrarySearchBookResponse `json:"docs"`
+}
+
+type openLibraryWorksResponse struct {
+	Key         string   `json:"key"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Genres      []string `json:"genres"`
+}
+
+type openLibraryTagsResponse struct {
+	Key  string `json:"key"`
+	Name string `json:"name"`
 }
 
 type OpenLibrarySearchService struct {
@@ -60,6 +73,66 @@ func (service OpenLibrarySearchService) SearchBooksByTitle(title string) ([]doma
 	}
 
 	return allBooks, nil
+}
+
+func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.BookDetails, error) {
+	worksUrl, err := url.JoinPath(
+		"https://openlibrary.org",
+		url.PathEscape(bookId)+".json",
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := http.Get(worksUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	defer response.Body.Close()
+
+	var worksResponse openLibraryWorksResponse
+
+	err = json.NewDecoder(response.Body).Decode(&worksResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	genreIds := worksResponse.Genres
+
+	genres := make([]string, len(genreIds))
+
+	for i, genreId := range genreIds {
+		tagsUrl, err := url.JoinPath(
+			"https://openlibrary.org",
+			url.PathEscape(genreId)+".json",
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		response, err := http.Get(tagsUrl)
+		if err != nil {
+			return nil, err
+		}
+		defer response.Body.Close()
+
+		var genreResponse openLibraryTagsResponse
+
+		err = json.NewDecoder(response.Body).Decode(&genreResponse)
+
+		if err != nil {
+			return nil, err
+		}
+
+		genres[i] = genreResponse.Name
+	}
+
+	bookDetails := &books.BookDetails{ID: bookId, Blurb: worksResponse.Description, Genres: genres}
+
+	return bookDetails, nil
 }
 
 func NewOpenLibrarySearchService() *OpenLibrarySearchService {
