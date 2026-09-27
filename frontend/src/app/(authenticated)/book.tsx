@@ -50,15 +50,26 @@ export default function BookScreen() {
       pageCount: parseInt(pageCount),
     });
 
-    const placeBookmarkRequest = {
-      bookId: bookWithId.id,
-      currentPage: 0,
-      shelfId: shelfId || toBeRead.id,
-    };
-    await placeBookmark(accessToken, placeBookmarkRequest);
-    await loadShelves();
+    if (shelfId) {
+      const placeBookmarkRequest = {
+        bookId: bookWithId.id,
+        currentPage: 0,
+        shelfId: shelfId,
+      };
+      await placeBookmark(accessToken, placeBookmarkRequest);
+      await loadShelves();
 
-    router.push("/");
+      router.push("/");
+      return;
+    }
+
+    router.push({
+      pathname: "/select-shelf",
+      params: {
+        bookId: bookWithId.id,
+        currentPage: 0,
+      },
+    });
   }
 
   async function handleStartReadingPress() {

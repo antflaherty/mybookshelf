@@ -19,6 +19,14 @@ export default function AuthenticatedLayout() {
           }}
         />
         <Stack.Screen
+          name="select-shelf"
+          options={{
+            headerBackButtonDisplayMode: "generic",
+            headerTransparent: true,
+            title: "select shelf",
+          }}
+        />
+        <Stack.Screen
           name="shelf/[id]"
           options={{
             headerTintColor: theme.text,
