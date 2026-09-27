@@ -20,11 +20,33 @@ type openLibrarySearchResponse struct {
 	Docs []openLibrarySearchBookResponse `json:"docs"`
 }
 
+type openLibraryDescription string
+
+// openlibrary can return works description as string or as an object with a value
+func (d *openLibraryDescription) UnmarshalJSON(data []byte) error {
+	var stringValue string
+	if err := json.Unmarshal(data, &stringValue); err == nil {
+		*d = openLibraryDescription(stringValue)
+		return nil
+	}
+
+	var objectValue struct {
+		Value string `json:"value"`
+	}
+
+	if err := json.Unmarshal(data, &objectValue); err != nil {
+		return err
+	}
+
+	*d = openLibraryDescription(objectValue.Value)
+	return nil
+}
+
 type openLibraryWorksResponse struct {
-	Key         string   `json:"key"`
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	Genres      []string `json:"genres"`
+	Key         string                 `json:"key"`
+	Title       string                 `json:"title"`
+	Description openLibraryDescription `json:"description"`
+	Genres      []string               `json:"genres"`
 }
 
 type openLibraryTagsResponse struct {
@@ -130,7 +152,7 @@ func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.Bo
 		genres[i] = genreResponse.Name
 	}
 
-	bookDetails := &books.BookDetails{ID: bookId, Blurb: worksResponse.Description, Genres: genres}
+	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres}
 
 	return bookDetails, nil
 }
