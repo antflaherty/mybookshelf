@@ -141,16 +141,16 @@ export default function BookScreen() {
       <Text style={{ color: theme.text, fontStyle: "italic" }}>
         {book.author}
       </Text>
-      {bookDetails && (
-        <View style={{ alignItems: "center", justifyContent: "center" }}>
-          <BookCover uri={bookDetails.coverUri}></BookCover>
+      <View style={{ alignItems: "center", justifyContent: "center" }}>
+        <BookCover uri={book.coverUri}></BookCover>
+        {bookDetails && (
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             {bookDetails?.genres.map((genre) => (
               <GenrePill key={genre} genre={genre}></GenrePill>
             ))}
           </View>
-        </View>
-      )}
+        )}
+      </View>
       {isEditingPageCount ? (
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <TextInput
