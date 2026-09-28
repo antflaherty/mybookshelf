@@ -101,7 +101,7 @@ func (service OpenLibrarySearchService) SearchBooksByTitle(title string, limit i
 			coverUri = "https://covers.openlibrary.org/b/id/" + strconv.Itoa(bookResponse.CoverI) + "-M.jpg"
 		}
 
-		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: coverUri}
+		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: &coverUri}
 		allBooks[i] = book
 	}
 

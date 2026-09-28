@@ -36,7 +36,7 @@ func QueryBookById(db *sql.DB, id string) (*domain.Book, error) {
 	sqlString := "SELECT * FROM Books WHERE Id = ?"
 	row := db.QueryRow(sqlString, id)
 	b := &domain.Book{}
-	err := row.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount)
+	err := row.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount, &b.CoverUri)
 	if err != nil {
 		return nil, err
 	}
@@ -45,9 +45,9 @@ func QueryBookById(db *sql.DB, id string) (*domain.Book, error) {
 
 func insertBook(db *sql.DB, book *domain.Book) error {
 
-	sqlString := "INSERT INTO books (id, title, author, PageCount) VALUES (?, ?, ?, ?);"
+	sqlString := "INSERT INTO books (id, title, author, PageCount, cover_uri) VALUES (?, ?, ?, ?, ?);"
 
-	_, err := db.Exec(sqlString, book.ID, book.Title, book.Author, book.PageCount)
+	_, err := db.Exec(sqlString, book.ID, book.Title, book.Author, book.PageCount, book.CoverUri)
 	return err
 
 }
