@@ -9,6 +9,7 @@ export interface BookDetails {
   id: string;
   blurb: string;
   genres: string[];
+  coverUri: string;
 }
 
 export interface Bookmark {

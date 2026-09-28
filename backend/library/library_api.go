@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/antflaherty/mybookshelf/backend/books"
 	"github.com/antflaherty/mybookshelf/backend/domain"
@@ -46,6 +47,7 @@ type openLibraryWorksResponse struct {
 	Key         string                 `json:"key"`
 	Title       string                 `json:"title"`
 	Description openLibraryDescription `json:"description"`
+	Covers      []int                  `json:"covers"`
 	Genres      []string               `json:"genres"`
 }
 
@@ -152,7 +154,8 @@ func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.Bo
 		genres[i] = genreResponse.Name
 	}
 
-	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres}
+	// handle covers better
+	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres, CoverUri: "https://covers.openlibrary.org/b/id/" + strconv.Itoa(worksResponse.Covers[0]) + "-M.jpg"}
 
 	return bookDetails, nil
 }

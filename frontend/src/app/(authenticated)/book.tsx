@@ -16,6 +16,7 @@ import { createBook, placeBookmark, getBookDetails } from "@/api/apiClient";
 import { useCallback, useState } from "react";
 import AntDesign from "@react-native-vector-icons/ant-design";
 import GenrePill from "@/components/genre-pill";
+import BookCover from "@/components/book-cover";
 
 export default function BookScreen() {
   const { book: bookParam, shelfId } = useLocalSearchParams<{
@@ -139,10 +140,13 @@ export default function BookScreen() {
         {book.author}
       </Text>
       {bookDetails && (
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          {bookDetails?.genres.map((genre) => (
-            <GenrePill key={genre} genre={genre}></GenrePill>
-          ))}
+        <View style={{ alignItems: "center", justifyContent: "center" }}>
+          <BookCover uri={bookDetails.coverUri}></BookCover>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            {bookDetails?.genres.map((genre) => (
+              <GenrePill key={genre} genre={genre}></GenrePill>
+            ))}
+          </View>
         </View>
       )}
       {isEditingPageCount ? (
