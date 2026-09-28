@@ -1,11 +1,5 @@
 import { useTheme } from "@/theme/theme-provider";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
 import { useCallback, useRef, useState } from "react";
 import ThemedPressable from "@/components/themed-pressable";
 import { searchBooks } from "@/api/apiClient";
@@ -14,6 +8,8 @@ import { Book } from "@/lib/definitions";
 import { CurrentShelfContext } from "@/context/current-shelf-provider";
 import BookSearchResultList from "@/components/book-search-result-list";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
+
+const SEARCH_LIMIT = 6;
 
 export default function SearchBooksScreen() {
   const { shelfId } = useLocalSearchParams<{
@@ -27,7 +23,12 @@ export default function SearchBooksScreen() {
 
   async function handleSearchPress() {
     setIsLoading(true);
-    const searchBookResult = await searchBooks(accessToken, title);
+    const searchBookResult = await searchBooks(
+      accessToken,
+      title,
+      SEARCH_LIMIT,
+      1,
+    );
     setBooks(searchBookResult);
     setIsLoading(false);
   }

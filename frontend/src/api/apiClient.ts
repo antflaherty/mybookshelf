@@ -74,9 +74,13 @@ export async function getBookmarks(
 export async function searchBooks(
   accessToken: string | null,
   title: string,
+  limit: number,
+  page: number,
 ): Promise<Book[]> {
   const params = new URLSearchParams({
     title,
+    limit: `${limit}`,
+    page: `${page}`,
   });
 
   const url = `${API_URL}${BOOKS_ROUTE}?${params.toString()}`;

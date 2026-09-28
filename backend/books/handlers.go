@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/antflaherty/mybookshelf/backend/domain"
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,19 @@ func GetBooksHandler(searchService BookSearchProvider, bookDetailsService BookDe
 		}
 
 		if title != "" {
-			books, err := searchService.SearchBooksByTitle(title)
+			limit, err := strconv.Atoi(c.Query("limit"))
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "limit must be an integer"})
+				return
+			}
+
+			page, err := strconv.Atoi(c.Query("page"))
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "page must be an integer"})
+				return
+			}
+
+			books, err := searchService.SearchBooksByTitle(title, limit, page)
 
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

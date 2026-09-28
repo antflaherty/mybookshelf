@@ -59,12 +59,14 @@ type openLibraryTagsResponse struct {
 type OpenLibrarySearchService struct {
 }
 
-func (service OpenLibrarySearchService) SearchBooksByTitle(title string) ([]domain.Book, error) {
+func (service OpenLibrarySearchService) SearchBooksByTitle(title string, limit int, page int) ([]domain.Book, error) {
 	baseURL := "https://openlibrary.org/search.json"
 
 	params := url.Values{}
 	params.Set("q", "title:"+title)
 	params.Set("fields", "key,title,author_name,number_of_pages_median")
+	params.Set("limit", strconv.Itoa(limit))
+	params.Set("page", strconv.Itoa(page))
 
 	requestURL := baseURL + "?" + params.Encode()
 
