@@ -6,7 +6,7 @@ import { searchBooks } from "@/api/apiClient";
 import { useAuth } from "@/auth/auth-context";
 import { Book } from "@/lib/definitions";
 import { CurrentShelfContext } from "@/context/current-shelf-provider";
-import BookSearchResultList from "@/components/book-search-result-list";
+import BookList from "@/components/book-search-result-list";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 
 const SEARCH_LIMIT = 6;
@@ -98,14 +98,14 @@ export default function SearchBooksScreen() {
             <ActivityIndicator color={theme.loading} size="large" />
           ) : (
             !!books.length && (
-              <BookSearchResultList
+              <BookList
                 books={books}
                 onBookSelected={() => {
                   preserveSearch.current = true;
                 }}
                 onEndReached={handleResultListEndReached}
                 isLoadingMore={isLoadingMore}
-              ></BookSearchResultList>
+              ></BookList>
             )
           )}
         </View>

@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useShelf } from "@/context/shelf-provider";
 import { useTheme } from "@/theme/theme-provider";
 import { CurrentShelfContext } from "@/context/current-shelf-provider";
-import BookSearchResultList from "@/components/book-search-result-list";
+import BookList from "@/components/book-search-result-list";
 import ThemedPressable from "@/components/themed-pressable";
 
 export default function ShelfScreen() {
@@ -20,9 +20,9 @@ export default function ShelfScreen() {
           {shelf === undefined ? (
             <Text style={{ color: theme.text }}>shelf not found</Text>
           ) : (
-            <BookSearchResultList
+            <BookList
               books={shelf.bookmarks.map((bookmark) => bookmark.book)}
-            ></BookSearchResultList>
+            ></BookList>
           )}
           <ThemedPressable
             text="add book to shelf"

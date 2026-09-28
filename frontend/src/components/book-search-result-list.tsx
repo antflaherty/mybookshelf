@@ -2,19 +2,19 @@ import { Book } from "@/lib/definitions";
 import { ActivityIndicator, FlatList, View } from "react-native";
 import BookSearchResultItem from "./book-search-result-item";
 
-interface BookSearchResultListProps {
+interface BookListProps {
   books: Book[];
-  isLoadingMore: boolean;
+  isLoadingMore?: boolean;
   onBookSelected?: () => void;
-  onEndReached: () => Promise<void>;
+  onEndReached?: () => Promise<void>;
 }
 
-export default function BookSearchResultList({
+export default function BookList({
   books,
   isLoadingMore,
   onBookSelected,
   onEndReached,
-}: BookSearchResultListProps) {
+}: BookListProps) {
   return (
     <View
       style={{
