@@ -3,6 +3,7 @@ import { useTheme } from "@/theme/theme-provider";
 import { useCurrentShelf } from "@/context/current-shelf-provider";
 import { router } from "expo-router";
 import { Text, View, StyleSheet, Pressable } from "react-native";
+import BookCover from "./book-cover";
 
 interface BookSearchResultItemProps {
   book: Book;
@@ -36,6 +37,7 @@ export default function BookSearchResultItem({
         <Text style={{ color: theme.text, fontStyle: "italic" }}>
           {book.author}
         </Text>
+        <BookCover uri={book.coverUri}></BookCover>
       </View>
     </Pressable>
   );

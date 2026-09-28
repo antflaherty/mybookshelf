@@ -15,6 +15,7 @@ type openLibrarySearchBookResponse struct {
 	Title               string   `json:"title"`
 	AuthorNames         []string `json:"author_name"`
 	NumberOfPagesMedian int      `json:"number_of_pages_median"`
+	CoverI              int      `json:"cover_i"`
 }
 
 type openLibrarySearchResponse struct {
@@ -64,7 +65,7 @@ func (service OpenLibrarySearchService) SearchBooksByTitle(title string, limit i
 
 	params := url.Values{}
 	params.Set("q", "title:"+title)
-	params.Set("fields", "key,title,author_name,number_of_pages_median")
+	params.Set("fields", "key,title,author_name,number_of_pages_median,cover_i")
 	params.Set("limit", strconv.Itoa(limit))
 	params.Set("page", strconv.Itoa(page))
 
@@ -94,7 +95,13 @@ func (service OpenLibrarySearchService) SearchBooksByTitle(title string, limit i
 			author = bookResponse.AuthorNames[0]
 		}
 
-		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian}
+		var coverUri string
+
+		if bookResponse.CoverI > 0 {
+			coverUri = "https://covers.openlibrary.org/b/id/" + strconv.Itoa(bookResponse.CoverI) + "-M.jpg"
+		}
+
+		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: coverUri}
 		allBooks[i] = book
 	}
 

@@ -3,6 +3,7 @@ export interface Book {
   title: string;
   author: string;
   pageCount: number;
+  coverUri?: string;
 }
 
 export interface BookDetails {

@@ -5,6 +5,7 @@ type Book struct {
 	Title     string `json:"title"`
 	Author    string `json:"author"`
 	PageCount int    `json:"pageCount"`
+	CoverUri  string `json:"coverUri"`
 }
 
 type Bookmark struct {

@@ -28,7 +28,15 @@ export default function BookCover({ uri, width = 120 }: BookCoverProps) {
   }, [uri]);
 
   return hasError || !uri ? (
-    <View style={{ width, aspectRatio, backgroundColor: theme.surface }}>
+    <View
+      style={{
+        width,
+        aspectRatio,
+        backgroundColor: theme.surface,
+        borderColor: theme.text,
+        borderWidth: 2,
+      }}
+    >
       <Text style={{ color: theme.text }}>cover not found</Text>
     </View>
   ) : (
