@@ -1,22 +1,14 @@
 import { useTheme } from "@/theme/theme-provider";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import { Book, BookDetails } from "@/lib/definitions";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { createBook, placeBookmark, getBookDetails } from "@/api/apiClient";
 import { useCallback, useState } from "react";
-import AntDesign from "@react-native-vector-icons/ant-design";
-import GenrePill from "@/components/genre-pill";
-import BookCover from "@/components/book-cover";
 import BookActions from "@/components/book-actions";
+import BookHeader from "@/components/book-header";
+import GenrePill from "@/components/genre-pill";
 
 export default function BookScreen() {
   const { book: bookParam, shelfId } = useLocalSearchParams<{
@@ -37,9 +29,8 @@ export default function BookScreen() {
   const shelfName = shelves.find(({ id }) => id === shelfId)?.name;
 
   const [pageCount, setPageCount] = useState(
-    `${bookmark?.book.pageCount || book.pageCount}`,
+    bookmark?.book.pageCount || book.pageCount,
   );
-  const [isEditingPageCount, setIsEditingPageCount] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [bookDetails, setBookDetails] = useState<BookDetails | undefined>(
     undefined,
@@ -74,7 +65,7 @@ export default function BookScreen() {
   async function handleAddToShelf() {
     const bookWithId = await createBook(accessToken, {
       ...book,
-      pageCount: parseInt(pageCount),
+      pageCount,
     });
 
     if (shelfId) {
@@ -104,7 +95,7 @@ export default function BookScreen() {
     if (!bookmark) {
       const bookWithId = await createBook(accessToken, {
         ...book,
-        pageCount: parseInt(pageCount),
+        pageCount,
       });
       bookId = bookWithId.id;
     } else {
@@ -135,58 +126,7 @@ export default function BookScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={{ color: theme.text, fontWeight: "bold" }}>
-        {book.title}
-      </Text>
-      <Text style={{ color: theme.text, fontStyle: "italic" }}>
-        {book.author}
-      </Text>
-      <View style={{ alignItems: "center", justifyContent: "center" }}>
-        <BookCover uri={book.coverUri}></BookCover>
-        {bookDetails && (
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            {bookDetails?.genres.map((genre) => (
-              <GenrePill key={genre} genre={genre}></GenrePill>
-            ))}
-          </View>
-        )}
-      </View>
-      {isEditingPageCount ? (
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <TextInput
-            keyboardType="numeric"
-            placeholder="page count"
-            value={pageCount}
-            style={[
-              styles.input,
-              {
-                backgroundColor: theme.inputBackground,
-                color: theme.inputText,
-              },
-            ]}
-            onChangeText={setPageCount}
-          />
-          <Pressable
-            onPress={() => {
-              setIsEditingPageCount(false);
-            }}
-          >
-            <AntDesign name="check" style={{ color: theme.text }}></AntDesign>
-          </Pressable>
-        </View>
-      ) : (
-        <Text style={{ color: theme.text }}>
-          {pageCount} pages{" "}
-          <Pressable
-            onPress={() => {
-              setIsEditingPageCount(true);
-            }}
-          >
-            <AntDesign name="edit" style={{ color: theme.text }}></AntDesign>
-          </Pressable>
-        </Text>
-      )}
-
+      <BookHeader book={book} onPageCountChange={setPageCount} />
       {isLoading && (
         <ActivityIndicator
           color={theme.loading}
@@ -195,6 +135,11 @@ export default function BookScreen() {
       )}
       {bookDetails && (
         <View>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            {bookDetails?.genres.map((genre) => (
+              <GenrePill key={genre} genre={genre}></GenrePill>
+            ))}
+          </View>
           <Text style={{ color: theme.text }}> {bookDetails.blurb}</Text>
         </View>
       )}
