@@ -157,7 +157,18 @@ export default function BookScreen() {
         />
         <ThemedPressable
           onPress={handlReviewPress}
+          variant="secondary"
           text="leave a very nice review"
+        />
+        <ThemedPressable
+          variant="secondary"
+          onPress={() => {
+            router.push({
+              pathname: "/reviews/[bookId]",
+              params: { bookId: book.id },
+            });
+          }}
+          text="reviews"
         />
       </View>
     </View>

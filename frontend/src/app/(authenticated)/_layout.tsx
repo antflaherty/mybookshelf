@@ -34,6 +34,14 @@ export default function AuthenticatedLayout() {
             headerStyle: { backgroundColor: theme.background },
           }}
         />
+        <Stack.Screen
+          name="reviews/[bookId]"
+          options={{
+            headerTintColor: theme.text,
+            headerBackButtonDisplayMode: "generic",
+            headerStyle: { backgroundColor: theme.background },
+          }}
+        />
       </Stack>
     </ShelfProvider>
   );

@@ -30,3 +30,12 @@ export interface User {
   email: string;
   password: string;
 }
+
+export interface Review {
+  bookId: string;
+  comment?: string;
+  createdTimestamp: string;
+  lastEditedTimestamp: string;
+  stars: number;
+  userId: string;
+}

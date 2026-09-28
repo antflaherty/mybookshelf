@@ -1,11 +1,5 @@
 import { useTheme } from "@/theme/theme-provider";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import ThemedPressable from "@/components/themed-pressable";
 import { router } from "expo-router";
 import { useShelf } from "@/context/shelf-provider";

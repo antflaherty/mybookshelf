@@ -1,4 +1,11 @@
-import { Book, BookDetails, Bookmark, Shelf, User } from "@/lib/definitions";
+import {
+  Book,
+  BookDetails,
+  Bookmark,
+  Review,
+  Shelf,
+  User,
+} from "@/lib/definitions";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const REGISTER_ROUTE = "/auth/register";
@@ -190,6 +197,26 @@ export async function postReview(
   }
 
   console.log(await response.json());
+}
+
+export async function getReviews(
+  accessToken: string | null,
+  bookId: string,
+): Promise<Review[]> {
+  const params = new URLSearchParams({
+    bookId,
+  });
+
+  const url = `${API_URL}${REVIEWS_ROUTE}?${params.toString()}`;
+
+  const response = await authorizedFetch(accessToken, url, "GET");
+
+  if (!response.ok) {
+    console.error(await response.text());
+    throw new Error(`Response status: ${response.status}`);
+  }
+
+  return await response.json();
 }
 
 async function authorizedFetch(
