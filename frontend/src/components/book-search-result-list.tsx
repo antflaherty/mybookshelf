@@ -1,15 +1,17 @@
 import { Book } from "@/lib/definitions";
-import { FlatList, View } from "react-native";
+import { ActivityIndicator, FlatList, View } from "react-native";
 import BookSearchResultItem from "./book-search-result-item";
 
 interface BookSearchResultListProps {
   books: Book[];
+  isLoadingMore: boolean;
   onBookSelected?: () => void;
   onEndReached: () => Promise<void>;
 }
 
 export default function BookSearchResultList({
   books,
+  isLoadingMore,
   onBookSelected,
   onEndReached,
 }: BookSearchResultListProps) {
@@ -34,6 +36,7 @@ export default function BookSearchResultList({
         )}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
+        ListFooterComponent={isLoadingMore ? <ActivityIndicator /> : null}
       />
     </View>
   );

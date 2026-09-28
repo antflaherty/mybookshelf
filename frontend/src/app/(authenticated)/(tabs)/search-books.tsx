@@ -18,12 +18,12 @@ export default function SearchBooksScreen() {
   const [title, setTitle] = useState("");
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchPage, setSearchPage] = useState(1);
   const { theme } = useTheme();
   const { accessToken } = useAuth();
 
   async function handleSearchPress() {
-    console.log("initial load");
     setIsLoading(true);
     setSearchPage(1);
     const searchBookResult = await searchBooks(
@@ -37,8 +37,10 @@ export default function SearchBooksScreen() {
   }
 
   async function handleResultListEndReached() {
-    setIsLoading(true);
-    console.log("load more", searchPage);
+    if (isLoading || isLoadingMore) {
+      return;
+    }
+    setIsLoadingMore(true);
     const searchBookResult = await searchBooks(
       accessToken,
       title,
@@ -47,7 +49,7 @@ export default function SearchBooksScreen() {
     );
     setBooks((current) => [...current, ...searchBookResult]);
     setSearchPage((current) => current + 1);
-    setIsLoading(false);
+    setIsLoadingMore(false);
   }
 
   const preserveSearch = useRef(false);
@@ -102,6 +104,7 @@ export default function SearchBooksScreen() {
                   preserveSearch.current = true;
                 }}
                 onEndReached={handleResultListEndReached}
+                isLoadingMore={isLoadingMore}
               ></BookSearchResultList>
             )
           )}
