@@ -154,8 +154,13 @@ func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.Bo
 		genres[i] = genreResponse.Name
 	}
 
-	// handle covers better
-	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres, CoverUri: "https://covers.openlibrary.org/b/id/" + strconv.Itoa(worksResponse.Covers[0]) + "-M.jpg"}
+	var coverUri string
+
+	if len(worksResponse.Covers) > 0 {
+		coverUri = "https://covers.openlibrary.org/b/id/" + strconv.Itoa(worksResponse.Covers[0]) + "-M.jpg"
+	}
+
+	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres, CoverUri: coverUri}
 
 	return bookDetails, nil
 }
