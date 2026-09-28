@@ -62,9 +62,11 @@ export default function SearchBooksScreen() {
           ]}
           onChangeText={setTitle}
         />
-        <ThemedPressable variant="primary" onPress={handleSearchPress}>
-          <Text style={{ color: theme.text }}>search</Text>
-        </ThemedPressable>
+        <ThemedPressable
+          variant="primary"
+          text="search"
+          onPress={handleSearchPress}
+        />
         <View
           style={{
             height: "70%",

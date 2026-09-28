@@ -22,9 +22,10 @@ export default function Index() {
     </View>
   ) : (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <ThemedPressable onPress={() => router.push("/place-bookmark")}>
-        <Text style={{ color: theme.text }}>place bookmark</Text>
-      </ThemedPressable>
+      <ThemedPressable
+        text="place bookmark"
+        onPress={() => router.push("/place-bookmark")}
+      />
       {shelves.map((shelf) => (
         <Pressable
           style={{ width: "100%", alignItems: "center" }}

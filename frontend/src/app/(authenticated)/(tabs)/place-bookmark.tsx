@@ -179,12 +179,16 @@ export default function PlaceBookmarkScreen() {
         <Text style={{ color: theme.errorText }}>{currentPageError}</Text>
       )}
       <View style={{ flexDirection: "row" }}>
-        <ThemedPressable variant="primary" onPress={handlePlaceBookmarkPress}>
-          <Text style={{ color: theme.text }}>place bookmark</Text>
-        </ThemedPressable>
-        <ThemedPressable variant="secondary" onPress={handleBookCompletedPress}>
-          <Text style={{ color: theme.text }}>book completed</Text>
-        </ThemedPressable>
+        <ThemedPressable
+          variant="primary"
+          text="place bookmark"
+          onPress={handlePlaceBookmarkPress}
+        />
+        <ThemedPressable
+          variant="secondary"
+          text="book completed"
+          onPress={handleBookCompletedPress}
+        />
       </View>
     </View>
   );

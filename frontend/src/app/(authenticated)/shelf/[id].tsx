@@ -24,21 +24,17 @@ export default function ShelfScreen() {
               books={shelf.bookmarks.map((bookmark) => bookmark.book)}
             ></BookSearchResultList>
           )}
-          <ThemedPressable>
-            <Text
-              style={{ color: theme.text }}
-              onPress={() => {
-                router.push({
-                  pathname: "/search-books",
-                  params: {
-                    shelfId: id,
-                  },
-                });
-              }}
-            >
-              add book to shelf
-            </Text>
-          </ThemedPressable>
+          <ThemedPressable
+            text="add book to shelf"
+            onPress={() => {
+              router.push({
+                pathname: "/search-books",
+                params: {
+                  shelfId: id,
+                },
+              });
+            }}
+          />
         </View>
       </Stack.Screen>
     </CurrentShelfContext.Provider>

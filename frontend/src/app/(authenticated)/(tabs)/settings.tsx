@@ -31,9 +31,7 @@ export default function SettingsScreen() {
           setTheme(item.value);
         }}
       />
-      <ThemedPressable onPress={logout}>
-        <Text style={{ color: theme.text }}>log out</Text>
-      </ThemedPressable>
+      <ThemedPressable text="log out" onPress={logout} />
     </View>
   );
 }

@@ -46,9 +46,11 @@ export default function LoginScreen() {
         ]}
         onChangeText={setPassword}
       />
-      <ThemedPressable variant="primary" onPress={handleLoginPress}>
-        <Text style={{ color: theme.text }}>log in</Text>
-      </ThemedPressable>
+      <ThemedPressable
+        variant="primary"
+        text="log in"
+        onPress={handleLoginPress}
+      />
     </View>
   );
 }
