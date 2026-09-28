@@ -7,7 +7,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import ThemedPressable from "@/components/themed-pressable";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import { Book, BookDetails } from "@/lib/definitions";
@@ -17,6 +16,7 @@ import { useCallback, useState } from "react";
 import AntDesign from "@react-native-vector-icons/ant-design";
 import GenrePill from "@/components/genre-pill";
 import BookCover from "@/components/book-cover";
+import BookActions from "@/components/book-actions";
 
 export default function BookScreen() {
   const { book: bookParam, shelfId } = useLocalSearchParams<{
@@ -60,16 +60,18 @@ export default function BookScreen() {
     }, [accessToken, book]),
   );
 
-  function handlePlaceBookmarkPress() {
-    router.push({
-      pathname: "/place-bookmark",
-      params: {
-        bookmark: JSON.stringify(bookmark),
-      },
-    });
+  function handlePlaceBookmark() {
+    return Promise.resolve(
+      router.push({
+        pathname: "/place-bookmark",
+        params: {
+          bookmark: JSON.stringify(bookmark),
+        },
+      }),
+    );
   }
 
-  async function handleAddToShelfPress() {
+  async function handleAddToShelf() {
     const bookWithId = await createBook(accessToken, {
       ...book,
       pageCount: parseInt(pageCount),
@@ -97,7 +99,7 @@ export default function BookScreen() {
     });
   }
 
-  async function handleStartReadingPress() {
+  async function handleStartReading() {
     let bookId;
     if (!bookmark) {
       const bookWithId = await createBook(accessToken, {
@@ -196,27 +198,15 @@ export default function BookScreen() {
           <Text style={{ color: theme.text }}> {bookDetails.blurb}</Text>
         </View>
       )}
-
-      {showPlaceBookmark && (
-        <ThemedPressable variant="primary" onPress={handlePlaceBookmarkPress}>
-          <Text style={{ color: theme.text }}>place bookmark</Text>
-        </ThemedPressable>
-      )}
-      {showAddToShelf && (
-        <ThemedPressable variant="primary" onPress={handleAddToShelfPress}>
-          <Text
-            style={{ color: theme.text }}
-          >{`add to ${shelfName || "shelf"}`}</Text>
-        </ThemedPressable>
-      )}
-      {showStartReading && (
-        <ThemedPressable
-          variant={showAddToShelf ? "secondary" : "primary"}
-          onPress={handleStartReadingPress}
-        >
-          <Text style={{ color: theme.text }}>start reading</Text>
-        </ThemedPressable>
-      )}
+      <BookActions
+        showAddToShelf={showAddToShelf}
+        showPlaceBookmark={showPlaceBookmark}
+        showStartReading={showStartReading}
+        onAddToShelf={handleAddToShelf}
+        onPlaceBookmark={handlePlaceBookmark}
+        onStartReading={handleStartReading}
+        shelfName={shelfName}
+      />
     </View>
   );
 }
