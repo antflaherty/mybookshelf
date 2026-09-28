@@ -1,5 +1,11 @@
 import { useTheme } from "@/theme/theme-provider";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import { Book, BookDetails } from "@/lib/definitions";
@@ -126,51 +132,66 @@ export default function BookScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <BookHeader book={book} onPageCountChange={setPageCount} />
-      {isLoading && (
-        <ActivityIndicator
-          color={theme.loading}
-          size="large"
-        ></ActivityIndicator>
-      )}
-      {bookDetails && (
-        <View>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            {bookDetails?.genres.map((genre) => (
-              <GenrePill key={genre} genre={genre}></GenrePill>
-            ))}
-          </View>
-          <Text style={{ color: theme.text }}> {bookDetails.blurb}</Text>
-        </View>
-      )}
-      <BookActions
-        showAddToShelf={showAddToShelf}
-        showPlaceBookmark={showPlaceBookmark}
-        showStartReading={showStartReading}
-        onAddToShelf={handleAddToShelf}
-        onPlaceBookmark={handlePlaceBookmark}
-        onStartReading={handleStartReading}
-        shelfName={shelfName}
-      />
+      <View style={styles.bookHeader}>
+        <BookHeader book={book} onPageCountChange={setPageCount} />
+      </View>
+      <View style={styles.bookDetails}>
+        {isLoading ? (
+          <ActivityIndicator
+            color={theme.loading}
+            size="large"
+          ></ActivityIndicator>
+        ) : (
+          bookDetails && (
+            <View style={{ height: "100%" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                {bookDetails?.genres.map((genre) => (
+                  <GenrePill key={genre} genre={genre}></GenrePill>
+                ))}
+              </View>
+              <ScrollView>
+                <Text style={{ color: theme.text }}> {bookDetails.blurb}</Text>
+              </ScrollView>
+            </View>
+          )
+        )}
+      </View>
+      <View style={styles.bookActions}>
+        <BookActions
+          showAddToShelf={showAddToShelf}
+          showPlaceBookmark={showPlaceBookmark}
+          showStartReading={showStartReading}
+          onAddToShelf={handleAddToShelf}
+          onPlaceBookmark={handlePlaceBookmark}
+          onStartReading={handleStartReading}
+          shelfName={shelfName}
+        />
+      </View>
     </View>
   );
 }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  bookHeader: {
+    flex: 2,
     alignItems: "center",
     justifyContent: "center",
   },
-  centeredView: {
+  bookDetails: {
+    flex: 3,
+  },
+  bookActions: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
-  },
-  input: {
-    margin: 10,
-    height: 50,
-    width: 60,
-    borderRadius: 19,
-    paddingHorizontal: 8,
+    justifyContent: "center",
   },
 });

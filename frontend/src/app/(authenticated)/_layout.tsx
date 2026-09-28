@@ -14,7 +14,7 @@ export default function AuthenticatedLayout() {
           name="book"
           options={{
             headerBackButtonDisplayMode: "generic",
-            headerTransparent: true,
+            headerStyle: { backgroundColor: theme.background },
             title: "",
           }}
         />
