@@ -1,27 +1,37 @@
-import { Image } from "react-native";
+import { Image, Text, View } from "react-native";
 import { useEffect, useState } from "react";
+import { useTheme } from "@/theme/theme-provider";
 
 interface BookCoverProps {
-  uri: string;
+  uri?: string;
   width?: number;
 }
 
 export default function BookCover({ uri, width = 120 }: BookCoverProps) {
   const [aspectRatio, setAspectRatio] = useState(2 / 3);
+  const [hasError, setHasError] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
-    Image.getSize(
-      uri,
-      (imageWidth, imageHeight) => {
-        setAspectRatio(imageWidth / imageHeight);
-      },
-      (error) => {
-        console.error("Failed to get book cover dimensions:", error);
-      },
-    );
+    if (uri) {
+      Image.getSize(
+        uri,
+        (imageWidth, imageHeight) => {
+          setAspectRatio(imageWidth / imageHeight);
+        },
+        (error) => {
+          console.error("Failed to get book cover dimensions:", error);
+          setHasError(true);
+        },
+      );
+    }
   }, [uri]);
 
-  return (
+  return hasError || !uri ? (
+    <View style={{ width, aspectRatio, backgroundColor: theme.surface }}>
+      <Text style={{ color: theme.text }}>cover not found</Text>
+    </View>
+  ) : (
     <Image
       source={{ uri }}
       style={[
@@ -30,6 +40,9 @@ export default function BookCover({ uri, width = 120 }: BookCoverProps) {
           aspectRatio,
         },
       ]}
+      onError={() => {
+        setHasError(true);
+      }}
     />
   );
 }
