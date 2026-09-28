@@ -5,11 +5,13 @@ import BookSearchResultItem from "./book-search-result-item";
 interface BookSearchResultListProps {
   books: Book[];
   onBookSelected?: () => void;
+  onEndReached: () => Promise<void>;
 }
 
 export default function BookSearchResultList({
   books,
   onBookSelected,
+  onEndReached,
 }: BookSearchResultListProps) {
   return (
     <View
@@ -30,6 +32,8 @@ export default function BookSearchResultList({
             onBookSelected={onBookSelected}
           ></BookSearchResultItem>
         )}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.5}
       />
     </View>
   );
