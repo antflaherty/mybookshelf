@@ -48,7 +48,6 @@ type openLibraryWorksResponse struct {
 	Key         string                 `json:"key"`
 	Title       string                 `json:"title"`
 	Description openLibraryDescription `json:"description"`
-	Covers      []int                  `json:"covers"`
 	Genres      []string               `json:"genres"`
 }
 
@@ -163,13 +162,7 @@ func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.Bo
 		genres[i] = genreResponse.Name
 	}
 
-	var coverUri string
-
-	if len(worksResponse.Covers) > 0 {
-		coverUri = "https://covers.openlibrary.org/b/id/" + strconv.Itoa(worksResponse.Covers[0]) + "-M.jpg"
-	}
-
-	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres, CoverUri: coverUri}
+	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres}
 
 	return bookDetails, nil
 }
