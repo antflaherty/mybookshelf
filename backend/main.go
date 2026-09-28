@@ -6,6 +6,7 @@ import (
 	"github.com/antflaherty/mybookshelf/backend/books"
 	"github.com/antflaherty/mybookshelf/backend/config"
 	"github.com/antflaherty/mybookshelf/backend/library"
+	"github.com/antflaherty/mybookshelf/backend/reviews"
 	"github.com/antflaherty/mybookshelf/backend/shelves"
 	"github.com/gin-gonic/gin"
 
@@ -46,6 +47,9 @@ func main() {
 
 	protected.POST("/books", books.PostBookHandler(db))
 	protected.POST("/bookmarks", bookmarks.PostBookmarkHandler(db))
+
+	protected.GET("/reviews", reviews.GetReviewsHandler((db)))
+	protected.POST("/reviews", reviews.PostReviewHandler((db)))
 
 	router.Run("0.0.0.0:8080")
 }

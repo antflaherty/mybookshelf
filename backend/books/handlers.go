@@ -66,7 +66,6 @@ func PostBookHandler(db *sql.DB) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		fmt.Println(book)
 
 		bookInDb, err := QueryBookById(db, book.ID)
 		if err != nil && err != sql.ErrNoRows {

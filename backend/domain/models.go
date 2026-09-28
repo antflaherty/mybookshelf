@@ -27,3 +27,12 @@ type Shelf struct {
 	Name      string              `json:"name"`
 	Bookmarks []QualifiedBookmark `json:"bookmarks"`
 }
+
+type Review struct {
+	UserID              string  `json:"userID"`
+	BookID              string  `json:"bookId"`
+	Stars               int     `json:"stars"`
+	CreatedTimestamp    string  `json:"createdTimestamp"`
+	LastEditedTimestamp string  `json:"lastEditedTimestamp"`
+	Comment             *string `json:"comment"`
+}
