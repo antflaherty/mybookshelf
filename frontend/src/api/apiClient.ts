@@ -6,6 +6,7 @@ const LOGIN_ROUTE = "/auth/login";
 const BOOKS_ROUTE = "/books";
 const BOOKMARKS_ROUTE = "/bookmarks";
 const SHELVES_ROUTE = "/shelves";
+const REVIEWS_ROUTE = "/reviews";
 
 export async function register(user: User) {
   const url = API_URL + REGISTER_ROUTE;
@@ -161,6 +162,34 @@ export async function placeBookmark(
     console.error(await response.text());
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
+}
+
+interface PostReviewRequest {
+  bookId: string;
+  stars: number;
+  comment?: string;
+  timestamp: string;
+}
+
+export async function postReview(
+  accessToken: string | null,
+  request: PostReviewRequest,
+) {
+  const url = `${API_URL}${REVIEWS_ROUTE}`;
+
+  const response = await authorizedFetch(
+    accessToken,
+    url,
+    "POST",
+    JSON.stringify(request),
+  );
+
+  if (!response.ok) {
+    console.error(await response.text());
+    throw new Error(`HTTP error! Status: ${response.status}`);
+  }
+
+  console.log(await response.json());
 }
 
 async function authorizedFetch(
