@@ -10,11 +10,12 @@ import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import { Book, BookDetails } from "@/lib/definitions";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
-import { createBook, placeBookmark, getBookDetails } from "@/api/apiClient";
+import { getBookDetails } from "@/api/apiClient";
 import { useCallback, useState } from "react";
 import BookActions from "@/components/book-actions";
 import BookHeader from "@/components/book-header";
 import GenrePill from "@/components/genre-pill";
+import { useBookActions } from "@/hooks/book-actions";
 
 export default function BookScreen() {
   const { book: bookParam, shelfId } = useLocalSearchParams<{
@@ -23,8 +24,7 @@ export default function BookScreen() {
   }>();
   const book: Book = JSON.parse(bookParam);
 
-  const { shelves, toBeRead, currentlyReading, finished, loadShelves } =
-    useShelf();
+  const { shelves, toBeRead, finished } = useShelf();
 
   const bookmark = shelves
     .map((shelf) =>
@@ -44,6 +44,7 @@ export default function BookScreen() {
 
   const { theme } = useTheme();
   const { accessToken } = useAuth();
+  const { addNewBookToShelf, startReading } = useBookActions();
 
   useFocusEffect(
     useCallback(() => {
@@ -69,20 +70,9 @@ export default function BookScreen() {
   }
 
   async function handleAddToShelf() {
-    const bookWithId = await createBook(accessToken, {
-      ...book,
-      pageCount,
-    });
+    addNewBookToShelf({ ...book, pageCount }, shelfId);
 
     if (shelfId) {
-      const placeBookmarkRequest = {
-        bookId: bookWithId.id,
-        currentPage: 0,
-        shelfId: shelfId,
-      };
-      await placeBookmark(accessToken, placeBookmarkRequest);
-      await loadShelves();
-
       router.push("/");
       return;
     }
@@ -90,32 +80,14 @@ export default function BookScreen() {
     router.push({
       pathname: "/select-shelf",
       params: {
-        bookId: bookWithId.id,
+        bookId: book.id,
         currentPage: 0,
       },
     });
   }
 
   async function handleStartReading() {
-    let bookId;
-    if (!bookmark) {
-      const bookWithId = await createBook(accessToken, {
-        ...book,
-        pageCount,
-      });
-      bookId = bookWithId.id;
-    } else {
-      bookId = bookmark.book.id;
-    }
-
-    const placeBookmarkRequest = {
-      bookId,
-      currentPage: 0,
-      shelfId: currentlyReading.id,
-    };
-    await placeBookmark(accessToken, placeBookmarkRequest);
-
-    await loadShelves();
+    await startReading({ ...book, pageCount }, bookmark);
 
     router.push({
       pathname: "/place-bookmark",
