@@ -10,6 +10,8 @@ export interface Theme {
   inputBackground: string;
   inputText: string;
   loading: string;
+  starFilled: string;
+  starEmpty: string;
 }
 
 export const THEMES: { [name: string]: Theme } = {
@@ -25,6 +27,8 @@ export const THEMES: { [name: string]: Theme } = {
     inputBackground: "#f4d8aa",
     inputText: "#0f2904",
     loading: "#def2a2",
+    starFilled: "#ffaa00",
+    starEmpty: "#032b0f",
   },
   sky: {
     name: "sky",
@@ -38,6 +42,8 @@ export const THEMES: { [name: string]: Theme } = {
     inputBackground: "#c9e1f5",
     inputText: "#000000",
     loading: "#000000",
+    starFilled: "#ffaa00",
+    starEmpty: "#032b0f",
   },
   sunset: {
     name: "sunset",
@@ -51,6 +57,8 @@ export const THEMES: { [name: string]: Theme } = {
     inputBackground: "#f4d8aa",
     inputText: "#3a1515",
     loading: "#ffe4b5",
+    starFilled: "#ffaa00",
+    starEmpty: "#914635",
   },
   ocean: {
     name: "ocean",
@@ -64,6 +72,8 @@ export const THEMES: { [name: string]: Theme } = {
     inputBackground: "#c9e9f2",
     inputText: "#032b3a",
     loading: "#d9f3ff",
+    starFilled: "#ffaa00",
+    starEmpty: "#053449",
   },
   lavender: {
     name: "lavender",
@@ -77,6 +87,8 @@ export const THEMES: { [name: string]: Theme } = {
     inputBackground: "#e6ddf5",
     inputText: "#251d3a",
     loading: "#f1e8ff",
+    starFilled: "#ffaa00",
+    starEmpty: "#423766",
   },
   autumn: {
     name: "autumn",
@@ -90,6 +102,8 @@ export const THEMES: { [name: string]: Theme } = {
     inputBackground: "#f2d5ad",
     inputText: "#321a0e",
     loading: "#ffe8c2",
+    starFilled: "#ffaa00",
+    starEmpty: "#6b3e26",
   },
   midnight: {
     name: "midnight",
@@ -103,6 +117,8 @@ export const THEMES: { [name: string]: Theme } = {
     inputBackground: "#1f2937",
     inputText: "#f3f4f6",
     loading: "#e5e7eb",
+    starFilled: "#ffaa00",
+    starEmpty: "#14203b",
   },
 };
 

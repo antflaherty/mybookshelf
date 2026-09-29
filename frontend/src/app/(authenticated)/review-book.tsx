@@ -1,14 +1,13 @@
 import { postReview } from "@/api/apiClient";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
-import { Dropdown } from "react-native-element-dropdown";
+import { Text, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
-import { useShelf } from "@/context/shelf-provider";
 import ThemedPressable from "@/components/themed-pressable";
 import { Book } from "@/lib/definitions";
 import BookHeader from "@/components/book-header";
+import StarRating from "@/components/star-rating";
 
 export default function ReviewBookScreen() {
   const { book: bookParam } = useLocalSearchParams<{
@@ -27,7 +26,17 @@ export default function ReviewBookScreen() {
 
   const { accessToken } = useAuth();
 
-  async function handleSubmit() {}
+  async function handleSubmit() {
+    if (book) {
+      await postReview(accessToken, {
+        bookId: book.id,
+        stars,
+        comment,
+        timestamp: new Date().toISOString(),
+      });
+      router.push("/");
+    }
+  }
 
   return (
     <View
@@ -44,7 +53,7 @@ export default function ReviewBookScreen() {
             <BookHeader book={book} readOnly></BookHeader>
           </View>
           <View style={{ flex: 3 }}>
-            <Text style={{ color: theme.text }}>STARS PLACEHOLDER</Text>
+            <StarRating rating={stars} onChange={setStars} />
             <TextInput
               multiline
               numberOfLines={5}
