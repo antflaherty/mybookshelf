@@ -64,13 +64,15 @@ export default function BookHeader({
       ) : (
         <Text style={{ color: theme.text }}>
           {pageCount} pages{" "}
-          <Pressable
-            onPress={() => {
-              setIsEditingPageCount(true);
-            }}
-          >
-            <AntDesign name="edit" style={{ color: theme.text }}></AntDesign>
-          </Pressable>
+          {!readOnly && (
+            <Pressable
+              onPress={() => {
+                setIsEditingPageCount(true);
+              }}
+            >
+              <AntDesign name="edit" style={{ color: theme.text }}></AntDesign>
+            </Pressable>
+          )}
         </Text>
       )}
     </View>
