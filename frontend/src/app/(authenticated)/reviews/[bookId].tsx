@@ -5,6 +5,7 @@ import { useAuth } from "@/auth/auth-context";
 import { useEffect, useState } from "react";
 import { getReviews } from "@/api/apiClient";
 import { Review } from "@/lib/definitions";
+import StarRating from "@/components/star-rating";
 
 export default function ReviewsScreen() {
   const { bookId } = useLocalSearchParams<{ bookId: string }>();
@@ -27,9 +28,12 @@ export default function ReviewsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {reviews.map((review) => (
-        <Text key={review.userId}>
-          {review.stars / 4} stars {review.comment ? `| ${review.comment}` : ""}
-        </Text>
+        <View key={review.userId}>
+          <StarRating rating={review.stars} readonly />
+          {review.comment && (
+            <Text style={{ color: theme.text }}>{review.comment}</Text>
+          )}
+        </View>
       ))}
     </View>
   );
