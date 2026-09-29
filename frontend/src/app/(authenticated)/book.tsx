@@ -10,7 +10,7 @@ import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import { Book, BookDetails } from "@/lib/definitions";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
-import { getBookDetails, postReview } from "@/api/apiClient";
+import { getBookDetails } from "@/api/apiClient";
 import { useCallback, useState } from "react";
 import BookActions from "@/components/book-actions";
 import BookHeader from "@/components/book-header";
@@ -98,15 +98,6 @@ export default function BookScreen() {
     });
   }
 
-  async function handlReviewPress() {
-    await postReview(accessToken, {
-      bookId: book.id,
-      stars: 20,
-      comment: "nice book",
-      timestamp: new Date().toISOString(),
-    });
-  }
-
   const showAddToShelf = !bookmark;
   const showStartReading = !bookmark || bookmark.shelfId === toBeRead.id;
   const showPlaceBookmark =
@@ -154,11 +145,6 @@ export default function BookScreen() {
           onPlaceBookmark={handlePlaceBookmark}
           onStartReading={handleStartReading}
           shelfName={shelfName}
-        />
-        <ThemedPressable
-          onPress={handlReviewPress}
-          variant="secondary"
-          text="leave a very nice review"
         />
         <ThemedPressable
           variant="secondary"

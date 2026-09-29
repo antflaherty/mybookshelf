@@ -49,6 +49,7 @@ export default function AuthenticatedLayout() {
             headerTintColor: theme.text,
             headerBackButtonDisplayMode: "generic",
             headerStyle: { backgroundColor: theme.background },
+            title: "",
           }}
         />
       </Stack>
