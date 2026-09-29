@@ -1,6 +1,6 @@
 import { postReview } from "@/api/apiClient";
 import { useState } from "react";
-import { TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
@@ -42,17 +42,23 @@ export default function ReviewBookScreen() {
     <View
       style={{
         flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
         backgroundColor: theme.background,
       }}
     >
       {book && (
-        <View>
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: theme.background,
+            width: "100%",
+          }}
+        >
           <View style={{ flex: 2 }}>
             <BookHeader book={book} readOnly></BookHeader>
           </View>
-          <View style={{ flex: 3 }}>
+          <View style={{ flex: 3, width: "100%", alignItems: "center" }}>
             <StarRating rating={stars} onChange={setStars} />
             <TextInput
               multiline
@@ -61,10 +67,13 @@ export default function ReviewBookScreen() {
               textAlignVertical="top"
               value={comment}
               onChangeText={setComment}
-              style={{
-                backgroundColor: theme.inputBackground,
-                color: theme.inputText,
-              }}
+              style={[
+                styles.commentInput,
+                {
+                  backgroundColor: theme.inputBackground,
+                  color: theme.inputText,
+                },
+              ]}
             />
           </View>
           <View style={{ flex: 1 }}>
@@ -75,3 +84,13 @@ export default function ReviewBookScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  commentInput: {
+    width: "80%",
+    height: "50%",
+    padding: 10,
+    borderRadius: 10,
+    margin: 10,
+  },
+});
