@@ -1,6 +1,6 @@
 import { placeBookmark } from "@/api/apiClient";
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import * as z from "zod";
 import { Dropdown } from "react-native-element-dropdown";
 import { router, useLocalSearchParams } from "expo-router";
@@ -26,6 +26,8 @@ export default function PlaceBookmarkScreen() {
     bookmark = JSON.parse(bookmarkParam);
   }
 
+  const book = bookmark?.book;
+
   const [id, setId] = useState(bookmark?.book.id || "");
   const [currentPage, setCurrentPage] = useState(
     !!bookmark ? `${bookmark.currentPage}` : "",
@@ -45,11 +47,11 @@ export default function PlaceBookmarkScreen() {
       return { value: bm.book.id, label: bm.book.title };
     }) || [];
 
-  function clearAndGoBack() {
+  function clearAndNavigate(navigate: () => void) {
     setId("");
     setCurrentPage("");
     clearErrors();
-    router.back();
+    navigate();
   }
 
   function clearErrors() {
@@ -81,7 +83,12 @@ export default function PlaceBookmarkScreen() {
     await placeBookmark(accessToken, placeBookMarkRequest);
     await loadShelves();
 
-    clearAndGoBack();
+    clearAndNavigate(() => {
+      router.push({
+        pathname: "/review-book",
+        params: { book: JSON.stringify(book) },
+      });
+    });
   }
 
   async function handlePlaceBookmarkPress() {
@@ -96,22 +103,27 @@ export default function PlaceBookmarkScreen() {
 
       const bookmark = BookmarkSchema.parse(rawBookmark);
 
-      let alertMessage = "bookmark placed";
+      let navigation = () => {
+        router.back();
+      };
 
       const pageCount = currentlyReading.bookmarks.find(
         ({ book: { id: bookId } }) => bookId === id,
       )?.book.pageCount;
       if (pageCount === bookmark.currentPage) {
         bookmark.shelfId = finished.id;
-        alertMessage = "you finished a book!";
+        navigation = () => {
+          router.push({
+            pathname: "/review-book",
+            params: { book: JSON.stringify(book) },
+          });
+        };
       }
 
       await placeBookmark(accessToken, bookmark);
       await loadShelves();
 
-      Alert.alert(alertMessage);
-
-      clearAndGoBack();
+      clearAndNavigate(navigation);
     } catch (error) {
       if (error instanceof z.ZodError) {
         console.log(error);

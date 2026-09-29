@@ -7,7 +7,7 @@ import AntDesign from "@react-native-vector-icons/ant-design";
 
 interface BookHeaderProps {
   book: Book;
-  onPageCountChange: (pageCount: number) => void;
+  onPageCountChange?: (pageCount: number) => void;
   readOnly?: boolean;
 }
 
@@ -23,7 +23,7 @@ export default function BookHeader({
 
   function handlePageCountChange(value: string) {
     setPageCount(value);
-    onPageCountChange(parseInt(value));
+    onPageCountChange?.(parseInt(value));
   }
 
   return (

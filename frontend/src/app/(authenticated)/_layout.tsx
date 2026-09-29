@@ -27,6 +27,15 @@ export default function AuthenticatedLayout() {
           }}
         />
         <Stack.Screen
+          name="review-book"
+          options={{
+            headerBackButtonDisplayMode: "generic",
+            title: "leave a review",
+            headerStyle: { backgroundColor: theme.background },
+            headerTintColor: theme.text,
+          }}
+        />
+        <Stack.Screen
           name="shelf/[id]"
           options={{
             headerTintColor: theme.text,
