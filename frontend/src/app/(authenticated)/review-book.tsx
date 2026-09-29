@@ -88,7 +88,7 @@ export default function ReviewBookScreen() {
 const styles = StyleSheet.create({
   commentInput: {
     width: "80%",
-    height: "50%",
+    minHeight: 140,
     padding: 10,
     borderRadius: 10,
     margin: 10,
