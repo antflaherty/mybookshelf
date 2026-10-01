@@ -18,7 +18,7 @@ export default function ReviewsScreen() {
       if (bookId) {
         const reviews = await getReviews(accessToken, bookId);
 
-        setReviews(reviews);
+        setReviews(reviews || []);
       }
     }
 
