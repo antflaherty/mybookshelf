@@ -52,6 +52,7 @@ export default function BookScreen() {
       async function loadBookDetails() {
         setIsLoading(true);
         const bookDetails = await getBookDetails(accessToken, book.id);
+        console.log(bookDetails);
         setBookDetails(bookDetails);
         setIsLoading(false);
       }

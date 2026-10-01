@@ -2,6 +2,7 @@ package library
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -162,9 +163,62 @@ func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.Bo
 		genres[i] = genreResponse.Name
 	}
 
-	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres}
+	book, err := searchBookByID(bookId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres, Book: *book}
 
 	return bookDetails, nil
+}
+
+func searchBookByID(bookID string) (*domain.Book, error) {
+	baseURL := "https://openlibrary.org/search.json"
+
+	params := url.Values{}
+	params.Set("q", "key:"+bookID)
+	params.Set("fields", "key,title,author_name,number_of_pages_median,cover_i")
+
+	requestURL := baseURL + "?" + params.Encode()
+
+	response, err := http.Get(requestURL)
+	if err != nil {
+		return nil, err
+	}
+
+	defer response.Body.Close()
+
+	var searchResponse openLibrarySearchResponse
+
+	err = json.NewDecoder(response.Body).Decode(&searchResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(searchResponse.Docs) < 1 {
+		return nil, errors.New("book not found")
+	}
+
+	bookResponse := searchResponse.Docs[0]
+
+	author := ""
+
+	if len(bookResponse.AuthorNames) > 0 {
+		author = bookResponse.AuthorNames[0]
+	}
+
+	var coverUri string
+
+	if bookResponse.CoverI > 0 {
+		coverUri = "https://covers.openlibrary.org/b/id/" + strconv.Itoa(bookResponse.CoverI) + "-M.jpg"
+	}
+
+	book := &domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: &coverUri}
+
+	return book, nil
 }
 
 func NewOpenLibrarySearchService() *OpenLibrarySearchService {

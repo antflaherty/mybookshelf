@@ -10,6 +10,7 @@ export interface BookDetails {
   id: string;
   blurb: string;
   genres: string[];
+  book: Book;
 }
 
 export interface Bookmark {
