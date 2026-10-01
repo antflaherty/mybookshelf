@@ -27,14 +27,18 @@ export default function ReviewsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {reviews.map((review) => (
-        <View key={review.userId}>
-          <StarRating rating={review.stars} readonly />
-          {review.comment && (
-            <Text style={{ color: theme.text }}>{review.comment}</Text>
-          )}
-        </View>
-      ))}
+      {reviews.length > 0 ? (
+        reviews.map((review) => (
+          <View key={review.userId}>
+            <StarRating rating={review.stars} readonly />
+            {review.comment && (
+              <Text style={{ color: theme.text }}>{review.comment}</Text>
+            )}
+          </View>
+        ))
+      ) : (
+        <Text style={{ color: theme.text }}>no reviews yet.</Text>
+      )}
     </View>
   );
 }
