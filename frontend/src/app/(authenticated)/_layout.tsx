@@ -11,7 +11,7 @@ export default function AuthenticatedLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
         <Stack.Screen
-          name="book"
+          name="book/[id]"
           options={{
             headerBackButtonDisplayMode: "generic",
             headerStyle: { backgroundColor: theme.background },

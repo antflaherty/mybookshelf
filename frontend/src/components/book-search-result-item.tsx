@@ -22,9 +22,9 @@ export default function BookSearchResultItem({
       onPress={() => {
         onBookSelected?.();
         router.push({
-          pathname: "/book",
+          pathname: "/book/[id]",
           params: {
-            book: JSON.stringify(book),
+            id: book.id,
             shelfId,
           },
         });
