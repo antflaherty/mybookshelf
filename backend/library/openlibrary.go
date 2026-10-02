@@ -60,16 +60,18 @@ type openLibraryTagsResponse struct {
 type OpenLibrarySearchService struct {
 }
 
-func (service OpenLibrarySearchService) SearchBooksByTitle(title string, limit int, page int) ([]domain.Book, error) {
-	baseURL := "https://openlibrary.org/search.json"
+const baseUrl = "https://openlibrary.org"
+const coversUrl = "https://covers.openlibrary.org/b/id/"
+const searchRoute = "/search.json"
 
+func (service OpenLibrarySearchService) SearchBooksByTitle(title string, limit int, page int) ([]domain.Book, error) {
 	params := url.Values{}
 	params.Set("q", "title:"+title)
 	params.Set("fields", "key,title,author_name,number_of_pages_median,cover_i")
 	params.Set("limit", strconv.Itoa(limit))
 	params.Set("page", strconv.Itoa(page))
 
-	requestURL := baseURL + "?" + params.Encode()
+	requestURL := baseUrl + searchRoute + "?" + params.Encode()
 
 	response, err := http.Get(requestURL)
 	if err != nil {
@@ -98,7 +100,7 @@ func (service OpenLibrarySearchService) SearchBooksByTitle(title string, limit i
 		var coverUri string
 
 		if bookResponse.CoverI > 0 {
-			coverUri = "https://covers.openlibrary.org/b/id/" + strconv.Itoa(bookResponse.CoverI) + "-M.jpg"
+			coverUri = coversUrl + strconv.Itoa(bookResponse.CoverI) + "-M.jpg"
 		}
 
 		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: &coverUri}
@@ -110,7 +112,7 @@ func (service OpenLibrarySearchService) SearchBooksByTitle(title string, limit i
 
 func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.BookDetails, error) {
 	worksUrl, err := url.JoinPath(
-		"https://openlibrary.org",
+		baseUrl,
 		url.PathEscape(bookId)+".json",
 	)
 
@@ -139,7 +141,7 @@ func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.Bo
 
 	for i, genreId := range genreIds {
 		tagsUrl, err := url.JoinPath(
-			"https://openlibrary.org",
+			baseUrl,
 			url.PathEscape(genreId)+".json",
 		)
 		if err != nil {
@@ -175,13 +177,11 @@ func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.Bo
 }
 
 func searchBookByID(bookID string) (*domain.Book, error) {
-	baseURL := "https://openlibrary.org/search.json"
-
 	params := url.Values{}
 	params.Set("q", "key:"+bookID)
 	params.Set("fields", "key,title,author_name,number_of_pages_median,cover_i")
 
-	requestURL := baseURL + "?" + params.Encode()
+	requestURL := baseUrl + searchRoute + "?" + params.Encode()
 
 	response, err := http.Get(requestURL)
 	if err != nil {
@@ -213,7 +213,7 @@ func searchBookByID(bookID string) (*domain.Book, error) {
 	var coverUri string
 
 	if bookResponse.CoverI > 0 {
-		coverUri = "https://covers.openlibrary.org/b/id/" + strconv.Itoa(bookResponse.CoverI) + "-M.jpg"
+		coverUri = coversUrl + strconv.Itoa(bookResponse.CoverI) + "-M.jpg"
 	}
 
 	book := &domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: &coverUri}
