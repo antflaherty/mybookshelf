@@ -1,11 +1,11 @@
 package domain
 
 type Book struct {
-	ID        string  `json:"id"`
-	Title     string  `json:"title"`
-	Author    string  `json:"author"`
-	PageCount int     `json:"pageCount"`
-	CoverUri  *string `json:"coverUri"`
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Author    string `json:"author"`
+	PageCount int    `json:"pageCount"`
+	CoverUri  string `json:"coverUri"`
 }
 
 type Bookmark struct {

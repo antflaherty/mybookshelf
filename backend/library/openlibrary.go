@@ -97,13 +97,7 @@ func (service OpenLibrarySearchService) SearchBooksByTitle(title string, limit i
 			author = bookResponse.AuthorNames[0]
 		}
 
-		var coverUri string
-
-		if bookResponse.CoverI > 0 {
-			coverUri = coversUrl + strconv.Itoa(bookResponse.CoverI) + "-M.jpg"
-		}
-
-		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: &coverUri}
+		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: getCoverUri(bookResponse.CoverI)}
 		allBooks[i] = book
 	}
 
@@ -210,17 +204,21 @@ func searchBookByID(bookID string) (*domain.Book, error) {
 		author = bookResponse.AuthorNames[0]
 	}
 
-	var coverUri string
-
-	if bookResponse.CoverI > 0 {
-		coverUri = coversUrl + strconv.Itoa(bookResponse.CoverI) + "-M.jpg"
-	}
-
-	book := &domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: &coverUri}
+	book := &domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: getCoverUri((bookResponse.CoverI))}
 
 	return book, nil
 }
 
 func NewOpenLibrarySearchService() *OpenLibrarySearchService {
 	return &OpenLibrarySearchService{}
+}
+
+func getCoverUri(coverId int) string {
+	var coverUri string
+
+	if coverId > 0 {
+		coverUri = coversUrl + strconv.Itoa(coverId) + "-M.jpg"
+	}
+
+	return coverUri
 }
