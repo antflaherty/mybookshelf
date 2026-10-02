@@ -65,43 +65,7 @@ const coversUrl = "https://covers.openlibrary.org/b/id/"
 const searchRoute = "/search.json"
 
 func (service OpenLibrarySearchService) SearchBooksByTitle(title string, limit int, page int) ([]domain.Book, error) {
-	params := url.Values{}
-	params.Set("q", "title:"+title)
-	params.Set("fields", "key,title,author_name,number_of_pages_median,cover_i")
-	params.Set("limit", strconv.Itoa(limit))
-	params.Set("page", strconv.Itoa(page))
-
-	requestURL := baseUrl + searchRoute + "?" + params.Encode()
-
-	response, err := http.Get(requestURL)
-	if err != nil {
-		return nil, err
-	}
-
-	defer response.Body.Close()
-
-	var searchResponse openLibrarySearchResponse
-
-	err = json.NewDecoder(response.Body).Decode(&searchResponse)
-
-	if err != nil {
-		return nil, err
-	}
-
-	allBooks := make([]domain.Book, len(searchResponse.Docs))
-
-	for i, bookResponse := range searchResponse.Docs {
-		author := ""
-
-		if len(bookResponse.AuthorNames) > 0 {
-			author = bookResponse.AuthorNames[0]
-		}
-
-		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: getCoverUri(bookResponse.CoverI)}
-		allBooks[i] = book
-	}
-
-	return allBooks, nil
+	return searchBooks(searchBooksQuery{Title: title}, limit, page)
 }
 
 func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.BookDetails, error) {
@@ -159,21 +123,53 @@ func (service OpenLibrarySearchService) GetBookDetails(bookId string) (*books.Bo
 		genres[i] = genreResponse.Name
 	}
 
-	book, err := searchBookByID(bookId)
+	bookResults, err := searchBooks(searchBooksQuery{Key: bookId}, 1, 1)
 
 	if err != nil {
 		return nil, err
 	}
 
-	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres, Book: *book}
+	var book domain.Book
+	if len(bookResults) > 0 {
+		book = bookResults[0]
+	} else {
+		return nil, errors.New("book not found")
+	}
+
+	bookDetails := &books.BookDetails{ID: bookId, Blurb: string(worksResponse.Description), Genres: genres, Book: book}
 
 	return bookDetails, nil
 }
 
-func searchBookByID(bookID string) (*domain.Book, error) {
+func NewOpenLibrarySearchService() *OpenLibrarySearchService {
+	return &OpenLibrarySearchService{}
+}
+
+type searchBooksQuery struct {
+	Title string
+	Key   string
+}
+
+func searchBooks(query searchBooksQuery, limit int, page int) ([]domain.Book, error) {
+	var queryString string
+	if query.Title != "" {
+		queryString += "title:" + query.Title
+	}
+	if query.Key != "" {
+		queryString += "key:" + query.Key
+	}
+
 	params := url.Values{}
-	params.Set("q", "key:"+bookID)
+	params.Set("q", queryString)
 	params.Set("fields", "key,title,author_name,number_of_pages_median,cover_i")
+
+	if limit > 0 {
+		params.Set("limit", strconv.Itoa(limit))
+	}
+
+	if page > 0 {
+		params.Set("page", strconv.Itoa(page))
+	}
 
 	requestURL := baseUrl + searchRoute + "?" + params.Encode()
 
@@ -192,25 +188,20 @@ func searchBookByID(bookID string) (*domain.Book, error) {
 		return nil, err
 	}
 
-	if len(searchResponse.Docs) < 1 {
-		return nil, errors.New("book not found")
+	allBooks := make([]domain.Book, len(searchResponse.Docs))
+
+	for i, bookResponse := range searchResponse.Docs {
+		author := ""
+
+		if len(bookResponse.AuthorNames) > 0 {
+			author = bookResponse.AuthorNames[0]
+		}
+
+		book := domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: getCoverUri(bookResponse.CoverI)}
+		allBooks[i] = book
 	}
 
-	bookResponse := searchResponse.Docs[0]
-
-	author := ""
-
-	if len(bookResponse.AuthorNames) > 0 {
-		author = bookResponse.AuthorNames[0]
-	}
-
-	book := &domain.Book{ID: bookResponse.Key, Title: bookResponse.Title, Author: author, PageCount: bookResponse.NumberOfPagesMedian, CoverUri: getCoverUri((bookResponse.CoverI))}
-
-	return book, nil
-}
-
-func NewOpenLibrarySearchService() *OpenLibrarySearchService {
-	return &OpenLibrarySearchService{}
+	return allBooks, nil
 }
 
 func getCoverUri(coverId int) string {
