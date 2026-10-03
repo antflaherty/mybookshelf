@@ -134,28 +134,7 @@ smoke test of `GET /books` / `GET /bookmarks` returns sensible cover values.
 
 ---
 
-## 5. Add backend tests for the pure helpers
-
-**Where:** new `backend/library/openlibrary_test.go`
-
-**Problem:** There are no tests anywhere in the repo. The refactor introduced
-two pure functions that are trivial to test and cover the riskiest logic.
-
-**Suggested fix:** Table-driven `go test` cases for:
-- `getCoverUri(coverId int)` — `0` and negative return `""`; positive returns
-  `https://covers.openlibrary.org/b/id/<id>-M.jpg`.
-- `searchBooksQuery` handling inside `searchBooks` (consider extracting the
-  query-string construction into a pure helper so it can be tested without
-  hitting the network — note the current builder concatenates `title:` and
-  `key:` if both are set, though callers never do).
-
-No test deps are needed; standard `testing` is fine.
-
-**Done when:** `go test ./...` passes in `backend/`.
-
----
-
-## 6. Align the reviews page with the new hook pattern
+## 5. Align the reviews page with the new hook pattern
 
 **Where:** `frontend/src/app/(authenticated)/reviews/[bookId].tsx`
 
@@ -171,7 +150,7 @@ still loads reviews + header. `tsc --noEmit` passes.
 
 ---
 
-## 7. Stop serializing whole books through route params
+## 6. Stop serializing whole books through route params
 
 **Where:** `frontend/src/app/(authenticated)/(tabs)/place-bookmark.tsx`
 (passes `params: { book: JSON.stringify(book) }` to `/review-book`, around
