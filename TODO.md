@@ -13,7 +13,7 @@ loose ends from that change plus a few pre-existing issues it exposed.
 
 ---
 
-## 1. Memoize `getBookDetails` in `useBook` to stop an infinite refetch loop
+## 1. ~~Memoize `getBookDetails` in `useBook` to stop an infinite refetch loop~~ ✅
 
 **Where:** `frontend/src/hooks/book.ts`
 
