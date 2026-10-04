@@ -24,7 +24,7 @@ func main() {
 		return
 	}
 
-	db, err := sql.Open("sqlite", "./local.db")
+	db, err := sql.Open("sqlite", config.DatabaseURL)
 	if err != nil {
 		fmt.Println(err)
 		return
