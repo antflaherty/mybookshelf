@@ -62,7 +62,8 @@ export default function BookScreen() {
       router.push({
         pathname: "/place-bookmark",
         params: {
-          bookmark: JSON.stringify(bookmark),
+          bookId: id,
+          currentPage: String(bookmark?.currentPage ?? 0),
         },
       }),
     );
@@ -99,7 +100,8 @@ export default function BookScreen() {
     router.push({
       pathname: "/place-bookmark",
       params: {
-        bookmark: JSON.stringify({ currentPage: 0, book: bookDetails.book }),
+        bookId: id,
+        currentPage: "0",
       },
     });
   }

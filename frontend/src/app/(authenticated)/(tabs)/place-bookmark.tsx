@@ -8,7 +8,6 @@ import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import ThemedPressable from "@/components/themed-pressable";
-import { Bookmark } from "@/lib/definitions";
 
 const BookmarkSchema = z.object({
   bookId: z.string().min(1),
@@ -17,21 +16,13 @@ const BookmarkSchema = z.object({
 });
 
 export default function PlaceBookmarkScreen() {
-  const { bookmark: bookmarkParam } = useLocalSearchParams<{
-    bookmark: string;
+  const { bookId, currentPage: currentPageParam } = useLocalSearchParams<{
+    bookId: string;
+    currentPage: string;
   }>();
 
-  let bookmark: Bookmark | undefined;
-  if (bookmarkParam !== undefined) {
-    bookmark = JSON.parse(bookmarkParam);
-  }
-
-  const book = bookmark?.book;
-
-  const [id, setId] = useState(bookmark?.book.id || "");
-  const [currentPage, setCurrentPage] = useState(
-    !!bookmark ? `${bookmark.currentPage}` : "",
-  );
+  const [id, setId] = useState(bookId || "");
+  const [currentPage, setCurrentPage] = useState(currentPageParam || "");
 
   const [titleError, setTitleError] = useState("");
   const [currentPageError, setCurrentPageError] = useState("");
@@ -85,8 +76,8 @@ export default function PlaceBookmarkScreen() {
 
     clearAndNavigate(() => {
       router.push({
-        pathname: "/review-book",
-        params: { book: JSON.stringify(book) },
+        pathname: "/review/[bookId]",
+        params: { bookId: id },
       });
     });
   }
@@ -114,8 +105,8 @@ export default function PlaceBookmarkScreen() {
         bookmark.shelfId = finished.id;
         navigation = () => {
           router.push({
-            pathname: "/review-book",
-            params: { book: JSON.stringify(book) },
+            pathname: "/review/[bookId]",
+            params: { bookId: id },
           });
         };
       }

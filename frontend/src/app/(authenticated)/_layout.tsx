@@ -27,7 +27,7 @@ export default function AuthenticatedLayout() {
           }}
         />
         <Stack.Screen
-          name="review-book"
+          name="review/[bookId]"
           options={{
             headerBackButtonDisplayMode: "generic",
             title: "leave a review",

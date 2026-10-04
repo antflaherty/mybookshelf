@@ -150,7 +150,7 @@ still loads reviews + header. `tsc --noEmit` passes.
 
 ---
 
-## 6. Stop serializing whole books through route params
+## 6. ~~Stop serializing whole books through route params~~ ✅
 
 **Where:** `frontend/src/app/(authenticated)/(tabs)/place-bookmark.tsx`
 (passes `params: { book: JSON.stringify(book) }` to `/review-book`, around
