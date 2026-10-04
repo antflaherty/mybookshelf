@@ -37,6 +37,7 @@ export default function SearchBooksScreen() {
 
     setHasMore(searchBookResult.length >= SEARCH_LIMIT);
 
+    setBooks(searchBookResult);
     setIsLoading(false);
   }
 
