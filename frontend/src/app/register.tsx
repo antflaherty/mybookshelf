@@ -2,19 +2,27 @@ import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
-import { useAuth } from "@/auth/auth-context";
+import { register } from "@/api/apiClient";
 import ThemedPressable from "@/components/themed-pressable";
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [hasMatchingPasswords, setHasMatchingPasswords] = useState(true);
 
   const { theme } = useTheme();
-  const { login } = useAuth();
 
-  async function handleLoginPress() {
-    await login({ email, password });
-    router.push("/");
+  async function handleSubmitPress() {
+    const passwordsMatch = password === confirmPassword;
+    setHasMatchingPasswords(passwordsMatch);
+
+    if (passwordsMatch) {
+      await register({ email, password });
+      setEmail("");
+      setPassword("");
+      router.push("/login");
+    }
   }
 
   return (
@@ -40,23 +48,37 @@ export default function LoginScreen() {
         style={[
           styles.input,
           {
-            backgroundColor: theme.inputBackground,
+            backgroundColor: hasMatchingPasswords
+              ? theme.inputBackground
+              : theme.errorInputBackground,
             color: theme.inputText,
           },
         ]}
         onChangeText={setPassword}
       />
+      <Text style={{ color: theme.text }}>confirm password</Text>
+      <TextInput
+        secureTextEntry
+        placeholder="confirm password"
+        value={confirmPassword}
+        style={[
+          styles.input,
+          {
+            backgroundColor: hasMatchingPasswords
+              ? theme.inputBackground
+              : theme.errorInputBackground,
+            color: theme.inputText,
+          },
+        ]}
+        onChangeText={setConfirmPassword}
+      />
+      {!hasMatchingPasswords && (
+        <Text style={{ color: theme.errorText }}>passwords do not match</Text>
+      )}
       <ThemedPressable
         variant="primary"
-        text="log in"
-        onPress={handleLoginPress}
-      />
-      <ThemedPressable
-        variant="secondary"
-        text="create account"
-        onPress={() => {
-          router.push("/register");
-        }}
+        text="submit"
+        onPress={handleSubmitPress}
       />
     </View>
   );

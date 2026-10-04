@@ -23,7 +23,7 @@ export async function register(user: User) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(user),
+    body: JSON.stringify({ ...user, email: user.email.toLowerCase() }),
   });
 
   const result = await response.json();
