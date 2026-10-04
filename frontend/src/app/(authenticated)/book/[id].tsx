@@ -48,8 +48,9 @@ export default function BookScreen() {
     useCallback(() => {
       async function loadBookDetails() {
         setIsLoading(true);
-        const bookDetails = await getBookDetails(id);
-        setBookDetails(bookDetails);
+        const details = await getBookDetails(id);
+        setBookDetails(details);
+        setPageCount((current) => current || details.book.pageCount);
         setIsLoading(false);
       }
       loadBookDetails();

@@ -53,7 +53,7 @@ return { getBookDetails };
 
 ---
 
-## 2. Seed `pageCount` from the fetched book in `book/[id].tsx`
+## 2. ~~Seed `pageCount` from the fetched book in `book/[id].tsx`~~ ✅
 
 **Where:** `frontend/src/app/(authenticated)/book/[id].tsx` (state init around
 line 40; `handleAddToShelf` / `handleStartReading` below it)
