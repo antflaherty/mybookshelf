@@ -18,10 +18,12 @@ func QueryAllBookmarks(db *sql.DB, userID string) (*[]domain.QualifiedBookmark, 
 	var allBookmarks []domain.QualifiedBookmark
 	for rows.Next() {
 		bookmark := &domain.QualifiedBookmark{}
-		err := rows.Scan(&bookmark.ShelfID, &bookmark.Book.ID, &bookmark.CurrentPage, &bookmark.Book.Title, &bookmark.Book.Author, &bookmark.Book.PageCount, &bookmark.Book.CoverUri)
+		var coverUri sql.NullString
+		err := rows.Scan(&bookmark.ShelfID, &bookmark.Book.ID, &bookmark.CurrentPage, &bookmark.Book.Title, &bookmark.Book.Author, &bookmark.Book.PageCount, &coverUri)
 		if err != nil {
 			return nil, err
 		}
+		bookmark.Book.CoverUri = coverUri.String
 
 		allBookmarks = append(allBookmarks, *bookmark)
 	}

@@ -106,7 +106,7 @@ screen in a non-loading state instead of spinning. `tsc --noEmit` passes.
 
 ---
 
-## 4. Handle nullable `cover_uri` after the `*string` → `string` change
+## 4. ~~Handle nullable `cover_uri` after the `*string` → `string` change~~ ✅
 
 **Where:** `backend/domain/models.go` (`CoverUri string`),
 `backend/books/repository.go` (`QueryBookById`, `insertBook`),

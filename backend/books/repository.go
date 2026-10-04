@@ -7,7 +7,7 @@ import (
 )
 
 func QueryAllBooks(db *sql.DB) (*[]domain.Book, error) {
-	sqlString := "SELECT Id, Title, Author, PageCount FROM Books"
+	sqlString := "SELECT Id, Title, Author, PageCount, cover_uri FROM Books"
 
 	rows, err := db.Query(sqlString)
 	if err != nil {
@@ -18,10 +18,12 @@ func QueryAllBooks(db *sql.DB) (*[]domain.Book, error) {
 	var books []domain.Book
 	for rows.Next() {
 		b := &domain.Book{}
-		err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount)
+		var coverUri sql.NullString
+		err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount, &coverUri)
 		if err != nil {
 			return nil, err
 		}
+		b.CoverUri = coverUri.String
 		books = append(books, *b)
 	}
 
@@ -33,13 +35,15 @@ func QueryAllBooks(db *sql.DB) (*[]domain.Book, error) {
 }
 
 func QueryBookById(db *sql.DB, id string) (*domain.Book, error) {
-	sqlString := "SELECT * FROM Books WHERE Id = ?"
+	sqlString := "SELECT Id, Title, Author, PageCount, cover_uri FROM Books WHERE Id = ?"
 	row := db.QueryRow(sqlString, id)
 	b := &domain.Book{}
-	err := row.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount, &b.CoverUri)
+	var coverUri sql.NullString
+	err := row.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount, &coverUri)
 	if err != nil {
 		return nil, err
 	}
+	b.CoverUri = coverUri.String
 	return b, nil
 }
 
