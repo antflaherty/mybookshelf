@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { register } from "@/api/apiClient";
@@ -18,6 +24,7 @@ export default function RegisterScreen() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [hasMatchingPasswords, setHasMatchingPasswords] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { theme } = useTheme();
 
@@ -29,6 +36,8 @@ export default function RegisterScreen() {
       return;
     }
     try {
+      setIsLoading(true);
+
       const user = UserSchema.parse({ email, password });
 
       await register(user);
@@ -48,11 +57,18 @@ export default function RegisterScreen() {
           }
         });
       }
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={theme.loading} />
+        </View>
+      )}
       <Text style={{ color: theme.text }}>email</Text>
       <TextInput
         placeholder="email"
@@ -125,16 +141,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   input: {
     margin: 16,
     height: 50,
     width: 150,
     borderRadius: 22,
     paddingHorizontal: 8,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
 });
