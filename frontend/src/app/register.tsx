@@ -4,10 +4,18 @@ import { router } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { register } from "@/api/apiClient";
 import ThemedPressable from "@/components/themed-pressable";
+import * as z from "zod";
+
+const UserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [hasMatchingPasswords, setHasMatchingPasswords] = useState(true);
 
@@ -17,11 +25,29 @@ export default function RegisterScreen() {
     const passwordsMatch = password === confirmPassword;
     setHasMatchingPasswords(passwordsMatch);
 
-    if (passwordsMatch) {
-      await register({ email, password });
+    if (!passwordsMatch) {
+      return;
+    }
+    try {
+      const user = UserSchema.parse({ email, password });
+
+      await register(user);
       setEmail("");
+      setEmailError("");
       setPassword("");
+      setPasswordError("");
       router.push("/login");
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        error.issues.forEach((issue) => {
+          if (issue.path[0] === "email") {
+            setEmailError(issue.message);
+          }
+          if (issue.path[0] === "password") {
+            setPasswordError(issue.message);
+          }
+        });
+      }
     }
   }
 
@@ -34,12 +60,17 @@ export default function RegisterScreen() {
         style={[
           styles.input,
           {
-            backgroundColor: theme.inputBackground,
+            backgroundColor: !emailError
+              ? theme.inputBackground
+              : theme.errorInputBackground,
             color: theme.inputText,
           },
         ]}
         onChangeText={setEmail}
       />
+      {!!emailError && (
+        <Text style={{ color: theme.errorText }}>{emailError}</Text>
+      )}
       <Text style={{ color: theme.text }}>password</Text>
       <TextInput
         secureTextEntry
@@ -48,14 +79,18 @@ export default function RegisterScreen() {
         style={[
           styles.input,
           {
-            backgroundColor: hasMatchingPasswords
-              ? theme.inputBackground
-              : theme.errorInputBackground,
+            backgroundColor:
+              hasMatchingPasswords || !passwordError
+                ? theme.inputBackground
+                : theme.errorInputBackground,
             color: theme.inputText,
           },
         ]}
         onChangeText={setPassword}
       />
+      {!!passwordError && (
+        <Text style={{ color: theme.errorText }}>{passwordError}</Text>
+      )}
       <Text style={{ color: theme.text }}>confirm password</Text>
       <TextInput
         secureTextEntry
