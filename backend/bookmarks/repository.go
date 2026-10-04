@@ -7,7 +7,7 @@ import (
 )
 
 func QueryAllBookmarks(db *sql.DB, userID string) (*[]domain.QualifiedBookmark, error) {
-	sqlString := "SELECT Bookmark.shelf_id, Bookmark.book_id, Bookmark.current_page, Books.Title, Books.Author, Books.PageCount, books.cover_uri FROM Bookmark INNER JOIN Books ON Bookmark.book_id=Books.Id WHERE user_id = ?"
+	sqlString := "SELECT bookmark.shelf_id, bookmark.book_id, bookmark.current_page, book.title, book.author, book.page_count, book.cover_uri FROM bookmark INNER JOIN book ON bookmark.book_id=book.id WHERE user_id = ?"
 
 	rows, err := db.Query(sqlString, userID)
 	if err != nil {
@@ -61,7 +61,7 @@ func upsertBookmark(db *sql.DB, bm *domain.Bookmark) error {
 		return err
 	}
 
-	sqlString := `UPDATE bookmark SET shelf_id = ?, current_page = ?WHERE book_id = ? AND user_id = ?;`
+	sqlString := `UPDATE bookmark SET shelf_id = ?, current_page = ? WHERE book_id = ? AND user_id = ?;`
 	_, err = db.Exec(sqlString, bm.ShelfID, bm.CurrentPage, bm.BookID, bm.UserID)
 	return err
 }

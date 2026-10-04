@@ -103,7 +103,7 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 	user.ID = uuid.NewString()
 
 	_, err := db.Exec(
-		`INSERT INTO users (id, email, password_hash)
+		`INSERT INTO user (id, email, password_hash)
 			 VALUES (?, ?, ?)`,
 		user.ID,
 		user.Email,
@@ -158,7 +158,7 @@ func createDefaultShelvesForUser(db *sql.DB, userID string) error {
 }
 
 func queryUserByEmail(db *sql.DB, email string) (*User, error) {
-	sqlString := "SELECT id, password_hash FROM users WHERE email = ?"
+	sqlString := "SELECT id, password_hash FROM user WHERE email = ?"
 	row := db.QueryRow(sqlString, email)
 	user := &User{}
 	err := row.Scan(&user.ID, &user.PasswordHash)
