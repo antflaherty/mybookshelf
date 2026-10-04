@@ -14,7 +14,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/glebarez/go-sqlite"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -24,8 +24,13 @@ func main() {
 		return
 	}
 
-	db, err := sql.Open("sqlite", config.DatabaseURL)
+	db, err := sql.Open("postgres", config.DatabaseURL)
 	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err := db.Ping(); err != nil {
 		fmt.Println(err)
 		return
 	}
