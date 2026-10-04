@@ -29,7 +29,7 @@ export async function register(user: User) {
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(`status: ${response.status}, error: ${result.error}`);
+    throw new Error(result.error);
   }
 }
 

@@ -25,10 +25,15 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [hasMatchingPasswords, setHasMatchingPasswords] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const { theme } = useTheme();
 
   async function handleSubmitPress() {
+    setPassword("");
+    setPasswordError("");
+    setErrorMessage("");
+
     const passwordsMatch = password === confirmPassword;
     setHasMatchingPasswords(passwordsMatch);
 
@@ -43,8 +48,6 @@ export default function RegisterScreen() {
       await register(user);
       setEmail("");
       setEmailError("");
-      setPassword("");
-      setPasswordError("");
       router.push("/login");
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -56,6 +59,8 @@ export default function RegisterScreen() {
             setPasswordError(issue.message);
           }
         });
+      } else if (error instanceof Error) {
+        setErrorMessage(error.message);
       }
     } finally {
       setIsLoading(false);
@@ -125,6 +130,9 @@ export default function RegisterScreen() {
       />
       {!hasMatchingPasswords && (
         <Text style={{ color: theme.errorText }}>passwords do not match</Text>
+      )}
+      {errorMessage && (
+        <Text style={{ color: theme.errorText }}>{errorMessage}</Text>
       )}
       <ThemedPressable
         variant="primary"
