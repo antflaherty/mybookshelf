@@ -14,7 +14,7 @@ func upsertReview(db *sql.DB, userID string, bookID string, stars int, timestamp
 	}
 
 	if existingReview == nil {
-		sqlString := "INSERT INTO review (user_id, book_id, stars, created_timestamp, comment) VALUES (?, ?, ?, ?, ?);"
+		sqlString := "INSERT INTO review (user_id, book_id, stars, created_timestamp, comment) VALUES ($1, $2, $3, $4, $5);"
 
 		_, err = db.Exec(sqlString, userID, bookID, stars, timestamp, comment)
 
@@ -23,7 +23,7 @@ func upsertReview(db *sql.DB, userID string, bookID string, stars int, timestamp
 		}
 	}
 
-	sqlString := `UPDATE review SET stars = ?, comment = ?, last_edited_timestamp = ? WHERE book_id = ? AND user_id = ?;`
+	sqlString := `UPDATE review SET stars = $1, comment = $2, last_edited_timestamp = $3 WHERE book_id = $4 AND user_id = $5;`
 	_, err = db.Exec(sqlString, stars, comment, timestamp, bookID, userID)
 
 	if err != nil {
@@ -34,7 +34,7 @@ func upsertReview(db *sql.DB, userID string, bookID string, stars int, timestamp
 }
 
 func queryReviewByBookIDAndUserID(db *sql.DB, bookID string, userID string) (*domain.Review, error) {
-	sqlString := "SELECT book_id, user_id, stars, comment, created_timestamp, last_edited_timestamp FROM review WHERE book_id = ? AND user_id = ?"
+	sqlString := "SELECT book_id, user_id, stars, comment, created_timestamp, last_edited_timestamp FROM review WHERE book_id = $1 AND user_id = $2"
 	row := db.QueryRow(sqlString, bookID, userID)
 	review := &domain.Review{}
 	err := row.Scan(&review.BookID, &review.UserID, &review.Stars, &review.Comment, &review.CreatedTimestamp, &review.LastEditedTimestamp)
@@ -49,7 +49,7 @@ func queryReviewByBookIDAndUserID(db *sql.DB, bookID string, userID string) (*do
 }
 
 func queryReviewsByBookID(db *sql.DB, bookID string) ([]domain.Review, error) {
-	sqlString := "SELECT book_id, user_id, stars, comment, created_timestamp, last_edited_timestamp FROM review WHERE book_id = ?"
+	sqlString := "SELECT book_id, user_id, stars, comment, created_timestamp, last_edited_timestamp FROM review WHERE book_id = $1"
 	rows, err := db.Query(sqlString, bookID)
 	if err != nil {
 		return nil, err
