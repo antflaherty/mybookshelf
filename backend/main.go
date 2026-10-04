@@ -54,5 +54,5 @@ func main() {
 	protected.GET("/reviews", reviews.GetReviewsHandler((db)))
 	protected.POST("/reviews", reviews.PostReviewHandler((db)))
 
-	router.Run("0.0.0.0:8080")
+	router.Run("0.0.0.0:" + config.Port)
 }
