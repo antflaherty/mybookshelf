@@ -7,7 +7,7 @@ import (
 )
 
 func queryAllShelves(db *sql.DB, userID string) (*[]domain.Shelf, error) {
-	sqlString := "SELECT id, sort_order, name FROM shelf WHERE user_id = ?"
+	sqlString := "SELECT id, sort_order, name FROM shelf WHERE user_id = $1"
 
 	rows, err := db.Query(sqlString, userID)
 	if err != nil {

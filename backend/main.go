@@ -5,6 +5,7 @@ import (
 	"github.com/antflaherty/mybookshelf/backend/bookmarks"
 	"github.com/antflaherty/mybookshelf/backend/books"
 	"github.com/antflaherty/mybookshelf/backend/config"
+	"github.com/antflaherty/mybookshelf/backend/health"
 	"github.com/antflaherty/mybookshelf/backend/library"
 	"github.com/antflaherty/mybookshelf/backend/reviews"
 	"github.com/antflaherty/mybookshelf/backend/shelves"
@@ -13,7 +14,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/glebarez/go-sqlite"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -23,8 +24,13 @@ func main() {
 		return
 	}
 
-	db, err := sql.Open("sqlite", "./local.db")
+	db, err := sql.Open("postgres", config.DatabaseURL)
 	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err := db.Ping(); err != nil {
 		fmt.Println(err)
 		return
 	}
@@ -32,6 +38,8 @@ func main() {
 	defer db.Close()
 
 	router := gin.Default()
+
+	router.GET("/health", health.GetHealthHandler())
 
 	router.POST("/auth/register", auth.RegisterHandler(db))
 	router.POST("/auth/login", auth.LoginHandler(config, db))
@@ -51,5 +59,5 @@ func main() {
 	protected.GET("/reviews", reviews.GetReviewsHandler((db)))
 	protected.POST("/reviews", reviews.PostReviewHandler((db)))
 
-	router.Run("0.0.0.0:8080")
+	router.Run("0.0.0.0:" + config.Port)
 }

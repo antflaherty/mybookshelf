@@ -104,7 +104,7 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 
 	_, err := db.Exec(
 		`INSERT INTO users (id, email, password_hash)
-			 VALUES (?, ?, ?)`,
+			 VALUES ($1, $2, $3)`,
 		user.ID,
 		user.Email,
 		user.PasswordHash,
@@ -138,7 +138,7 @@ func createDefaultShelvesForUser(db *sql.DB, userID string) error {
 
 	stmt, err := transaction.Prepare(`
 		INSERT INTO shelf (id, sort_order, user_id, name)
-		VALUES (?, ?, ?, ?)
+		VALUES ($1, $2, $3, $4)
 	`)
 	if err != nil {
 		return err
@@ -158,7 +158,7 @@ func createDefaultShelvesForUser(db *sql.DB, userID string) error {
 }
 
 func queryUserByEmail(db *sql.DB, email string) (*User, error) {
-	sqlString := "SELECT id, password_hash FROM users WHERE email = ?"
+	sqlString := "SELECT id, password_hash FROM users WHERE email = $1"
 	row := db.QueryRow(sqlString, email)
 	user := &User{}
 	err := row.Scan(&user.ID, &user.PasswordHash)
