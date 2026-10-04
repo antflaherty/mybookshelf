@@ -20,26 +20,31 @@ export default function SearchBooksScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchPage, setSearchPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const { theme } = useTheme();
   const { accessToken } = useAuth();
 
   async function handleSearchPress() {
+    setHasMore(false);
     setIsLoading(true);
     setSearchPage(1);
     const searchBookResult = await searchBooks(
       accessToken,
       title,
       SEARCH_LIMIT,
-      searchPage,
+      1,
     );
-    setBooks(searchBookResult);
+
+    setHasMore(searchBookResult.length >= SEARCH_LIMIT);
+
     setIsLoading(false);
   }
 
   async function handleResultListEndReached() {
-    if (isLoading || isLoadingMore) {
+    if (!hasMore || isLoading || isLoadingMore) {
       return;
     }
+
     setIsLoadingMore(true);
     const searchBookResult = await searchBooks(
       accessToken,
@@ -47,6 +52,9 @@ export default function SearchBooksScreen() {
       SEARCH_LIMIT,
       searchPage + 1,
     );
+
+    setHasMore(searchBookResult.length >= SEARCH_LIMIT);
+
     setBooks((current) => [...current, ...searchBookResult]);
     setSearchPage((current) => current + 1);
     setIsLoadingMore(false);
