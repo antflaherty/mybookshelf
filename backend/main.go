@@ -5,6 +5,7 @@ import (
 	"github.com/antflaherty/mybookshelf/backend/bookmarks"
 	"github.com/antflaherty/mybookshelf/backend/books"
 	"github.com/antflaherty/mybookshelf/backend/config"
+	"github.com/antflaherty/mybookshelf/backend/health"
 	"github.com/antflaherty/mybookshelf/backend/library"
 	"github.com/antflaherty/mybookshelf/backend/reviews"
 	"github.com/antflaherty/mybookshelf/backend/shelves"
@@ -32,6 +33,8 @@ func main() {
 	defer db.Close()
 
 	router := gin.Default()
+
+	router.GET("/health", health.GetHealthHandler())
 
 	router.POST("/auth/register", auth.RegisterHandler(db))
 	router.POST("/auth/login", auth.LoginHandler(config, db))
