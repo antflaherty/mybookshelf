@@ -16,5 +16,6 @@ Set `EXPO_PUBLIC_API_URL` in `.env` to point at your backend (default `http://lo
 - `npm start` — Expo dev server
 - `npm run ios` / `npm run android` / `npm run web` — run on a platform
 - `npm run lint` — ESLint
+- `npm test` — Jest test suite
 
-Routes live in `src/app/` (file-based routing via Expo Router); shared components, hooks, context, API client, and theming live alongside in `src/`.
+Routes live in `src/app/` (file-based routing via Expo Router); shared components, hooks, context, API client, and theming live alongside in `src/`. Tests live in `__tests__/` directories next to the code they cover (e.g. `src/components/__tests__/`), using Jest + React Testing Library via `jest-expo`.

@@ -56,6 +56,8 @@ The API listens on `http://localhost:8080`. Public endpoints: `GET /health`, `PO
 - `GET /shelves`
 - `GET/POST /reviews`
 
+Run the tests with `go test ./...`.
+
 ## Frontend
 
 ```bash
@@ -79,4 +81,5 @@ npm run ios      # build & run on iOS simulator
 npm run android  # build & run on Android emulator
 npm run web      # run in the browser
 npm run lint     # ESLint
+npm test         # Jest test suite
 ```
