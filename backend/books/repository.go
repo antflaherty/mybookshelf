@@ -35,7 +35,7 @@ func QueryAllBooks(db *sql.DB) (*[]domain.Book, error) {
 }
 
 func QueryBookById(db *sql.DB, id string) (*domain.Book, error) {
-	sqlString := "SELECT id, title, author, page_count, cover_uri FROM book WHERE Id = ?"
+	sqlString := "SELECT id, title, author, page_count, cover_uri FROM book WHERE id = $1"
 	row := db.QueryRow(sqlString, id)
 	b := &domain.Book{}
 	var coverUri sql.NullString
