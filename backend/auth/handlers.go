@@ -157,8 +157,7 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 	// the transaction that creates the default shelves. If the shelf insert
 	// fails, registration returns 500 but the user already exists, leaving an
 	// orphan account with no shelves. Fixing it means moving the user insert
-	// into the same transaction, which changes the shape of createUser and is
-	// out of scope for docs/plans/backend-error-handling.md task 4.4.
+	// into the same transaction, which changes the shape of createUser.
 	err = createDefaultShelvesForUser(db, user.ID)
 
 	if err != nil {

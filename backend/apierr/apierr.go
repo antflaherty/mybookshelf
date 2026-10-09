@@ -1,11 +1,11 @@
 // Package apierr builds every non-2xx HTTP response body in this API.
 //
-// It is the only place allowed to construct an error envelope. Handlers call
-// Respond with either a typed *Error from one of the constructors below, or an
-// arbitrary error (which Respond treats as an internal error).
+// The wire shape is:
 //
-// The wire shape is frozen by docs/api-error-contract.md; the status codes and
-// messages here mirror its §2 and §3 tables.
+//	{ "error": { "code": "...", "message": "...", "details": { ... } } }
+//
+// Handlers call Respond with either a typed *Error from one of the constructors
+// below, or an arbitrary error (which Respond treats as an internal error).
 package apierr
 
 import (
@@ -16,9 +16,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Codes from docs/api-error-contract.md §2. The status is derived from the code
-// by the constructors below, so these constants are never paired with a status
-// by hand.
+// Error codes. The status is derived from the code by the constructors below,
+// so these constants are never paired with a status by hand.
 const (
 	CodeInvalidRequest      = "invalid_request"
 	CodeUnauthorized        = "unauthorized"
@@ -31,14 +30,14 @@ const (
 	CodeUpstreamUnavailable = "upstream_unavailable"
 )
 
-// Messages that frontend tests assert verbatim (contract §3). These three
+// Messages that are safe to show a user and are asserted by tests. These two
 // fixed messages must not drift.
 const (
 	MessageInternal = "internal server error"
 	MessageUpstream = "book service unavailable"
 )
 
-// Body is the wire envelope. Matches docs/api-error-contract.md §1.
+// Body is the wire envelope: a single "error" object.
 type Body struct {
 	Error Payload `json:"error"`
 }

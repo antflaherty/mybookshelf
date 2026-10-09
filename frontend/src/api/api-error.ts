@@ -1,7 +1,7 @@
 /**
  * Typed representation of every failure the API client can surface.
  *
- * The wire format is frozen in `docs/api-error-contract.md`:
+ * The wire format is:
  *
  *     { "error": { "code": "...", "message": "...", "details": { ... } } }
  *

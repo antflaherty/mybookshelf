@@ -83,9 +83,3 @@ npm run web      # run in the browser
 npm run lint     # ESLint
 npm test         # Jest test suite
 ```
-
-## Docs
-
-[`docs/api-error-contract.md`](docs/api-error-contract.md) defines the error envelope, codes, and
-statuses every endpoint returns. [`docs/plans/`](docs/plans/README.md) holds the phased plans and
-the prompts used to run backend and frontend agents in parallel.
