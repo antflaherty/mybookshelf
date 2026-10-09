@@ -9,6 +9,7 @@ import {
 import { router } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { register } from "@/api/apiClient";
+import { ApiError, GENERIC_ERROR_MESSAGE } from "@/api/api-error";
 import ThemedPressable from "@/components/themed-pressable";
 import * as z from "zod";
 
@@ -59,8 +60,13 @@ export default function RegisterScreen() {
             setPasswordError(issue.message);
           }
         });
-      } else if (error instanceof Error) {
-        setErrorMessage(error.message);
+      } else {
+        // Matches every other screen: only an ApiError's message is trusted verbatim. Anything
+        // else could be a raw string or a plain object, and rendering that directly is how
+        // "[object Object]" reaches a user.
+        setErrorMessage(
+          error instanceof ApiError ? error.message : GENERIC_ERROR_MESSAGE,
+        );
       }
     } finally {
       setIsLoading(false);
