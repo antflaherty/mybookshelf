@@ -8,11 +8,6 @@ import (
 	"github.com/antflaherty/mybookshelf/backend/domain"
 )
 
-// ErrBookNotFound reports that no row in the book table matched the id.
-// Exported because the bookmarks and reviews packages look books up through
-// QueryBookById and need to tell "no such book" from "the database is down".
-var ErrBookNotFound = errors.New("book not found")
-
 func QueryBookById(db *sql.DB, id string) (*domain.Book, error) {
 	sqlString := "SELECT id, title, author, page_count, cover_uri FROM book WHERE id = $1"
 	row := db.QueryRow(sqlString, id)
