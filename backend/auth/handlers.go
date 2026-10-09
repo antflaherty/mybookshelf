@@ -23,7 +23,33 @@ type registerRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 }
 
+// userStore is the slice of the database the auth handlers use.
+//
+// *sql.DB cannot be faked without a driver, and the handlers need both Exec
+// and QueryRow plus a transaction for the default shelves. This seam lets the
+// tests drive every branch with a plain struct. It is deliberately narrow: it
+// is the only place the handlers stop talking to *sql.DB directly.
+type userStore interface {
+	createUser(db *sql.DB, user *User) (*User, error)
+	queryUserByEmail(db *sql.DB, email string) (*User, error)
+}
+
+// sqlUserStore is the production implementation.
+type sqlUserStore struct{}
+
+func (sqlUserStore) createUser(db *sql.DB, user *User) (*User, error) {
+	return createUser(db, user)
+}
+
+func (sqlUserStore) queryUserByEmail(db *sql.DB, email string) (*User, error) {
+	return queryUserByEmail(db, email)
+}
+
 func RegisterHandler(db *sql.DB) gin.HandlerFunc {
+	return registerHandler(db, sqlUserStore{})
+}
+
+func registerHandler(db *sql.DB, store userStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request registerRequest
 
@@ -43,7 +69,7 @@ func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 
 		user := &User{Email: request.Email, PasswordHash: string(passwordHash)}
 
-		user, err = createUser(db, user)
+		user, err = store.createUser(db, user)
 
 		if err != nil {
 			// A taken email is a client mistake, not a server fault. Checking it
@@ -66,6 +92,10 @@ func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 }
 
 func LoginHandler(config config.Config, db *sql.DB) gin.HandlerFunc {
+	return loginHandler(config, db, sqlUserStore{})
+}
+
+func loginHandler(config config.Config, db *sql.DB, store userStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request registerRequest
 
@@ -73,7 +103,7 @@ func LoginHandler(config config.Config, db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		user, err := queryUserByEmail(db, request.Email)
+		user, err := store.queryUserByEmail(db, request.Email)
 
 		// Unknown email and wrong password return the identical 401
 		// invalid_credentials. They must stay indistinguishable: a client that

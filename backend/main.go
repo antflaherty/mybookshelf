@@ -13,6 +13,8 @@ import (
 
 	"database/sql"
 	"fmt"
+	"log/slog"
+	"os"
 
 	_ "github.com/lib/pq"
 )
@@ -59,5 +61,12 @@ func main() {
 	protected.GET("/reviews", reviews.GetReviewsHandler((db)))
 	protected.POST("/reviews", reviews.PostReviewHandler((db)))
 
-	router.Run("0.0.0.0:" + config.Port)
+	// Discarding this error made a port conflict exit with status 0 and no
+	// message, which reads in CI like a passing run.
+	address := "0.0.0.0:" + config.Port
+
+	if err := router.Run(address); err != nil {
+		slog.Error("server stopped", "address", address, "error", err)
+		os.Exit(1)
+	}
 }

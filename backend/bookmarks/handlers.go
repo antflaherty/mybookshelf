@@ -11,6 +11,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// store is the database surface PostBookmarkHandler needs.
+//
+// *sql.DB cannot be faked without a driver dependency, and this package is
+// already at the limit of what it is allowed to depend on. The seam is narrow
+// and the production implementation is sqlStore below.
+type store interface {
+	queryBook(db *sql.DB, id string) (*domain.Book, error)
+	queryShelfBelongsToUser(db *sql.DB, shelfID, userID string) (bool, error)
+	upsertBookmark(db *sql.DB, bm *domain.Bookmark) error
+}
+
+type sqlStore struct{}
+
+func (sqlStore) queryBook(db *sql.DB, id string) (*domain.Book, error) {
+	return books.QueryBookById(db, id)
+}
+
+func (sqlStore) queryShelfBelongsToUser(db *sql.DB, shelfID, userID string) (bool, error) {
+	return queryShelfBelongsToUser(db, shelfID, userID)
+}
+
+func (sqlStore) upsertBookmark(db *sql.DB, bm *domain.Bookmark) error {
+	return upsertBookmark(db, bm)
+}
+
 func GetBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		allBookmark, err := QueryAllBookmarks(db, c.GetString("userID"))
@@ -30,6 +55,10 @@ type postBookmarkRequest struct {
 }
 
 func PostBookmarkHandler(db *sql.DB) gin.HandlerFunc {
+	return postBookmarkHandler(db, sqlStore{})
+}
+
+func postBookmarkHandler(db *sql.DB, bookStore store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request postBookmarkRequest
 
@@ -37,7 +66,7 @@ func PostBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		book, err := books.QueryBookById(db, request.BookID)
+		book, err := bookStore.queryBook(db, request.BookID)
 
 		// Only an absent book is a 404. A database that is down is a 500, and
 		// reporting it as 404 tells the client the book does not exist.
@@ -58,7 +87,7 @@ func PostBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 		// shelf. Check ownership explicitly. Per contract §2.1 a shelf that does
 		// not exist and a shelf the caller does not own are both shelf_not_found,
 		// so this does not reveal which shelf ids exist.
-		ownsShelf, err := queryShelfBelongsToUser(db, request.ShelfID, userID)
+		ownsShelf, err := bookStore.queryShelfBelongsToUser(db, request.ShelfID, userID)
 		if err != nil {
 			apierr.Respond(c, apierr.Internal(err))
 			return
@@ -71,7 +100,7 @@ func PostBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 
 		bookmark := &domain.Bookmark{UserID: userID, BookID: request.BookID, ShelfID: request.ShelfID, CurrentPage: request.CurrentPage}
 
-		if err := upsertBookmark(db, bookmark); err != nil {
+		if err := bookStore.upsertBookmark(db, bookmark); err != nil {
 			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
