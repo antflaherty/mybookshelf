@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { useShelf } from "@/context/shelf-provider";
 import { useBook } from "@/hooks/book";
 import { useBookActions } from "@/hooks/book-actions";
+import { ApiError } from "@/api/api-error";
 
 const mockAddNewBookToShelf = jest.fn();
 const mockStartReading = jest.fn().mockResolvedValue(undefined);
@@ -54,14 +55,21 @@ const details = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.spyOn(console, "error").mockImplementation(() => {});
   mockFocusEffectRan = false;
   mockSearchParams = { id: "b1" };
   mockGetBookDetails.mockResolvedValue(details);
+  mockAddNewBookToShelf.mockResolvedValue(undefined);
+  mockStartReading.mockResolvedValue(undefined);
   mockedUseBook.mockReturnValue({ getBookDetails: mockGetBookDetails });
   mockedUseBookActions.mockReturnValue({
     addNewBookToShelf: mockAddNewBookToShelf,
     startReading: mockStartReading,
   });
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
 async function renderScreen() {
@@ -230,4 +238,139 @@ it("links to the reviews screen", async () => {
     pathname: "/reviews/[bookId]",
     params: { bookId: "b1" },
   });
+});
+
+it("shows an error instead of a permanent spinner when the load fails", async () => {
+  mockGetBookDetails.mockRejectedValue(
+    ApiError.fromResponse(404, {
+      error: { code: "book_not_found", message: "book not found" },
+    }),
+  );
+  mockedUseShelf.mockReturnValue({
+    shelves: [],
+    toBeRead: makeShelf("tbr", "to be read"),
+    finished: makeShelf("fin", "finished"),
+  });
+
+  await renderScreen();
+
+  await waitFor(() => expect(screen.getByText("book not found")).toBeTruthy());
+  // The old render was `bookDetails && (...)`, which rendered nothing at all.
+  expect(screen.queryByText("Dune")).toBeNull();
+  expect(screen.queryByText("reviews")).toBeNull();
+});
+
+it("falls back to a generic message when the load fails with a non-ApiError", async () => {
+  mockGetBookDetails.mockRejectedValue(new TypeError("Network request failed"));
+  mockedUseShelf.mockReturnValue({
+    shelves: [],
+    toBeRead: makeShelf("tbr", "to be read"),
+    finished: makeShelf("fin", "finished"),
+  });
+
+  await renderScreen();
+
+  await waitFor(() =>
+    expect(
+      screen.getByText("something went wrong. please try again."),
+    ).toBeTruthy(),
+  );
+});
+
+it("does not navigate when addNewBookToShelf fails", async () => {
+  mockSearchParams = { id: "b1", shelfId: "s1" };
+  mockAddNewBookToShelf.mockRejectedValue(
+    ApiError.fromResponse(500, {
+      error: { code: "internal_error", message: "internal server error" },
+    }),
+  );
+  mockedUseShelf.mockReturnValue({
+    shelves: [makeShelf("s1", "to be read")],
+    toBeRead: makeShelf("s1", "to be read"),
+    finished: makeShelf("fin", "finished"),
+  });
+
+  await renderScreen();
+
+  await waitFor(() => expect(screen.getByText("add to to be read")).toBeTruthy());
+  await fireEvent.press(screen.getByText("add to to be read"));
+
+  await waitFor(() =>
+    expect(
+      screen.getByText("something went wrong. please try again."),
+    ).toBeTruthy(),
+  );
+  expect(router.push).not.toHaveBeenCalled();
+});
+
+it("does not navigate to select-shelf when addNewBookToShelf fails", async () => {
+  mockAddNewBookToShelf.mockRejectedValue(new Error("boom"));
+  mockedUseShelf.mockReturnValue({
+    shelves: [],
+    toBeRead: makeShelf("tbr", "to be read"),
+    finished: makeShelf("fin", "finished"),
+  });
+
+  await renderScreen();
+
+  await waitFor(() => expect(screen.getByText("add to shelf")).toBeTruthy());
+  await fireEvent.press(screen.getByText("add to shelf"));
+
+  await waitFor(() =>
+    expect(
+      screen.getByText("something went wrong. please try again."),
+    ).toBeTruthy(),
+  );
+  expect(router.push).not.toHaveBeenCalled();
+});
+
+it("does not navigate when startReading fails", async () => {
+  const bookmark = {
+    shelfId: "tbr",
+    currentPage: 0,
+    book: details.book,
+  };
+  mockSearchParams = { id: "b1", shelfId: "tbr" };
+  mockStartReading.mockRejectedValue(
+    ApiError.fromResponse(502, {
+      error: { code: "upstream_unavailable", message: "book service unavailable" },
+    }),
+  );
+  mockedUseShelf.mockReturnValue({
+    shelves: [makeShelf("tbr", "to be read", [bookmark])],
+    toBeRead: makeShelf("tbr", "to be read", [bookmark]),
+    finished: makeShelf("fin", "finished"),
+  });
+
+  await renderScreen();
+
+  await waitFor(() => expect(screen.getByText("start reading")).toBeTruthy());
+  await fireEvent.press(screen.getByText("start reading"));
+
+  await waitFor(() =>
+    expect(
+      screen.getByText("something went wrong. please try again."),
+    ).toBeTruthy(),
+  );
+  expect(router.push).not.toHaveBeenCalled();
+});
+
+it("hides place-bookmark when the named shelves failed to load", async () => {
+  const bookmark = {
+    shelfId: "cr",
+    currentPage: 42,
+    book: details.book,
+  };
+  mockSearchParams = { id: "b1", shelfId: "cr" };
+  mockedUseShelf.mockReturnValue({
+    shelves: [makeShelf("cr", "currently reading", [bookmark])],
+    toBeRead: undefined,
+    finished: undefined,
+  });
+
+  await renderScreen();
+
+  await waitFor(() => expect(screen.getByText("Dune")).toBeTruthy());
+  // Cannot place a bookmark without knowing which shelf is "to be read"/"finished".
+  expect(screen.queryByText("place bookmark")).toBeNull();
 });

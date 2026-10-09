@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { useShelf } from "@/context/shelf-provider";
-import { BookDetails } from "@/lib/definitions";
+import { Book, BookDetails } from "@/lib/definitions";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import BookActions from "@/components/book-actions";
@@ -16,6 +16,9 @@ import GenrePill from "@/components/genre-pill";
 import { useBookActions } from "@/hooks/book-actions";
 import ThemedPressable from "@/components/themed-pressable";
 import { useBook } from "@/hooks/book";
+import ErrorMessage from "@/components/error-message";
+import { useAsyncAction } from "@/hooks/use-async-action";
+import { ApiError, GENERIC_ERROR_MESSAGE } from "@/api/api-error";
 
 export default function BookScreen() {
   const { id, shelfId } = useLocalSearchParams<{
@@ -34,6 +37,7 @@ export default function BookScreen() {
   const shelfName = shelves.find(({ id }) => id === shelfId)?.name;
 
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [bookDetails, setBookDetails] = useState<BookDetails | undefined>(
     undefined,
   );
@@ -44,14 +48,43 @@ export default function BookScreen() {
   const { theme } = useTheme();
   const { addNewBookToShelf, startReading } = useBookActions();
 
+  // The book is passed in rather than read from state, so neither action needs a non-null
+  // assertion on `bookDetails`.
+  const {
+    run: runAddToShelf,
+    error: actionError,
+  } = useAsyncAction((book: Book) => {
+    return addNewBookToShelf({ ...book, pageCount }, shelfId);
+  });
+
+  const { run: runStartReading, error: startReadingError } = useAsyncAction(
+    (book: Book) => {
+      return startReading({ ...book, pageCount }, bookmark);
+    },
+  );
+
+  const shownError = error ?? actionError ?? startReadingError;
+
   useFocusEffect(
     useCallback(() => {
       async function loadBookDetails() {
         setIsLoading(true);
-        const details = await getBookDetails(id);
-        setBookDetails(details);
-        setPageCount((current) => current || details.book.pageCount);
-        setIsLoading(false);
+        setError(null);
+
+        try {
+          const details = await getBookDetails(id);
+
+          setBookDetails(details);
+          setPageCount((current) => current || details.book.pageCount);
+        } catch (caught) {
+          // Without this the screen stays a spinner forever, and the `bookDetails &&` below
+          // would render nothing at all.
+          setError(
+            caught instanceof ApiError ? caught.message : GENERIC_ERROR_MESSAGE,
+          );
+        } finally {
+          setIsLoading(false);
+        }
       }
       loadBookDetails();
     }, [id, getBookDetails]),
@@ -74,7 +107,13 @@ export default function BookScreen() {
       return;
     }
 
-    addNewBookToShelf({ ...bookDetails.book, pageCount }, shelfId);
+    const result = await runAddToShelf(bookDetails.book);
+
+    // Awaited, and only navigate on success. This previously fired the save without awaiting
+    // and navigated immediately, so a failed save looked like it worked.
+    if (!result.ok) {
+      return;
+    }
 
     if (shelfId) {
       router.push("/");
@@ -95,7 +134,11 @@ export default function BookScreen() {
       return;
     }
 
-    await startReading({ ...bookDetails.book, pageCount }, bookmark);
+    const result = await runStartReading(bookDetails.book);
+
+    if (!result.ok) {
+      return;
+    }
 
     router.push({
       pathname: "/place-bookmark",
@@ -126,57 +169,70 @@ export default function BookScreen() {
     >
       <ActivityIndicator color={theme.loading} size="large"></ActivityIndicator>
     </View>
+  ) : !bookDetails ? (
+    // The load failed. Previously this fell through the `bookDetails &&` below and rendered
+    // nothing at all.
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.background, justifyContent: "center" },
+      ]}
+    >
+      <ErrorMessage
+        message={shownError ?? GENERIC_ERROR_MESSAGE}
+        onRetry={() => router.push({ pathname: "/book/[id]", params: { id } })}
+      />
+    </View>
   ) : (
-    bookDetails && (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={styles.bookHeader}>
-          <BookHeader
-            book={bookDetails.book}
-            onPageCountChange={setPageCount}
-          />
-        </View>
-        <View style={styles.bookDetails}>
-          <View style={{ height: "100%" }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                flexWrap: "wrap",
-              }}
-            >
-              {bookDetails?.genres.map((genre) => (
-                <GenrePill key={genre} genre={genre}></GenrePill>
-              ))}
-            </View>
-            <ScrollView>
-              <Text style={{ color: theme.text }}> {bookDetails.blurb}</Text>
-            </ScrollView>
-          </View>
-        </View>
-        <View style={styles.bookActions}>
-          <BookActions
-            showAddToShelf={showAddToShelf}
-            showPlaceBookmark={showPlaceBookmark}
-            showStartReading={showStartReading}
-            onAddToShelf={handleAddToShelf}
-            onPlaceBookmark={handlePlaceBookmark}
-            onStartReading={handleStartReading}
-            shelfName={shelfName}
-          />
-          <ThemedPressable
-            variant="secondary"
-            onPress={() => {
-              router.push({
-                pathname: "/reviews/[bookId]",
-                params: { bookId: id },
-              });
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {shownError && <ErrorMessage message={shownError} />}
+      <View style={styles.bookHeader}>
+        <BookHeader
+          book={bookDetails.book}
+          onPageCountChange={setPageCount}
+        />
+      </View>
+      <View style={styles.bookDetails}>
+        <View style={{ height: "100%" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              flexWrap: "wrap",
             }}
-            text="reviews"
-          />
+          >
+            {bookDetails.genres.map((genre) => (
+              <GenrePill key={genre} genre={genre}></GenrePill>
+            ))}
+          </View>
+          <ScrollView>
+            <Text style={{ color: theme.text }}> {bookDetails.blurb}</Text>
+          </ScrollView>
         </View>
       </View>
-    )
+      <View style={styles.bookActions}>
+        <BookActions
+          showAddToShelf={showAddToShelf}
+          showPlaceBookmark={showPlaceBookmark}
+          showStartReading={showStartReading}
+          onAddToShelf={handleAddToShelf}
+          onPlaceBookmark={handlePlaceBookmark}
+          onStartReading={handleStartReading}
+          shelfName={shelfName}
+        />
+        <ThemedPressable
+          variant="secondary"
+          onPress={() => {
+            router.push({
+              pathname: "/reviews/[bookId]",
+              params: { bookId: id },
+            });
+          }}
+          text="reviews"
+        />
+      </View>
+    </View>
   );
 }
 const styles = StyleSheet.create({

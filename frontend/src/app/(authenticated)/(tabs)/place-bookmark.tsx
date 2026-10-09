@@ -8,6 +8,8 @@ import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import ThemedPressable from "@/components/themed-pressable";
+import ErrorMessage from "@/components/error-message";
+import { ApiError, GENERIC_ERROR_MESSAGE } from "@/api/api-error";
 
 const BookmarkSchema = z.object({
   bookId: z.string().min(1),
@@ -26,6 +28,7 @@ export default function PlaceBookmarkScreen() {
 
   const [titleError, setTitleError] = useState("");
   const [currentPageError, setCurrentPageError] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const { theme } = useTheme();
 
@@ -48,6 +51,7 @@ export default function PlaceBookmarkScreen() {
   function clearErrors() {
     setTitleError("");
     setCurrentPageError("");
+    setError(null);
   }
 
   async function handleBookCompletedPress() {
@@ -77,8 +81,17 @@ export default function PlaceBookmarkScreen() {
       shelfId: finished.id,
     };
 
-    await placeBookmark(accessToken, placeBookMarkRequest);
-    await loadShelves();
+    try {
+      await placeBookmark(accessToken, placeBookMarkRequest);
+      await loadShelves();
+    } catch (caught) {
+      // Had no try/catch at all: a failed save was an unhandled rejection and the screen did
+      // nothing.
+      setError(
+        caught instanceof ApiError ? caught.message : GENERIC_ERROR_MESSAGE,
+      );
+      return;
+    }
 
     clearAndNavigate(() => {
       router.push({
@@ -127,7 +140,6 @@ export default function PlaceBookmarkScreen() {
       clearAndNavigate(navigation);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log(error);
         error.issues.forEach((issue) => {
           switch (issue.path[0]) {
             case "id":
@@ -142,6 +154,14 @@ export default function PlaceBookmarkScreen() {
               break;
           }
         });
+      } else if (error instanceof ApiError) {
+        // Previously the catch only handled zod, so an ApiError from placeBookmark or
+        // loadShelves was swallowed and the user saw nothing at all.
+        setError(error.message);
+      } else {
+        // Any other Error may carry a raw driver or network string in its message. Fall back
+        // rather than showing it.
+        setError(GENERIC_ERROR_MESSAGE);
       }
     }
   }
@@ -191,6 +211,7 @@ export default function PlaceBookmarkScreen() {
       {currentPageError && (
         <Text style={{ color: theme.errorText }}>{currentPageError}</Text>
       )}
+      {error && <ErrorMessage message={error} />}
       <View style={{ flexDirection: "row" }}>
         <ThemedPressable
           variant="primary"

@@ -8,6 +8,8 @@ import { Book } from "@/lib/definitions";
 import { CurrentShelfContext } from "@/context/current-shelf-provider";
 import BookList from "@/components/book-search-result-list";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import ErrorMessage from "@/components/error-message";
+import { ApiError, GENERIC_ERROR_MESSAGE } from "@/api/api-error";
 
 const SEARCH_LIMIT = 6;
 
@@ -21,24 +23,39 @@ export default function SearchBooksScreen() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchPage, setSearchPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
   const { accessToken } = useAuth();
+
+  function messageFor(caught: unknown) {
+    return caught instanceof ApiError
+      ? caught.message
+      : GENERIC_ERROR_MESSAGE;
+  }
 
   async function handleSearchPress() {
     setHasMore(false);
     setIsLoading(true);
+    setError(null);
     setSearchPage(1);
-    const searchBookResult = await searchBooks(
-      accessToken,
-      title,
-      SEARCH_LIMIT,
-      1,
-    );
 
-    setHasMore(searchBookResult.length >= SEARCH_LIMIT);
+    try {
+      const searchBookResult = await searchBooks(
+        accessToken,
+        title,
+        SEARCH_LIMIT,
+        1,
+      );
 
-    setBooks(searchBookResult);
-    setIsLoading(false);
+      setHasMore(searchBookResult.length >= SEARCH_LIMIT);
+      setBooks(searchBookResult);
+    } catch (caught) {
+      setError(messageFor(caught));
+      setBooks([]);
+    } finally {
+      // Cleared in a `finally`: previously a throw left the spinner running forever.
+      setIsLoading(false);
+    }
   }
 
   async function handleResultListEndReached() {
@@ -47,18 +64,27 @@ export default function SearchBooksScreen() {
     }
 
     setIsLoadingMore(true);
-    const searchBookResult = await searchBooks(
-      accessToken,
-      title,
-      SEARCH_LIMIT,
-      searchPage + 1,
-    );
+    setError(null);
 
-    setHasMore(searchBookResult.length >= SEARCH_LIMIT);
+    try {
+      const searchBookResult = await searchBooks(
+        accessToken,
+        title,
+        SEARCH_LIMIT,
+        searchPage + 1,
+      );
 
-    setBooks((current) => [...current, ...searchBookResult]);
-    setSearchPage((current) => current + 1);
-    setIsLoadingMore(false);
+      setHasMore(searchBookResult.length >= SEARCH_LIMIT);
+
+      setBooks((current) => [...current, ...searchBookResult]);
+      setSearchPage((current) => current + 1);
+    } catch (caught) {
+      // Deliberately leaves `books` and `hasMore` alone. A user looking at 20 results should not
+      // lose them because page 2 timed out, and leaving `hasMore` true lets them retry the page.
+      setError(messageFor(caught));
+    } finally {
+      setIsLoadingMore(false);
+    }
   }
 
   const preserveSearch = useRef(false);
@@ -106,16 +132,18 @@ export default function SearchBooksScreen() {
           {isLoading ? (
             <ActivityIndicator color={theme.loading} size="large" />
           ) : (
-            !!books.length && (
-              <BookList
-                books={books}
-                onBookSelected={() => {
-                  preserveSearch.current = true;
-                }}
-                onEndReached={handleResultListEndReached}
-                isLoadingMore={isLoadingMore}
-              ></BookList>
-            )
+            !!error && <ErrorMessage message={error} />
+          )}
+          {/* Results stay mounted through a pagination failure so page 1 is not lost. */}
+          {!isLoading && !!books.length && (
+            <BookList
+              books={books}
+              onBookSelected={() => {
+                preserveSearch.current = true;
+              }}
+              onEndReached={handleResultListEndReached}
+              isLoadingMore={isLoadingMore}
+            ></BookList>
           )}
         </View>
       </View>

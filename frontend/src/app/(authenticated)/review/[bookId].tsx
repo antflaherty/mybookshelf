@@ -9,11 +9,15 @@ import { BookDetails } from "@/lib/definitions";
 import BookHeader from "@/components/book-header";
 import StarRating from "@/components/star-rating";
 import { useBook } from "@/hooks/book";
+import ErrorMessage from "@/components/error-message";
+import { useAsyncAction } from "@/hooks/use-async-action";
+import { ApiError, GENERIC_ERROR_MESSAGE } from "@/api/api-error";
 
 export default function ReviewBookScreen() {
   const { bookId } = useLocalSearchParams<{ bookId: string }>();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [bookDetails, setBookDetails] = useState<BookDetails | undefined>(
     undefined,
   );
@@ -25,6 +29,15 @@ export default function ReviewBookScreen() {
   const { accessToken } = useAuth();
   const { getBookDetails } = useBook();
 
+  const { run: runSubmit, error: submitError } = useAsyncAction(() =>
+    postReview(accessToken, {
+      bookId,
+      stars,
+      comment,
+      timestamp: new Date().toISOString(),
+    }),
+  );
+
   useEffect(() => {
     async function load() {
       if (!bookId) {
@@ -32,21 +45,30 @@ export default function ReviewBookScreen() {
         return;
       }
       setIsLoading(true);
-      const details = await getBookDetails(bookId);
-      setBookDetails(details);
-      setIsLoading(false);
+      setError(null);
+
+      try {
+        const details = await getBookDetails(bookId);
+
+        setBookDetails(details);
+      } catch (caught) {
+        setError(
+          caught instanceof ApiError ? caught.message : GENERIC_ERROR_MESSAGE,
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
     load();
   }, [bookId, getBookDetails]);
 
   async function handleSubmit() {
-    await postReview(accessToken, {
-      bookId,
-      stars,
-      comment,
-      timestamp: new Date().toISOString(),
-    });
-    router.push("/");
+    const result = await runSubmit();
+
+    // Previously this navigated home unconditionally, so a failed save looked like it worked.
+    if (result.ok) {
+      router.push("/");
+    }
   }
 
   if (isLoading) {
@@ -102,10 +124,12 @@ export default function ReviewBookScreen() {
             />
           </View>
           <View style={{ flex: 1 }}>
+            {submitError && <ErrorMessage message={submitError} />}
             <ThemedPressable text="submit" onPress={handleSubmit} />
           </View>
         </View>
       )}
+      {!bookDetails && error && <ErrorMessage message={error} />}
     </View>
   );
 }

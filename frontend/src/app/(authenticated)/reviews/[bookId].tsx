@@ -8,27 +8,59 @@ import { BookDetails, Review } from "@/lib/definitions";
 import StarRating from "@/components/star-rating";
 import { useBook } from "@/hooks/book";
 import BookHeader from "@/components/book-header";
+import ErrorMessage from "@/components/error-message";
+import { ApiError, GENERIC_ERROR_MESSAGE } from "@/api/api-error";
 
 export default function ReviewsScreen() {
   const { bookId } = useLocalSearchParams<{ bookId: string }>();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [bookDetails, setBookDetails] = useState<BookDetails | undefined>();
   const [isLoading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
   const { accessToken } = useAuth();
   const { getBookDetails } = useBook();
 
   useEffect(() => {
     async function load() {
-      if (bookId) {
-        setLoading(true);
-        const reviews = await getReviews(accessToken, bookId);
-        const bookDetails = await getBookDetails(bookId);
-
-        setReviews(reviews || []);
-        setBookDetails(bookDetails);
+      if (!bookId) {
+        // Previously returned without clearing loading, leaving a permanent spinner.
+        setError("no book selected");
         setLoading(false);
+        return;
       }
+
+      setLoading(true);
+      setError(null);
+
+      // Concurrent, not sequential: the old `await` then `await` took the slowest possible
+      // total latency. Each result is settled independently so a book-details failure still
+      // leaves the reviews visible, and vice versa.
+      const [reviewsResult, bookDetailsResult] = await Promise.allSettled([
+        getReviews(accessToken, bookId),
+        getBookDetails(bookId),
+      ]);
+
+      if (reviewsResult.status === "fulfilled") {
+        setReviews(reviewsResult.value || []);
+      }
+      if (bookDetailsResult.status === "fulfilled") {
+        setBookDetails(bookDetailsResult.value ?? undefined);
+      }
+
+      const failure = [reviewsResult, bookDetailsResult].find(
+        (r) => r.status === "rejected",
+      );
+
+      if (failure?.status === "rejected") {
+        setError(
+          failure.reason instanceof ApiError
+            ? failure.reason.message
+            : GENERIC_ERROR_MESSAGE,
+        );
+      }
+
+      setLoading(false);
     }
 
     load();
@@ -43,6 +75,7 @@ export default function ReviewsScreen() {
         ></ActivityIndicator>
       ) : (
         <View>
+          {error && <ErrorMessage message={error} />}
           <View style={{ flex: 1 }}>
             {bookDetails && (
               <BookHeader book={bookDetails.book} readOnly></BookHeader>

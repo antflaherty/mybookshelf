@@ -4,6 +4,9 @@ import { router } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import ThemedPressable from "@/components/themed-pressable";
+import ErrorMessage from "@/components/error-message";
+import { useAsyncAction } from "@/hooks/use-async-action";
+import { ApiError, GENERIC_ERROR_MESSAGE } from "@/api/api-error";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -12,9 +15,33 @@ export default function LoginScreen() {
   const { theme } = useTheme();
   const { login } = useAuth();
 
+  const {
+    run: runLogin,
+    isLoading,
+    error,
+  } = useAsyncAction(async () => {
+    const result = await login({ email, password });
+
+    // `login` returns a result rather than throwing (auth-context 4.1). Convert the failure case
+    // into a throw so `useAsyncAction` records the message and clears its loading flag.
+    if (!result.ok) {
+      throw new ApiError(result.error ?? GENERIC_ERROR_MESSAGE, {
+        status: 0,
+        code: "invalid_credentials",
+      });
+    }
+
+    return result;
+  });
+
   async function handleLoginPress() {
-    await login({ email, password });
-    router.push("/");
+    const result = await runLogin();
+
+    // Only navigate on success. Previously this was unconditional and simply never ran on
+    // failure, so the user saw an inert screen with no explanation.
+    if (result.ok) {
+      router.push("/");
+    }
   }
 
   return (
@@ -46,9 +73,11 @@ export default function LoginScreen() {
         ]}
         onChangeText={setPassword}
       />
+      {error && <ErrorMessage message={error} />}
       <ThemedPressable
         variant="primary"
         text="log in"
+        disabled={isLoading}
         onPress={handleLoginPress}
       />
       <ThemedPressable
