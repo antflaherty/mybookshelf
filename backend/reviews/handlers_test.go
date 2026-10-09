@@ -125,7 +125,7 @@ func TestGetReviewsHandler_MissingBookID(t *testing.T) {
 }
 
 func TestGetReviewsHandler_EmptyListIsNotAnError(t *testing.T) {
-	// Contract §4: an empty array is a 200, never a 404.
+	// An empty array is a 200, never a 404.
 	w := getRequest(t, &fakeStore{reviews: nil}, "bookId=/works/OL1M")
 
 	if w.Code != http.StatusOK {

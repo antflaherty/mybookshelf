@@ -119,8 +119,8 @@ export async function login(user: User): Promise<string> {
   });
 
   if (typeof result?.access_token !== "string") {
-    // A 200 that carries no token is not a successful login. The contract does not cover success
-    // bodies, so this stays tolerant: whatever came back is treated as unexpected.
+    // A 200 that carries no token is not a successful login. There is no defined shape for
+    // success bodies, so this stays tolerant: whatever came back is treated as unexpected.
     throw ApiError.fromResponse(200, result);
   }
 
@@ -206,7 +206,7 @@ export async function getReviews(
   bookId: string,
 ): Promise<Review[]> {
   // TODO: the backend sends `userID` in `domain.Review` (capital D) but `lib/definitions.ts`
-  // declares `userId`. The contract does not cover success bodies, so the backend agent owns the
+  // declares `userId`. Naming is a backend concern, so this file does not guess at the
   // field name. Left as-is rather than guessed at. `reviews/[bookId].tsx` keys on `userId`.
   return request<Review[]>(REVIEWS_ROUTE, "GET", {
     accessToken,

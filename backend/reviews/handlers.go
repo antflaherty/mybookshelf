@@ -88,7 +88,7 @@ func postReviewHandler(db *sql.DB, reviewStore store) gin.HandlerFunc {
 		}
 
 		// The FK on review.book_id would reject an unknown book, but it does so
-		// as a 500. Checking first turns it into the 404 the contract asks for.
+		// as a 500. Checking first turns it into the 404 BookNotFound returns.
 		if _, err := reviewStore.queryBook(db, request.BookID); err != nil {
 			if errors.Is(err, books.ErrBookNotFound) {
 				apierr.Respond(c, apierr.BookNotFound(request.BookID))

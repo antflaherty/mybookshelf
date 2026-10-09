@@ -84,7 +84,7 @@ func postBookmarkHandler(db *sql.DB, bookStore store) gin.HandlerFunc {
 
 		// bookmark.shelf_id has a foreign key to shelf(id), so a shelf owned by
 		// another user passes the FK and the bookmark lands on someone else's
-		// shelf. Check ownership explicitly. Per contract §2.1 a shelf that does
+		// shelf. Check ownership explicitly. A shelf that does
 		// not exist and a shelf the caller does not own are both shelf_not_found,
 		// so this does not reveal which shelf ids exist.
 		ownsShelf, err := bookStore.queryShelfBelongsToUser(db, request.ShelfID, userID)

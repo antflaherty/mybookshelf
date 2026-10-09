@@ -7,7 +7,7 @@
  *
  * Parsing is deliberately defensive. The body of a failed request is untrusted: it can be absent,
  * `null`, an HTML error page from a proxy or a spun-down Render instance, or JSON that does not
- * match the contract. None of those may throw, and none of them may put raw markup or driver text
+ * match the wire format above. None of those may throw, and none of them may put raw markup or driver text
  * in front of a user.
  */
 
@@ -119,8 +119,8 @@ export class ApiError extends Error {
 
     let message: string;
     if (status >= 500) {
-      // A 5xx message is never surfaced verbatim, even when the body carries one. The contract
-      // fixes those messages, but a proxy or load balancer sitting in front of the API does not,
+      // A 5xx message is never surfaced verbatim, even when the body carries one. The API
+      // fixes those messages, but a proxy or load balancer sitting in front of it does not,
       // and an HTML error page must not end up on a user's screen. The real body goes to the
       // console instead.
       message = fallbackMessageForStatus(status);

@@ -22,7 +22,7 @@ export default function LoginScreen() {
   } = useAsyncAction(async () => {
     const result = await login({ email, password });
 
-    // `login` returns a result rather than throwing (auth-context 4.1). Convert the failure case
+    // `login` returns a result rather than throwing. Convert the failure case
     // into a throw so `useAsyncAction` records the message and clears its loading flag.
     if (!result.ok) {
       throw new ApiError(result.error ?? GENERIC_ERROR_MESSAGE, {

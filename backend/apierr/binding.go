@@ -24,7 +24,7 @@ func BindJSON(c *gin.Context, dst any) *Error {
 	return nil
 }
 
-// detailsFor maps a binding failure to contract §1 details: a map of
+// detailsFor maps a binding failure to the details shape: a map of
 // JSON field name to human-readable message.
 func detailsFor(err error, dstType reflect.Type) map[string]string {
 	details := map[string]string{}
@@ -85,8 +85,8 @@ func messageFor(fieldErr validator.FieldError) string {
 }
 
 // jsonFieldName maps a Go struct field name to its JSON name, preferring the
-// json struct tag and falling back to the lowercased Go field name. Contract
-// §1 requires JSON names, because those are what the client sent.
+// json struct tag and falling back to the lowercased Go field name. JSON
+// names are required, because those are what the client sent.
 func jsonFieldName(dstType reflect.Type, structField string) string {
 	for dstType != nil && dstType.Kind() == reflect.Ptr {
 		dstType = dstType.Elem()

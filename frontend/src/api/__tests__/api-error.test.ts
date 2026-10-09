@@ -25,7 +25,7 @@ describe("fromResponse with a well-formed body", () => {
     expect(error.isNetworkError).toBe(false);
   });
 
-  it("leaves details undefined when the contract omits them", () => {
+  it("leaves details undefined when the response omits them", () => {
     const error = ApiError.fromResponse(409, {
       error: { code: "email_taken", message: "email already registered" },
     });

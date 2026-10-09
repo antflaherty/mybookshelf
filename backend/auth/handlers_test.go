@@ -265,7 +265,7 @@ func TestLoginHandler_UnknownEmailAndWrongPasswordAreIndistinguishable(t *testin
 		})
 	}
 
-	// The contract requires these two to be byte-identical so the endpoint
+	// These two must be byte-identical so the endpoint
 	// cannot be used to enumerate accounts.
 	if len(bodies) == 2 && bodies[0] != bodies[1] {
 		t.Errorf("responses differ and leak which part was wrong:\n%s\n%s", bodies[0], bodies[1])

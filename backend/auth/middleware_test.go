@@ -56,7 +56,7 @@ func expiredToken(t *testing.T, secret []byte) string {
 	return signed
 }
 
-// The three 401 messages are asserted by frontend tests (contract §3), so they
+// The three 401 messages are asserted by frontend tests, so they
 // are pinned here along with their codes.
 func TestAuthMiddleware_Errors(t *testing.T) {
 	secret := []byte("test-secret")

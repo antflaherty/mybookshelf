@@ -96,7 +96,7 @@ func TestGetShelvesHandler_OrphanedBookmarkIsSkipped(t *testing.T) {
 }
 
 func TestGetShelvesHandler_EmptyCollectionsAre200(t *testing.T) {
-	// Contract §4: an empty collection is a 200, not an error.
+	// An empty collection is a 200, not an error.
 	empty := []domain.Shelf{}
 	noBookmarks := []domain.QualifiedBookmark{}
 

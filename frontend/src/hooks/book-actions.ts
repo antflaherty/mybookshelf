@@ -11,7 +11,7 @@ export function useBookActions() {
   // NOT transactional. A failure part-way through leaves a partial write behind: `createBook`
   // can succeed while `placeBookmark` or `loadShelves` fails, so the book exists with no
   // bookmark, or with a bookmark the shelf list has not picked up yet. Rolling that back is out
-  // of scope for this work; the callers (6.3) surface the error instead of navigating as if it
+  // of scope here; the calling screens surface the error instead of navigating as if it
   // worked. Making this atomic is a backend concern.
   async function addNewBookToShelf(book: Book, shelfId: string) {
     const bookWithId = await createBook(accessToken, book);

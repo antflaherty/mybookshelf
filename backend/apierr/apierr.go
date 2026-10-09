@@ -79,7 +79,7 @@ func (e *Error) withCause(cause error) *Error {
 }
 
 // InvalidRequest reports a body or query string that failed to bind or
-// validate. details is required by the contract and maps field names to
+// validate. details is always present and maps field names to
 // messages.
 func InvalidRequest(details map[string]string) *Error {
 	return &Error{
@@ -118,7 +118,7 @@ func InvalidAuthorizationHeader() *Error {
 
 // InvalidToken reports an Authorization header that parsed but did not verify.
 // It is a separate constructor from InvalidAuthorizationHeader only so the two
-// contract §3 strings stay distinct; both carry the code "unauthorized".
+// messages stay distinct; both carry the code "unauthorized".
 func InvalidToken() *Error {
 	return &Error{
 		Status:  http.StatusUnauthorized,
@@ -144,7 +144,7 @@ func BookNotFound(id string) *Error {
 }
 
 // ShelfNotFound reports a shelf that does not exist or is not owned by the
-// caller. Per contract §2 both cases are indistinguishable on the wire.
+// caller. Both cases are indistinguishable on the wire.
 func ShelfNotFound(id string) *Error {
 	return notFoundWith(CodeShelfNotFound, id)
 }
@@ -176,7 +176,7 @@ func EmailTaken() *Error {
 }
 
 // Internal reports an unexpected server failure. The message is fixed by the
-// contract; only the cause varies and it goes to the logs.
+// MessageInternal; only the cause varies and it goes to the logs.
 func Internal(cause error) *Error {
 	return (&Error{
 		Status:  http.StatusInternalServerError,
@@ -186,7 +186,7 @@ func Internal(cause error) *Error {
 }
 
 // Upstream reports an Open Library failure: non-2xx, timeout, or unparseable
-// JSON. The message is fixed by the contract; the cause goes to the logs.
+// JSON. The message is fixed by MessageUpstream; the cause goes to the logs.
 func Upstream(cause error) *Error {
 	return (&Error{
 		Status:  http.StatusBadGateway,
@@ -219,7 +219,7 @@ func Respond(c *gin.Context, err error) {
 	// Abort only stops the handler chain; the current handler keeps running if
 	// it forgets to return. Swapping in a discarding writer now, after the
 	// envelope is on the wire, makes it the last thing written, so a stray
-	// c.JSON after Respond cannot corrupt the JSON body the contract froze.
+	// c.JSON after Respond cannot corrupt the JSON body already written.
 	c.Writer = &discardingWriter{ResponseWriter: c.Writer}
 
 	c.Abort()
