@@ -6,6 +6,7 @@ import {
   Shelf,
   User,
 } from "@/lib/definitions";
+import { ApiError } from "@/api/api-error";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const REGISTER_ROUTE = "/auth/register";
@@ -21,68 +22,124 @@ export function setUnauthorizedHandler(handler: () => Promise<void>) {
   unauthorizedHandler = handler;
 }
 
-export async function register(user: User) {
-  const url = API_URL + REGISTER_ROUTE;
+interface RequestOptions {
+  /**
+   * Pass the caller's token for a protected endpoint. Omit it entirely for a public one.
+   * An explicit `null` means "protected but signed out" and never reaches the network.
+   */
+  accessToken?: string | null;
+  body?: unknown;
+  query?: Record<string, string | number>;
+}
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ ...user, email: user.email.toLowerCase() }),
-  });
+/**
+ * The single path every endpoint goes through.
+ *
+ * The ordering below is load-bearing. `fetch` rejections become `ApiError.network`, the 401 hook
+ * runs and is awaited *before* the caller sees its error, the body is read defensively, and only
+ * then is `response.ok` consulted.
+ */
+async function request<T>(
+  path: string,
+  method: "GET" | "POST",
+  options: RequestOptions = {},
+): Promise<T> {
+  const { accessToken, body, query } = options;
 
-  const result = await response.json();
+  if (accessToken === null) {
+    throw new ApiError("not logged in", { status: 0, code: "unauthorized" });
+  }
+
+  let url = `${API_URL}${path}`;
+
+  if (query) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) {
+      params.set(key, String(value));
+    }
+    url += `?${params.toString()}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+  } catch (cause) {
+    throw ApiError.network(cause);
+  }
+
+  if (response.status === 401) {
+    // Awaited before the error surfaces so the logout has settled by the time the caller reacts.
+    // Deliberately not wrapped: a rejection here belongs to the caller, not to `fetch`.
+    await unauthorizedHandler?.();
+  }
+
+  // A body can only be read once, and it is not guaranteed to exist or to be JSON. An HTML error
+  // page from a proxy used to make `response.json()` throw a bare SyntaxError; `text()` plus a
+  // guarded parse turns that into an ordinary ApiError.
+  let raw = "";
+  try {
+    raw = await response.text();
+  } catch {
+    // Body unreadable. Fall through with `raw` still empty.
+  }
+
+  let parsed: unknown = null;
+  if (raw) {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = null;
+    }
+  }
 
   if (!response.ok) {
-    throw new Error(result.error);
+    throw ApiError.fromResponse(response.status, parsed);
   }
+
+  // A 200 with an empty body resolves to null. Callers that want a collection already do `?? []`.
+  return parsed as T;
+}
+
+export async function register(user: User) {
+  await request(REGISTER_ROUTE, "POST", {
+    body: { ...user, email: user.email.toLowerCase() },
+  });
 }
 
 export async function login(user: User): Promise<string> {
-  const url = API_URL + LOGIN_ROUTE;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ ...user, email: user.email.toLowerCase() }),
+  const result = await request<{ access_token?: string }>(LOGIN_ROUTE, "POST", {
+    body: { ...user, email: user.email.toLowerCase() },
   });
 
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(`status: ${response.status}, error: ${result.error}`);
+  if (typeof result?.access_token !== "string") {
+    // A 200 that carries no token is not a successful login. The contract does not cover success
+    // bodies, so this stays tolerant: whatever came back is treated as unexpected.
+    throw ApiError.fromResponse(200, result);
   }
 
   return result.access_token;
 }
 
 export async function getShelves(accessToken: string | null): Promise<Shelf[]> {
-  const url = API_URL + SHELVES_ROUTE;
-  const response = await authorizedFetch(accessToken, url, "GET");
+  const result = await request<Shelf[] | null>(SHELVES_ROUTE, "GET", { accessToken });
 
-  if (!response.ok) {
-    console.error(await response.text());
-    throw new Error(`Response status: ${response.status}`);
-  }
-
-  const result = await response.json();
   return result ?? [];
 }
 
 export async function getBookmarks(
   accessToken: string | null,
 ): Promise<Bookmark[]> {
-  const url = API_URL + BOOKMARKS_ROUTE;
-  const response = await authorizedFetch(accessToken, url, "GET");
+  const result = await request<Bookmark[] | null>(BOOKMARKS_ROUTE, "GET", {
+    accessToken,
+  });
 
-  if (!response.ok) {
-    throw new Error(`Response status: ${response.status}`);
-  }
-
-  const result = await response.json();
   return result ?? [];
 }
 
@@ -92,22 +149,11 @@ export async function searchBooks(
   limit: number,
   page: number,
 ): Promise<Book[]> {
-  const params = new URLSearchParams({
-    title,
-    limit: `${limit}`,
-    page: `${page}`,
+  const result = await request<Book[] | null>(BOOKS_ROUTE, "GET", {
+    accessToken,
+    query: { title, limit, page },
   });
 
-  const url = `${API_URL}${BOOKS_ROUTE}?${params.toString()}`;
-
-  const response = await authorizedFetch(accessToken, url, "GET");
-
-  if (!response.ok) {
-    console.error(await response.text());
-    throw new Error(`Response status: ${response.status}`);
-  }
-
-  const result = await response.json();
   return result ?? [];
 }
 
@@ -115,41 +161,17 @@ export async function getBookDetails(
   accessToken: string | null,
   bookId: string,
 ): Promise<BookDetails> {
-  const params = new URLSearchParams({
-    id: bookId,
+  return request<BookDetails>(BOOKS_ROUTE, "GET", {
+    accessToken,
+    query: { id: bookId },
   });
-
-  const url = `${API_URL}${BOOKS_ROUTE}?${params.toString()}`;
-
-  const response = await authorizedFetch(accessToken, url, "GET");
-
-  if (!response.ok) {
-    console.error(await response.text());
-    throw new Error(`Response status: ${response.status}`);
-  }
-
-  return await response.json();
 }
 
 export async function createBook(
   accessToken: string | null,
   book: Book,
 ): Promise<Book> {
-  const url = `${API_URL}${BOOKS_ROUTE}`;
-
-  const response = await authorizedFetch(
-    accessToken,
-    url,
-    "POST",
-    JSON.stringify(book),
-  );
-
-  if (!response.ok) {
-    console.error(await response.text());
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }
-
-  return await response.json();
+  return request<Book>(BOOKS_ROUTE, "POST", { accessToken, body: book });
 }
 
 export interface PlaceBookmarkRequest {
@@ -160,21 +182,9 @@ export interface PlaceBookmarkRequest {
 
 export async function placeBookmark(
   accessToken: string | null,
-  request: PlaceBookmarkRequest,
+  bookmark: PlaceBookmarkRequest,
 ): Promise<void> {
-  const url = `${API_URL}${BOOKMARKS_ROUTE}`;
-
-  const response = await authorizedFetch(
-    accessToken,
-    url,
-    "POST",
-    JSON.stringify(request),
-  );
-
-  if (!response.ok) {
-    console.error(await response.text());
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }
+  await request(BOOKMARKS_ROUTE, "POST", { accessToken, body: bookmark });
 }
 
 interface PostReviewRequest {
@@ -186,66 +196,20 @@ interface PostReviewRequest {
 
 export async function postReview(
   accessToken: string | null,
-  request: PostReviewRequest,
+  review: PostReviewRequest,
 ) {
-  const url = `${API_URL}${REVIEWS_ROUTE}`;
-
-  const response = await authorizedFetch(
-    accessToken,
-    url,
-    "POST",
-    JSON.stringify(request),
-  );
-
-  if (!response.ok) {
-    console.error(await response.text());
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }
-
-  console.log(await response.json());
+  await request(REVIEWS_ROUTE, "POST", { accessToken, body: review });
 }
 
 export async function getReviews(
   accessToken: string | null,
   bookId: string,
 ): Promise<Review[]> {
-  const params = new URLSearchParams({
-    bookId,
+  // TODO: the backend sends `userID` in `domain.Review` (capital D) but `lib/definitions.ts`
+  // declares `userId`. The contract does not cover success bodies, so the backend agent owns the
+  // field name. Left as-is rather than guessed at. `reviews/[bookId].tsx` keys on `userId`.
+  return request<Review[]>(REVIEWS_ROUTE, "GET", {
+    accessToken,
+    query: { bookId },
   });
-
-  const url = `${API_URL}${REVIEWS_ROUTE}?${params.toString()}`;
-
-  const response = await authorizedFetch(accessToken, url, "GET");
-
-  if (!response.ok) {
-    console.error(await response.text());
-    throw new Error(`Response status: ${response.status}`);
-  }
-
-  return await response.json();
-}
-
-async function authorizedFetch(
-  accessToken: string | null,
-  url: string,
-  method: "GET" | "POST",
-  body?: string,
-): Promise<Response> {
-  if (accessToken == null) {
-    throw new Error("not logged in");
-  }
-
-  const response = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body,
-  });
-
-  if (response.status === 401) {
-    await unauthorizedHandler?.();
-  }
-  return response;
 }

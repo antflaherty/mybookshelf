@@ -1,4 +1,7 @@
 import {
+  ApiError,
+} from "@/api/api-error";
+import {
   createBook,
   getBookDetails,
   getBookmarks,
@@ -14,12 +17,30 @@ import {
 const mockFetch = jest.fn();
 global.fetch = mockFetch as unknown as typeof fetch;
 
+// `request` reads `text()` and parses it itself. The real Response exposes no `json()` after the
+// body has been consumed, so the mock deliberately does not implement one: if any code path
+// reaches for `response.json()`, it fails loudly instead of silently working here.
 function jsonResponse(body: unknown, ok = true, status = 200) {
   return {
     ok,
     status,
-    json: jest.fn().mockResolvedValue(body),
     text: jest.fn().mockResolvedValue(JSON.stringify(body)),
+  } as unknown as Response;
+}
+
+function rawResponse(raw: string, ok = false, status = 500) {
+  return {
+    ok,
+    status,
+    text: jest.fn().mockResolvedValue(raw),
+  } as unknown as Response;
+}
+
+function emptyResponse(ok = true, status = 200) {
+  return {
+    ok,
+    status,
+    text: jest.fn().mockResolvedValue(""),
   } as unknown as Response;
 }
 
@@ -50,12 +71,16 @@ describe("register", () => {
 
   it("throws the server error message on failure", async () => {
     mockFetch.mockResolvedValue(
-      jsonResponse({ error: "email taken" }, false, 409),
+      jsonResponse(
+        { error: { code: "email_taken", message: "email already registered" } },
+        false,
+        409,
+      ),
     );
 
     await expect(
       register({ email: "a@b.com", password: "pw" }),
-    ).rejects.toThrow("email taken");
+    ).rejects.toThrow("email already registered");
   });
 });
 
@@ -75,14 +100,36 @@ describe("login", () => {
     );
   });
 
-  it("throws with status and error on failure", async () => {
+  it("throws the server's message on a 401", async () => {
     mockFetch.mockResolvedValue(
-      jsonResponse({ error: "bad credentials" }, false, 401),
+      jsonResponse(
+        {
+          error: {
+            code: "invalid_credentials",
+            message: "invalid email or password",
+          },
+        },
+        false,
+        401,
+      ),
     );
 
-    await expect(
-      login({ email: "a@b.com", password: "pw" }),
-    ).rejects.toThrow("status: 401, error: bad credentials");
+    const error = await login({ email: "a@b.com", password: "pw" }).catch(
+      (e: unknown) => e,
+    );
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).message).toBe("invalid email or password");
+    expect((error as ApiError).status).toBe(401);
+    expect((error as ApiError).code).toBe("invalid_credentials");
+  });
+
+  it("throws when a 200 carries no access token", async () => {
+    mockFetch.mockResolvedValue(jsonResponse({}));
+
+    await expect(login({ email: "a@b.com", password: "pw" })).rejects.toThrow(
+      ApiError,
+    );
   });
 });
 
@@ -107,10 +154,29 @@ describe("authorized requests", () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("throws on non-ok responses", async () => {
-    mockFetch.mockResolvedValue(jsonResponse({}, false, 500));
+  it("reports the missing token as an unauthorized ApiError", async () => {
+    const error = await getShelves(null).catch((e: unknown) => e);
 
-    await expect(getBookmarks("tok")).rejects.toThrow("Response status: 500");
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).code).toBe("unauthorized");
+    expect((error as ApiError).status).toBe(0);
+  });
+
+  it("throws on non-ok responses", async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(
+        { error: { code: "internal_error", message: "internal server error" } },
+        false,
+        500,
+      ),
+    );
+
+    const error = await getBookmarks("tok").catch((e: unknown) => e);
+
+    expect((error as ApiError).status).toBe(500);
+    expect((error as ApiError).message).toBe(
+      "something went wrong. please try again.",
+    );
   });
 
   it("returns an empty array when json is null", async () => {
@@ -165,11 +231,30 @@ describe("createBook", () => {
   });
 
   it("throws on failure", async () => {
-    mockFetch.mockResolvedValue(jsonResponse({}, false, 400));
+    mockFetch.mockResolvedValue(
+      jsonResponse(
+        {
+          error: {
+            code: "invalid_request",
+            message: "invalid request",
+            details: { title: "must not be empty" },
+          },
+        },
+        false,
+        400,
+      ),
+    );
 
-    await expect(
-      createBook("tok", { id: "", title: "", author: "", pageCount: 0 }),
-    ).rejects.toThrow("HTTP error! Status: 400");
+    const error = await createBook("tok", {
+      id: "",
+      title: "",
+      author: "",
+      pageCount: 0,
+    }).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).message).toBe("invalid request");
+    expect((error as ApiError).details).toEqual({ title: "must not be empty" });
   });
 });
 
@@ -190,10 +275,19 @@ describe("placeBookmark", () => {
 });
 
 describe("unauthorized handling", () => {
-  // authorizedFetch keeps the handler in module-level state, so each test
-  // works against a fresh copy of the module.
+  // `request` keeps the handler in module-level state, so each test works against a fresh copy of
+  // the module.
   let api: typeof import("@/api/apiClient");
   let handler: jest.Mock<Promise<void>, []>;
+
+  const UNAUTHORIZED = () =>
+    jsonResponse(
+      {
+        error: { code: "unauthorized", message: "invalid or expired token" },
+      },
+      false,
+      401,
+    );
 
   beforeEach(() => {
     jest.resetModules();
@@ -203,33 +297,42 @@ describe("unauthorized handling", () => {
   });
 
   it("invokes the registered handler on a 401 response", async () => {
-    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+    mockFetch.mockResolvedValue(UNAUTHORIZED());
     api.setUnauthorizedHandler(handler);
 
     await expect(api.getShelves("tok")).rejects.toThrow(
-      "Response status: 401",
+      "invalid or expired token",
     );
 
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
   it("invokes the handler for any authorized endpoint returning 401", async () => {
-    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+    mockFetch.mockResolvedValue(UNAUTHORIZED());
     api.setUnauthorizedHandler(handler);
 
     await expect(api.getReviews("tok", "b1")).rejects.toThrow(
-      "Response status: 401",
+      "invalid or expired token",
     );
 
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
   it("does not invoke the handler on other error statuses", async () => {
-    mockFetch.mockResolvedValue(jsonResponse({}, false, 500));
+    mockFetch.mockResolvedValue(
+      jsonResponse(
+        { error: { code: "internal_error", message: "internal server error" } },
+        false,
+        500,
+      ),
+    );
     api.setUnauthorizedHandler(handler);
 
+    // A 500's body message is suppressed, so assert on the fallback rather than on the class.
+    // `jest.resetModules()` means this block's copy of ApiError is a different class identity
+    // than the one imported at the top of the file.
     await expect(api.getBookmarks("tok")).rejects.toThrow(
-      "Response status: 500",
+      "something went wrong. please try again.",
     );
 
     expect(handler).not.toHaveBeenCalled();
@@ -245,10 +348,10 @@ describe("unauthorized handling", () => {
   });
 
   it("does not throw when no handler is registered", async () => {
-    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+    mockFetch.mockResolvedValue(UNAUTHORIZED());
 
     await expect(api.getShelves("tok")).rejects.toThrow(
-      "Response status: 401",
+      "invalid or expired token",
     );
   });
 
@@ -260,7 +363,7 @@ describe("unauthorized handling", () => {
       }),
     );
     api.setUnauthorizedHandler(handler);
-    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+    mockFetch.mockResolvedValue(UNAUTHORIZED());
 
     const settled = jest.fn();
     const request = api.getShelves("tok").catch((e: Error) => settled(e.message));
@@ -271,11 +374,11 @@ describe("unauthorized handling", () => {
     releaseHandler();
     await request;
 
-    expect(settled).toHaveBeenCalledWith("Response status: 401");
+    expect(settled).toHaveBeenCalledWith("invalid or expired token");
   });
 
   it("invokes the handler once per request", async () => {
-    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+    mockFetch.mockResolvedValue(UNAUTHORIZED());
     api.setUnauthorizedHandler(handler);
 
     await expect(api.getShelves("tok")).rejects.toThrow();
@@ -287,11 +390,106 @@ describe("unauthorized handling", () => {
   it("propagates a handler rejection to the caller", async () => {
     handler.mockRejectedValue(new Error("secure store unavailable"));
     api.setUnauthorizedHandler(handler);
-    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+    mockFetch.mockResolvedValue(UNAUTHORIZED());
 
     await expect(api.getShelves("tok")).rejects.toThrow(
       "secure store unavailable",
     );
+  });
+});
+
+describe("defensive body parsing", () => {
+  it("turns an HTML 502 into an ApiError rather than a SyntaxError", async () => {
+    mockFetch.mockResolvedValue(
+      rawResponse("<html>502 Bad Gateway</html>", false, 502),
+    );
+
+    const error = await getShelves("tok").catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).not.toBeInstanceOf(SyntaxError);
+    expect((error as ApiError).status).toBe(502);
+    expect((error as ApiError).message).toBe(
+      "something went wrong. please try again.",
+    );
+    expect((error as ApiError).message).not.toContain("<html>");
+    expect((error as ApiError).code).toBe("unexpected_response");
+  });
+
+  it("does not report an HTML 502 as a network error", async () => {
+    mockFetch.mockResolvedValue(
+      rawResponse("<html>502 Bad Gateway</html>", false, 502),
+    );
+
+    const error = await getShelves("tok").catch((e: unknown) => e);
+
+    expect((error as ApiError).isNetworkError).toBe(false);
+  });
+
+  it("does not throw while parsing a null body on a 500", async () => {
+    mockFetch.mockResolvedValue(emptyResponse(false, 500));
+
+    const error = await getShelves("tok").catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).message).toBe(
+      "something went wrong. please try again.",
+    );
+  });
+
+  it("resolves to null for an empty 200 body", async () => {
+    mockFetch.mockResolvedValue(emptyResponse());
+
+    await expect(getBookDetails("tok", "b1")).resolves.toBeNull();
+  });
+
+  it("resolves a 200 whose body is invalid JSON without throwing", async () => {
+    mockFetch.mockResolvedValue(rawResponse("not json at all", true, 200));
+
+    await expect(getReviews("tok", "b1")).resolves.toBeNull();
+  });
+
+  it("survives a body that cannot be read at all", async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: jest.fn().mockRejectedValue(new Error("stream closed")),
+    } as unknown as Response);
+
+    const error = await getShelves("tok").catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).status).toBe(500);
+  });
+
+  it("turns a fetch rejection into a network ApiError", async () => {
+    mockFetch.mockRejectedValue(new TypeError("Network request failed"));
+
+    const error = await getShelves("tok").catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).isNetworkError).toBe(true);
+    expect((error as ApiError).status).toBe(0);
+    expect((error as ApiError).code).toBe("network_error");
+    expect((error as ApiError).message).toBe(
+      "could not reach the server. check your connection.",
+    );
+  });
+
+  it("reports an offline login as a network error too", async () => {
+    mockFetch.mockRejectedValue(new TypeError("Network request failed"));
+
+    const error = await login({ email: "a@b.com", password: "pw" }).catch(
+      (e: unknown) => e,
+    );
+
+    expect((error as ApiError).isNetworkError).toBe(true);
+  });
+
+  it("does not call the unauthorized handler on a fetch rejection", async () => {
+    mockFetch.mockRejectedValue(new TypeError("Network request failed"));
+
+    await expect(getShelves("tok")).rejects.toThrow(ApiError);
   });
 });
 
