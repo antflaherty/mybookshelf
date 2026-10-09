@@ -1,6 +1,7 @@
 import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -11,7 +12,7 @@ import {
   storeAccessToken,
 } from "@/storage/secureStore";
 import { User } from "@/lib/definitions";
-import { login as apiLogin } from "@/api/apiClient";
+import { login as apiLogin, setUnauthorizedHandler } from "@/api/apiClient";
 
 interface AuthContextValue {
   accessToken: string | null;
@@ -47,10 +48,14 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     storeAccessToken(accessToken);
   }
 
-  async function logout() {
+  const logout = useCallback(async () => {
     setAccessToken(null);
     await deleteAccessToken();
-  }
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(logout);
+  }, [logout]);
 
   return (
     <AuthContext.Provider

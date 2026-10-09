@@ -7,7 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const tokenTimeLimit = 24 * 60
+const tokenTimeLimitMinutes = 24 * 60
 
 func createAccessToken(userID string, secret []byte) (string, error) {
 	now := time.Now()
@@ -15,7 +15,7 @@ func createAccessToken(userID string, secret []byte) (string, error) {
 	claims := jwt.MapClaims{
 		"sub": userID,
 		"iat": now.Unix(),
-		"exp": now.Add(tokenTimeLimit * time.Minute).Unix(),
+		"exp": now.Add(tokenTimeLimitMinutes * time.Minute).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
