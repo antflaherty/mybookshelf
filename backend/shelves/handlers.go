@@ -2,8 +2,10 @@ package shelves
 
 import (
 	"database/sql"
+	"log/slog"
 	"net/http"
 
+	"github.com/antflaherty/mybookshelf/backend/apierr"
 	"github.com/antflaherty/mybookshelf/backend/bookmarks"
 	"github.com/antflaherty/mybookshelf/backend/domain"
 	"github.com/gin-gonic/gin"
@@ -15,13 +17,13 @@ func GetShelvesHandler(db *sql.DB) gin.HandlerFunc {
 
 		allShelves, err := queryAllShelves(db, userID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
 
 		allBookmarks, err := bookmarks.QueryAllBookmarks(db, userID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
 
@@ -34,7 +36,21 @@ func GetShelvesHandler(db *sql.DB) gin.HandlerFunc {
 		}
 
 		for _, bookmark := range *allBookmarks {
-			shelfById[bookmark.ShelfID].Bookmarks = append(shelfById[bookmark.ShelfID].Bookmarks, bookmark)
+			shelf, ok := shelfById[bookmark.ShelfID]
+			if !ok {
+				// The bookmark points at a shelf this user does not have: a
+				// shelf deleted straight in the database, or one left behind by
+				// an older bug. Dropping it is better than a nil dereference
+				// that takes down the whole shelf list.
+				slog.Warn("bookmark references a shelf missing from the user's shelves",
+					"shelfId", bookmark.ShelfID,
+					"bookId", bookmark.Book.ID,
+					"userId", userID,
+				)
+				continue
+			}
+
+			shelf.Bookmarks = append(shelf.Bookmarks, bookmark)
 		}
 
 		c.JSON(http.StatusOK, allShelves)

@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"net/http"
 	"strings"
 
+	"github.com/antflaherty/mybookshelf/backend/apierr"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,18 +14,14 @@ func AuthMiddleware(secret []byte) gin.HandlerFunc {
 		header := c.GetHeader("Authorization")
 
 		if header == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "authorization header required",
-			})
+			apierr.Respond(c, apierr.Unauthorized())
 			return
 		}
 
 		parts := strings.SplitN(header, " ", 2)
 
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid authorization header",
-			})
+			apierr.Respond(c, apierr.InvalidAuthorizationHeader())
 			return
 		}
 
@@ -33,9 +29,7 @@ func AuthMiddleware(secret []byte) gin.HandlerFunc {
 
 		userID, err := verifyAccessToken(tokenString, secret)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid or expired token",
-			})
+			apierr.Respond(c, apierr.InvalidToken())
 			return
 		}
 

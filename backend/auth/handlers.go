@@ -5,24 +5,29 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/antflaherty/mybookshelf/backend/apierr"
 	"github.com/antflaherty/mybookshelf/backend/config"
 	"github.com/antflaherty/mybookshelf/backend/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// pqUniqueViolation is the Postgres SQLSTATE for a unique constraint violation,
+// which for registration means the email is already taken.
+const pqUniqueViolation = "23505"
+
 type registerRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
 }
 
 func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request registerRequest
 
-		if err := c.ShouldBindJSON(&request); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if apierr.BindJSON(c, &request) != nil {
 			return
 		}
 
@@ -32,7 +37,7 @@ func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 		)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
 
@@ -41,9 +46,15 @@ func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 		user, err = createUser(db, user)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			// A taken email is a client mistake, not a server fault. Checking it
+			// here means the response does not carry the constraint name.
+			var pqErr *pq.Error
+			if errors.As(err, &pqErr) && string(pqErr.Code) == pqUniqueViolation {
+				apierr.Respond(c, apierr.EmailTaken())
+				return
+			}
+
+			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
 
@@ -58,24 +69,22 @@ func LoginHandler(config config.Config, db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request registerRequest
 
-		if err := c.ShouldBindJSON(&request); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if apierr.BindJSON(c, &request) != nil {
 			return
 		}
 
 		user, err := queryUserByEmail(db, request.Email)
 
+		// Unknown email and wrong password return the identical 401
+		// invalid_credentials. They must stay indistinguishable: a client that
+		// can tell them apart can enumerate which emails have accounts.
 		if errors.Is(err, sql.ErrNoRows) {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid email or password",
-			})
+			apierr.Respond(c, apierr.InvalidCredentials())
 			return
 		}
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
 
@@ -84,13 +93,13 @@ func LoginHandler(config config.Config, db *sql.DB) gin.HandlerFunc {
 			[]byte(request.Password),
 		)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
+			apierr.Respond(c, apierr.InvalidCredentials())
 			return
 		}
 
 		jwt, err := createAccessToken(user.ID, config.JwtSecret)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
 
@@ -114,6 +123,12 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 		return nil, err
 	}
 
+	// TODO(error-handling): the user row is committed by the Exec above, before
+	// the transaction that creates the default shelves. If the shelf insert
+	// fails, registration returns 500 but the user already exists, leaving an
+	// orphan account with no shelves. Fixing it means moving the user insert
+	// into the same transaction, which changes the shape of createUser and is
+	// out of scope for docs/plans/backend-error-handling.md task 4.4.
 	err = createDefaultShelvesForUser(db, user.ID)
 
 	if err != nil {
