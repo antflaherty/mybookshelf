@@ -15,6 +15,12 @@ const BOOKMARKS_ROUTE = "/bookmarks";
 const SHELVES_ROUTE = "/shelves";
 const REVIEWS_ROUTE = "/reviews";
 
+let unauthorizedHandler: () => Promise<void>;
+
+export function setUnauthorizedHandler(handler: () => Promise<void>) {
+  unauthorizedHandler = handler;
+}
+
 export async function register(user: User) {
   const url = API_URL + REGISTER_ROUTE;
 
@@ -229,7 +235,7 @@ async function authorizedFetch(
     throw new Error("not logged in");
   }
 
-  return fetch(url, {
+  const response = await fetch(url, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -237,4 +243,9 @@ async function authorizedFetch(
     },
     body,
   });
+
+  if (response.status === 401) {
+    await unauthorizedHandler?.();
+  }
+  return response;
 }
