@@ -55,6 +55,10 @@ export default function PlaceBookmarkScreen() {
       setTitleError("choose a book");
       return;
     }
+    if (!finished) {
+      setTitleError("finished shelf not available");
+      return;
+    }
     clearErrors();
 
     const currentBookmark = currentlyReading.bookmarks.find(
@@ -62,12 +66,14 @@ export default function PlaceBookmarkScreen() {
     );
 
     if (!currentBookmark) {
-      throw new Error("book not found on shelf");
+      // A validation failure, not an exceptional one: the selected book is not on the shelf.
+      setTitleError("book not found on shelf");
+      return;
     }
 
     const placeBookMarkRequest = {
       bookId: id,
-      currentPage: currentBookmark?.book.pageCount,
+      currentPage: currentBookmark.book.pageCount,
       shelfId: finished.id,
     };
 
@@ -83,6 +89,10 @@ export default function PlaceBookmarkScreen() {
   }
 
   async function handlePlaceBookmarkPress() {
+    if (!currentlyReading) {
+      setTitleError("shelves are not available");
+      return;
+    }
     try {
       clearErrors();
 
@@ -101,7 +111,7 @@ export default function PlaceBookmarkScreen() {
       const pageCount = currentlyReading.bookmarks.find(
         ({ book: { id: bookId } }) => bookId === id,
       )?.book.pageCount;
-      if (pageCount === bookmark.currentPage) {
+      if (finished && pageCount === bookmark.currentPage) {
         bookmark.shelfId = finished.id;
         navigation = () => {
           router.push({

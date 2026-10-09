@@ -73,3 +73,50 @@ it("navigates to place-bookmark", async () => {
 
   expect(router.push).toHaveBeenCalledWith("/place-bookmark");
 });
+
+it("shows the load error with a retry instead of an empty screen", async () => {
+  const mockLoadShelves = jest.fn().mockResolvedValue(undefined);
+  mockedUseShelf.mockReturnValue({
+    shelves: [],
+    isLoading: false,
+    error: "something went wrong. please try again.",
+    loadShelves: mockLoadShelves,
+  });
+
+  await renderScreen();
+
+  expect(
+    screen.getByText("something went wrong. please try again."),
+  ).toBeTruthy();
+  expect(screen.queryByText("place bookmark")).toBeNull();
+});
+
+it("retries the load when the error message is pressed", async () => {
+  const mockLoadShelves = jest.fn().mockResolvedValue(undefined);
+  mockedUseShelf.mockReturnValue({
+    shelves: [],
+    isLoading: false,
+    error: "something went wrong. please try again.",
+    loadShelves: mockLoadShelves,
+  });
+
+  await renderScreen();
+
+  await fireEvent.press(screen.getByText("try again"));
+
+  expect(mockLoadShelves).toHaveBeenCalled();
+});
+
+it("does not show the error when the shelves loaded cleanly", async () => {
+  mockedUseShelf.mockReturnValue({
+    shelves: [shelf],
+    isLoading: false,
+    error: null,
+    loadShelves: jest.fn(),
+  });
+
+  await renderScreen();
+
+  expect(screen.getByText("currently reading")).toBeTruthy();
+  expect(screen.queryByText("try again")).toBeNull();
+});

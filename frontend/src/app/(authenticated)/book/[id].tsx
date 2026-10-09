@@ -107,9 +107,15 @@ export default function BookScreen() {
   }
 
   const showAddToShelf = !bookmark;
-  const showStartReading = !bookmark || bookmark.shelfId === toBeRead.id;
+  // Undefined means the named shelves are not loaded. Hiding the action is the right response:
+  // we cannot place a bookmark on a shelf we do not have an id for.
+  const showStartReading = !bookmark || bookmark.shelfId === toBeRead?.id;
   const showPlaceBookmark =
-    !!bookmark && shelfId !== toBeRead.id && shelfId !== finished.id;
+    !!bookmark &&
+    !!toBeRead &&
+    !!finished &&
+    shelfId !== toBeRead.id &&
+    shelfId !== finished.id;
 
   return isLoading ? (
     <View

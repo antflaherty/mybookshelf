@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { useBookActions } from "@/hooks/book-actions";
@@ -131,4 +131,53 @@ it("addNewBookToShelf creates the book and places a bookmark on the given shelf"
       shelfId: "s9",
     }),
   );
+});
+
+it("startReading bails out when currentlyReading is missing", async () => {
+  mockedUseShelf.mockReturnValue({
+    currentlyReading: undefined,
+    loadShelves: mockLoadShelves,
+  });
+
+  function StartProbe() {
+    const { startReading } = useBookActions();
+    const [error, setError] = useState("none");
+
+    return (
+      <>
+        <Text
+          testID="start"
+          onPress={async () => {
+            try {
+              await startReading({
+                id: "",
+                title: "Dune",
+                author: "Herbert",
+                pageCount: 600,
+              });
+              setError("resolved");
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "unknown");
+            }
+          }}
+        >
+          start
+        </Text>
+        <Text testID="error">{error}</Text>
+      </>
+    );
+  }
+
+  await render(<StartProbe />);
+
+  await fireEvent.press(screen.getByTestId("start"));
+
+  await waitFor(() =>
+    expect(screen.getByTestId("error").props.children).toBe(
+      "your shelves could not be loaded",
+    ),
+  );
+  // Must not have created a book, since there is nowhere to put it.
+  expect(mockedCreateBook).not.toHaveBeenCalled();
+  expect(mockedPlaceBookmark).not.toHaveBeenCalled();
 });
