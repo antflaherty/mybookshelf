@@ -7,6 +7,7 @@ import * as SecureStore from "expo-secure-store";
 
 jest.mock("expo-secure-store", () => ({
   setItem: jest.fn().mockResolvedValue(undefined),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
   getItem: jest.fn(),
   deleteItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
@@ -17,7 +18,7 @@ beforeEach(() => jest.clearAllMocks());
 
 it("stores the access token under the accessToken key", async () => {
   await storeAccessToken("tok123");
-  expect(mocked.setItem).toHaveBeenCalledWith("accessToken", "tok123");
+  expect(mocked.setItemAsync).toHaveBeenCalledWith("accessToken", "tok123");
 });
 
 it("retrieves the access token", async () => {
