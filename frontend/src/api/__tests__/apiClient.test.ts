@@ -189,6 +189,112 @@ describe("placeBookmark", () => {
   });
 });
 
+describe("unauthorized handling", () => {
+  // authorizedFetch keeps the handler in module-level state, so each test
+  // works against a fresh copy of the module.
+  let api: typeof import("@/api/apiClient");
+  let handler: jest.Mock<Promise<void>, []>;
+
+  beforeEach(() => {
+    jest.resetModules();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- fresh module instance, not a static import
+    api = require("@/api/apiClient");
+    handler = jest.fn().mockResolvedValue(undefined);
+  });
+
+  it("invokes the registered handler on a 401 response", async () => {
+    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+    api.setUnauthorizedHandler(handler);
+
+    await expect(api.getShelves("tok")).rejects.toThrow(
+      "Response status: 401",
+    );
+
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("invokes the handler for any authorized endpoint returning 401", async () => {
+    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+    api.setUnauthorizedHandler(handler);
+
+    await expect(api.getReviews("tok", "b1")).rejects.toThrow(
+      "Response status: 401",
+    );
+
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not invoke the handler on other error statuses", async () => {
+    mockFetch.mockResolvedValue(jsonResponse({}, false, 500));
+    api.setUnauthorizedHandler(handler);
+
+    await expect(api.getBookmarks("tok")).rejects.toThrow(
+      "Response status: 500",
+    );
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("does not invoke the handler on a successful response", async () => {
+    mockFetch.mockResolvedValue(jsonResponse([]));
+    api.setUnauthorizedHandler(handler);
+
+    await api.getShelves("tok");
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("does not throw when no handler is registered", async () => {
+    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+
+    await expect(api.getShelves("tok")).rejects.toThrow(
+      "Response status: 401",
+    );
+  });
+
+  it("waits for the handler to settle before returning", async () => {
+    let releaseHandler = () => {};
+    handler.mockReturnValue(
+      new Promise<void>((resolve) => {
+        releaseHandler = resolve;
+      }),
+    );
+    api.setUnauthorizedHandler(handler);
+    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+
+    const settled = jest.fn();
+    const request = api.getShelves("tok").catch((e: Error) => settled(e.message));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(settled).not.toHaveBeenCalled();
+
+    releaseHandler();
+    await request;
+
+    expect(settled).toHaveBeenCalledWith("Response status: 401");
+  });
+
+  it("invokes the handler once per request", async () => {
+    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+    api.setUnauthorizedHandler(handler);
+
+    await expect(api.getShelves("tok")).rejects.toThrow();
+    await expect(api.getBookmarks("tok")).rejects.toThrow();
+
+    expect(handler).toHaveBeenCalledTimes(2);
+  });
+
+  it("propagates a handler rejection to the caller", async () => {
+    handler.mockRejectedValue(new Error("secure store unavailable"));
+    api.setUnauthorizedHandler(handler);
+    mockFetch.mockResolvedValue(jsonResponse({}, false, 401));
+
+    await expect(api.getShelves("tok")).rejects.toThrow(
+      "secure store unavailable",
+    );
+  });
+});
+
 describe("reviews", () => {
   it("posts a review", async () => {
     mockFetch.mockResolvedValue(jsonResponse({}));

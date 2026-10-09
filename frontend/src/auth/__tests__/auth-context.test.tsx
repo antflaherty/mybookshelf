@@ -1,4 +1,5 @@
 import {
+  act,
   render,
   screen,
   fireEvent,
@@ -110,6 +111,70 @@ it("logout clears the token", async () => {
     expect(screen.getByTestId("token").props.children).toBe("none"),
   );
   expect(mockedStore.deleteAccessToken).toHaveBeenCalled();
+});
+
+it("registers logout as the unauthorized handler on mount", async () => {
+  mockedStore.getAccessToken.mockReturnValue("tok" as unknown as null);
+
+  await render(
+    <AuthProvider>
+      <Probe />
+    </AuthProvider>,
+  );
+
+  expect(mockedApi.setUnauthorizedHandler).toHaveBeenCalledTimes(1);
+  expect(typeof mockedApi.setUnauthorizedHandler.mock.calls[0][0]).toBe(
+    "function",
+  );
+});
+
+it("logs the user out when the registered handler is invoked", async () => {
+  mockedStore.getAccessToken.mockReturnValue("tok" as unknown as null);
+
+  await render(
+    <AuthProvider>
+      <Probe />
+    </AuthProvider>,
+  );
+
+  await waitFor(() =>
+    expect(screen.getByTestId("token").props.children).toBe("tok"),
+  );
+
+  const handler = mockedApi.setUnauthorizedHandler.mock.calls[0][0];
+  await act(async () => {
+    await handler();
+  });
+
+  await waitFor(() =>
+    expect(screen.getByTestId("token").props.children).toBe("none"),
+  );
+  expect(mockedStore.deleteAccessToken).toHaveBeenCalled();
+});
+
+it("does not re-register the handler when the token changes", async () => {
+  mockedStore.getAccessToken.mockReturnValue("tok" as unknown as null);
+
+  await render(
+    <AuthProvider>
+      <Probe />
+    </AuthProvider>,
+  );
+
+  await waitFor(() =>
+    expect(screen.getByTestId("token").props.children).toBe("tok"),
+  );
+
+  const registered = mockedApi.setUnauthorizedHandler.mock.calls[0][0];
+
+  await fireEvent.press(screen.getByTestId("logout"));
+
+  await waitFor(() =>
+    expect(screen.getByTestId("token").props.children).toBe("none"),
+  );
+
+  expect(mockedApi.setUnauthorizedHandler).toHaveBeenCalledTimes(1);
+  expect(mockedApi.setUnauthorizedHandler.mock.calls[0][0]).toBe(registered);
 });
 
 it("throws when useAuth is used outside the provider", async () => {
