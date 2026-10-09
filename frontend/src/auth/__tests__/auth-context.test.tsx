@@ -1,5 +1,9 @@
-import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react-native";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react-native";
 import { Text } from "react-native";
 import AuthProvider, { useAuth } from "@/auth/auth-context";
 import * as secureStore from "@/storage/secureStore";
@@ -13,6 +17,7 @@ jest.mock("@/storage/secureStore", () => ({
 
 jest.mock("@/api/apiClient", () => ({
   login: jest.fn(),
+  setUnauthorizedHandler: jest.fn(),
 }));
 
 const mockedStore = secureStore as jest.Mocked<typeof secureStore>;
