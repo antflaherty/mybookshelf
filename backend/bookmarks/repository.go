@@ -2,6 +2,7 @@ package bookmarks
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/antflaherty/mybookshelf/backend/domain"
 )
@@ -41,7 +42,7 @@ func queryBookmarkByBookIdAndUserId(db *sql.DB, bookId string, userID string) (*
 	bm := &domain.Bookmark{}
 	err := row.Scan(&bm.BookID, &bm.CurrentPage)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
