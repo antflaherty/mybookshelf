@@ -96,14 +96,38 @@ func TestGetShelvesHandler_OrphanedBookmarkIsSkipped(t *testing.T) {
 }
 
 func TestGetShelvesHandler_EmptyCollectionsAre200(t *testing.T) {
-	// An empty collection is a 200, not an error.
-	empty := []domain.Shelf{}
-	noBookmarks := []domain.QualifiedBookmark{}
+	// An empty collection is a 200 with a JSON array body — never an error,
+	// and never literal `null` (what an unnormalized nil slice would
+	// serialize to).
+	emptyShelves := []domain.Shelf{}
+	emptyBookmarks := []domain.QualifiedBookmark{}
 
-	w := getShelves(t, &fakeStore{shelves: &empty, bookmarks: &noBookmarks})
+	tests := []struct {
+		name  string
+		store *fakeStore
+	}{
+		{
+			name:  "nil slices",
+			store: &fakeStore{},
+		},
+		{
+			name:  "empty slices",
+			store: &fakeStore{shelves: &emptyShelves, bookmarks: &emptyBookmarks},
+		},
+	}
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := getShelves(t, tt.store)
+
+			if w.Code != http.StatusOK {
+				t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+			}
+
+			if got := w.Body.String(); got != "[]" {
+				t.Errorf("expected an empty JSON array, got %q", got)
+			}
+		})
 	}
 }
 

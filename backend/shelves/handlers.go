@@ -81,6 +81,14 @@ func getShelvesHandler(db *sql.DB, shelfStore store) gin.HandlerFunc {
 			}
 		}
 
+		// A nil slice serializes as literal `null`, which breaks clients that
+		// expect an array. An empty shelf list is [].
+		if allShelves == nil {
+			allShelves = &[]domain.Shelf{}
+		} else if *allShelves == nil {
+			*allShelves = []domain.Shelf{}
+		}
+
 		c.JSON(http.StatusOK, allShelves)
 	}
 }

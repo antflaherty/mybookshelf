@@ -89,6 +89,14 @@ func GetBooksHandler(searchService BookSearchProvider, bookDetailsService BookDe
 // goes through books' own sentinels rather than library's, because library
 // imports this package and the reverse would be an import cycle.
 func classifySearchError(err error) *apierr.Error {
+	// The library client maps an upstream 404/410 to ErrBookNotFound, which on
+	// the details route means "no such book". On the search route there is no
+	// id to be missing, so a 404 means the upstream URL itself is broken: an
+	// upstream failure, not the caller's mistake.
+	if IsNotFoundError(err) {
+		return apierr.Upstream(err)
+	}
+
 	if IsUpstreamError(err) {
 		return apierr.Upstream(err)
 	}

@@ -57,6 +57,12 @@ func getReviewsHandler(db *sql.DB, reviewStore store) gin.HandlerFunc {
 			return
 		}
 
+		// A nil slice serializes as literal `null`, which breaks clients that
+		// expect an array. An empty result is [].
+		if reviews == nil {
+			reviews = []domain.Review{}
+		}
+
 		c.JSON(http.StatusOK, reviews)
 	}
 }

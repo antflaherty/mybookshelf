@@ -11,8 +11,10 @@ var (
 	// "no such book", and both map to 404 book_not_found.
 	ErrBookNotFound = errors.New("book not found")
 
-	// ErrUpstream is returned when Open Library fails: non-2xx, timeout, or a
-	// 2xx body that will not parse. It maps to 502 upstream_unavailable.
+	// ErrUpstream is returned when Open Library fails: non-2xx (except the
+	// 404/410 that mean "no such work" and are returned as ErrBookNotFound),
+	// timeout, or a 2xx body that will not parse. It maps to 502
+	// upstream_unavailable.
 	ErrUpstream = errors.New("open library request failed")
 )
 

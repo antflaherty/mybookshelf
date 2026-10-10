@@ -12,7 +12,7 @@ import (
 type bindTarget struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
-	Stars    int    `json:"stars" binding:"required,gte=0,lte=20"`
+	Stars    int    `json:"stars" binding:"gte=0,lte=20"`
 }
 
 func bindRequest(t *testing.T, body string) *httptest.ResponseRecorder {
@@ -125,9 +125,29 @@ func TestBindJSON_ValidatorFailureUsesJSONFieldName(t *testing.T) {
 }
 
 func TestBindJSON_SuccessReturnsNil(t *testing.T) {
-	w := bindRequest(t, `{"email": "a@b.com", "password": "hunter2", "stars": 20}`)
+	tests := []struct {
+		name string
+		body string
+	}{
+		{
+			name: "top of range",
+			body: `{"email": "a@b.com", "password": "hunter2", "stars": 20}`,
+		},
+		{
+			// Regression: a `required` on Stars rejected the zero value, so a
+			// legitimate 0-star rating failed to bind. gte alone must accept it.
+			name: "zero stars is a legitimate value",
+			body: `{"email": "a@b.com", "password": "hunter2", "stars": 0}`,
+		},
+	}
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected status %d, got %d (body %s)", http.StatusOK, w.Code, w.Body.String())
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := bindRequest(t, tt.body)
+
+			if w.Code != http.StatusOK {
+				t.Errorf("expected status %d, got %d (body %s)", http.StatusOK, w.Code, w.Body.String())
+			}
+		})
 	}
 }

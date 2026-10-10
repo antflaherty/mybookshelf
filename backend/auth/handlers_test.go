@@ -243,6 +243,14 @@ func TestLoginHandler_UnknownEmailAndWrongPasswordAreIndistinguishable(t *testin
 			store: &fakeUserStore{foundUser: &User{ID: "user-1", PasswordHash: string(hash)}},
 			body:  `{"email": "a@b.com", "password": "wrong-password"}`,
 		},
+		{
+			// Regression: login was bound with registration's min=6, so a
+			// wrong password shorter than 6 characters got a 400 invalid_request
+			// instead of the same 401 every bad credential gets.
+			name:  "wrong password shorter than the registration minimum",
+			store: &fakeUserStore{foundUser: &User{ID: "user-1", PasswordHash: string(hash)}},
+			body:  `{"email": "a@b.com", "password": "no"}`,
+		},
 	}
 
 	var bodies []string
@@ -265,10 +273,12 @@ func TestLoginHandler_UnknownEmailAndWrongPasswordAreIndistinguishable(t *testin
 		})
 	}
 
-	// These two must be byte-identical so the endpoint
-	// cannot be used to enumerate accounts.
-	if len(bodies) == 2 && bodies[0] != bodies[1] {
-		t.Errorf("responses differ and leak which part was wrong:\n%s\n%s", bodies[0], bodies[1])
+	// These must be byte-identical so the endpoint cannot be used to
+	// enumerate accounts or to probe the password rules.
+	for i := 1; i < len(bodies); i++ {
+		if bodies[i] != bodies[0] {
+			t.Errorf("responses differ and leak which part was wrong:\n%s\n%s", bodies[0], bodies[i])
+		}
 	}
 }
 

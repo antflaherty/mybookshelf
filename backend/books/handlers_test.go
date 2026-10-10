@@ -165,6 +165,18 @@ func TestGetBooks(t *testing.T) {
 			wantCode:   "upstream_unavailable",
 		},
 		{
+			// Regression: the library client maps an upstream 404 to
+			// ErrBookNotFound, which classifySearchError used to fall through
+			// as a 500. On search a 404 means the upstream URL is broken, so it
+			// is an upstream failure, not book_not_found and not internal.
+			name:       "search upstream 404 returns 502",
+			query:      "title=dune&limit=1&page=1",
+			search:     fakeSearchProvider{err: fmt.Errorf("%w: /search.json", ErrBookNotFound)},
+			details:    fakeDetailsProvider{},
+			wantStatus: http.StatusBadGateway,
+			wantCode:   "upstream_unavailable",
+		},
+		{
 			name:       "details returns a book",
 			query:      "id=/works/OL1",
 			search:     fakeSearchProvider{},

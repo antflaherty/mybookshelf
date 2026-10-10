@@ -23,6 +23,15 @@ type registerRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 }
 
+// loginRequest is deliberately weaker than registerRequest. Login is checked
+// against credentials that already exist, so the password only has to be
+// present: applying registration's min=6 here turned a wrong short password
+// into a 400 that also revealed the minimum length.
+type loginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
 // userStore is the slice of the database the auth handlers use.
 //
 // *sql.DB cannot be faked without a driver, and the handlers need both Exec
@@ -97,7 +106,7 @@ func LoginHandler(config config.Config, db *sql.DB) gin.HandlerFunc {
 
 func loginHandler(config config.Config, db *sql.DB, store userStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var request registerRequest
+		var request loginRequest
 
 		if apierr.BindJSON(c, &request) != nil {
 			return

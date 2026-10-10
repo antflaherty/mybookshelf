@@ -8,10 +8,6 @@ import (
 	"github.com/antflaherty/mybookshelf/backend/domain"
 )
 
-// ErrReviewStoreFailed reports that writing a review did not succeed, so the
-// caller can tell a storage failure from a missing book.
-var ErrReviewStoreFailed = errors.New("review store failed")
-
 func upsertReview(db *sql.DB, userID string, bookID string, stars int, timestamp string, comment *string) (*domain.Review, error) {
 	existingReview, err := queryReviewByBookIDAndUserID(db, bookID, userID)
 
@@ -25,7 +21,7 @@ func upsertReview(db *sql.DB, userID string, bookID string, stars int, timestamp
 		_, err = db.Exec(sqlString, userID, bookID, stars, timestamp, comment)
 
 		if err != nil {
-			return nil, fmt.Errorf("%w: insert: %w", ErrReviewStoreFailed, err)
+			return nil, fmt.Errorf("inserting review: %w", err)
 		}
 	}
 
@@ -35,7 +31,7 @@ func upsertReview(db *sql.DB, userID string, bookID string, stars int, timestamp
 	_, err = db.Exec(sqlString, stars, comment, timestamp, bookID, userID)
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: update: %w", ErrReviewStoreFailed, err)
+		return nil, fmt.Errorf("updating review: %w", err)
 	}
 	return queryReviewByBookIDAndUserID(db, bookID, userID)
 

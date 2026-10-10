@@ -171,6 +171,16 @@ func TestPostBookmarkHandler(t *testing.T) {
 			wantStatus: http.StatusOK,
 			wantUpsert: true,
 		},
+		{
+			// Regression: `required` on currentPage rejected the zero value, so
+			// the frontend sending currentPage: 0 for a book not yet started
+			// got a 400.
+			name:       "currentPage 0 is accepted",
+			store:      &fakeStore{book: &domain.Book{ID: "/works/OL1M", Title: "Dune"}, ownsShelf: true},
+			body:       `{"bookId": "/works/OL1M", "shelfId": "shelf-1", "currentPage": 0}`,
+			wantStatus: http.StatusOK,
+			wantUpsert: true,
+		},
 	}
 
 	for _, tt := range tests {

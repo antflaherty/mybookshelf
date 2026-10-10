@@ -2,7 +2,6 @@ package library
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -232,12 +231,8 @@ func (service OpenLibrarySearchService) get(requestUrl string) ([]byte, error) {
 	response, err := service.client.Get(requestUrl)
 
 	if err != nil {
-		var urlErr *url.Error
-
-		if errors.As(err, &urlErr) && urlErr.Timeout() {
-			return nil, fmt.Errorf("%w: timeout requesting %s: %w", ErrUpstream, requestUrl, err)
-		}
-
+		// A timeout is not special-cased: the wrapped transport error already
+		// says "timeout", and both paths are the same upstream failure.
 		return nil, fmt.Errorf("%w: requesting %s: %w", ErrUpstream, requestUrl, err)
 	}
 
@@ -264,11 +259,6 @@ func (service OpenLibrarySearchService) get(requestUrl string) ([]byte, error) {
 
 func (service OpenLibrarySearchService) getCoverUri(coverId int) string {
 	return coverUriFor(service.coversUrl, coverId)
-}
-
-// getCoverUri builds a cover URL against the production covers host.
-func getCoverUri(coverId int) string {
-	return coverUriFor(defaultCoversUrl, coverId)
 }
 
 func coverUriFor(coversUrl string, coverId int) string {

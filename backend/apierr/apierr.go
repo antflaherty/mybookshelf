@@ -90,14 +90,6 @@ func InvalidRequest(details map[string]string) *Error {
 	}
 }
 
-// InvalidRequestf is InvalidRequest with an overridden message, for cases where
-// one specific sentence is clearer than the generic one.
-func InvalidRequestf(details map[string]string, msg string) *Error {
-	err := InvalidRequest(details)
-	err.Message = msg
-	return err
-}
-
 // Unauthorized reports a missing Authorization header.
 func Unauthorized() *Error {
 	return &Error{

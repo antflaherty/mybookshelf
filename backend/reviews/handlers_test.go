@@ -125,11 +125,16 @@ func TestGetReviewsHandler_MissingBookID(t *testing.T) {
 }
 
 func TestGetReviewsHandler_EmptyListIsNotAnError(t *testing.T) {
-	// An empty array is a 200, never a 404.
+	// An empty array is a 200 with a JSON array body — never a 404, and never
+	// literal `null` (what an unnormalized nil slice would serialize to).
 	w := getRequest(t, &fakeStore{reviews: nil}, "bookId=/works/OL1M")
 
 	if w.Code != http.StatusOK {
 		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	if got := w.Body.String(); got != "[]" {
+		t.Errorf("expected an empty JSON array, got %q", got)
 	}
 }
 

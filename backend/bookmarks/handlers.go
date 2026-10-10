@@ -44,14 +44,25 @@ func GetBookmarkHandler(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
+		// A nil slice serializes as literal `null`, which breaks clients that
+		// expect an array. An empty list is [].
+		if allBookmark == nil {
+			allBookmark = &[]domain.QualifiedBookmark{}
+		} else if *allBookmark == nil {
+			*allBookmark = []domain.QualifiedBookmark{}
+		}
+
 		c.JSON(http.StatusOK, allBookmark)
 	}
 }
 
 type postBookmarkRequest struct {
-	BookID      string `json:"bookId" binding:"required"`
-	ShelfID     string `json:"shelfId" binding:"required"`
-	CurrentPage int    `json:"currentPage" binding:"required,gte=0"`
+	BookID  string `json:"bookId" binding:"required"`
+	ShelfID string `json:"shelfId" binding:"required"`
+	// No `required` on CurrentPage: validator's required rejects the zero
+	// value, and the frontend legitimately sends currentPage: 0 for a book
+	// not started yet. gte=0 alone still rejects negatives.
+	CurrentPage int `json:"currentPage" binding:"gte=0"`
 }
 
 func PostBookmarkHandler(db *sql.DB) gin.HandlerFunc {
