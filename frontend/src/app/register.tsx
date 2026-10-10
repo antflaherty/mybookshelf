@@ -9,8 +9,8 @@ import {
 import { router } from "expo-router";
 import { useTheme } from "@/theme/theme-provider";
 import { register } from "@/api/apiClient";
-import { ApiError, GENERIC_ERROR_MESSAGE } from "@/api/api-error";
 import ThemedPressable from "@/components/themed-pressable";
+import { useAsyncAction } from "@/hooks/use-async-action";
 import * as z from "zod";
 
 const UserSchema = z.object({
@@ -25,15 +25,20 @@ export default function RegisterScreen() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [hasMatchingPasswords, setHasMatchingPasswords] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const { theme } = useTheme();
+
+  const {
+    run: runRegister,
+    isLoading,
+    error,
+    reset,
+  } = useAsyncAction(register);
 
   async function handleSubmitPress() {
     setPassword("");
     setPasswordError("");
-    setErrorMessage("");
+    reset();
 
     const passwordsMatch = password === confirmPassword;
     setHasMatchingPasswords(passwordsMatch);
@@ -42,15 +47,20 @@ export default function RegisterScreen() {
       return;
     }
     try {
-      setIsLoading(true);
-
       const user = UserSchema.parse({ email, password });
 
-      await register(user);
-      setEmail("");
-      setEmailError("");
-      router.push("/login");
+      const result = await runRegister(user);
+
+      // `run` never throws: every rejection is already converted into `error` below, so a
+      // failure just stops the navigation that used to look like it worked.
+      if (result.ok) {
+        setEmail("");
+        setEmailError("");
+        router.push("/login");
+      }
     } catch (error) {
+      // Only zod's parse is expected to throw here. Anything else would have been folded into
+      // the action's result by `run`, so no raw error can reach a user.
       if (error instanceof z.ZodError) {
         error.issues.forEach((issue) => {
           if (issue.path[0] === "email") {
@@ -60,26 +70,12 @@ export default function RegisterScreen() {
             setPasswordError(issue.message);
           }
         });
-      } else {
-        // Matches every other screen: only an ApiError's message is trusted verbatim. Anything
-        // else could be a raw string or a plain object, and rendering that directly is how
-        // "[object Object]" reaches a user.
-        setErrorMessage(
-          error instanceof ApiError ? error.message : GENERIC_ERROR_MESSAGE,
-        );
       }
-    } finally {
-      setIsLoading(false);
     }
   }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={theme.loading} />
-        </View>
-      )}
       <Text style={{ color: theme.text }}>email</Text>
       <TextInput
         placeholder="email"
@@ -137,14 +133,22 @@ export default function RegisterScreen() {
       {!hasMatchingPasswords && (
         <Text style={{ color: theme.errorText }}>passwords do not match</Text>
       )}
-      {errorMessage && (
-        <Text style={{ color: theme.errorText }}>{errorMessage}</Text>
+      {error && (
+        <Text style={{ color: theme.errorText }}>{error}</Text>
       )}
       <ThemedPressable
         variant="primary"
         text="submit"
+        disabled={isLoading}
         onPress={handleSubmitPress}
       />
+      {/* Rendered last so the absolute fill sits above the inputs and actually blocks
+          interaction while the request is in flight. */}
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={theme.loading} />
+        </View>
+      )}
     </View>
   );
 }

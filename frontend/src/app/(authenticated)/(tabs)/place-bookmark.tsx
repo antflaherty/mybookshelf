@@ -30,6 +30,12 @@ export default function PlaceBookmarkScreen() {
   const [currentPageError, setCurrentPageError] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  // Local flags rather than `useAsyncAction`: the zod parse runs inside these handlers and
+  // reports per-field errors, which the hook's single catch-all error would replace. Each
+  // button is disabled only while its own action is in flight.
+  const [isPlacing, setIsPlacing] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+
   const { theme } = useTheme();
 
   const { accessToken } = useAuth();
@@ -55,6 +61,9 @@ export default function PlaceBookmarkScreen() {
   }
 
   async function handleBookCompletedPress() {
+    if (isCompleting) {
+      return;
+    }
     if (!id || !currentlyReading) {
       setTitleError("choose a book");
       return;
@@ -81,6 +90,7 @@ export default function PlaceBookmarkScreen() {
       shelfId: finished.id,
     };
 
+    setIsCompleting(true);
     try {
       await placeBookmark(accessToken, placeBookMarkRequest);
       await loadShelves();
@@ -91,6 +101,8 @@ export default function PlaceBookmarkScreen() {
         caught instanceof ApiError ? caught.message : GENERIC_ERROR_MESSAGE,
       );
       return;
+    } finally {
+      setIsCompleting(false);
     }
 
     clearAndNavigate(() => {
@@ -102,10 +114,14 @@ export default function PlaceBookmarkScreen() {
   }
 
   async function handlePlaceBookmarkPress() {
+    if (isPlacing) {
+      return;
+    }
     if (!currentlyReading) {
       setTitleError("shelves are not available");
       return;
     }
+    setIsPlacing(true);
     try {
       clearErrors();
 
@@ -142,7 +158,7 @@ export default function PlaceBookmarkScreen() {
       if (error instanceof z.ZodError) {
         error.issues.forEach((issue) => {
           switch (issue.path[0]) {
-            case "id":
+            case "bookId":
               setTitleError(issue.message);
               break;
             case "currentPage":
@@ -163,6 +179,8 @@ export default function PlaceBookmarkScreen() {
         // rather than showing it.
         setError(GENERIC_ERROR_MESSAGE);
       }
+    } finally {
+      setIsPlacing(false);
     }
   }
   return (
@@ -216,11 +234,13 @@ export default function PlaceBookmarkScreen() {
         <ThemedPressable
           variant="primary"
           text="place bookmark"
+          disabled={isPlacing}
           onPress={handlePlaceBookmarkPress}
         />
         <ThemedPressable
           variant="secondary"
           text="book completed"
+          disabled={isCompleting}
           onPress={handleBookCompletedPress}
         />
       </View>

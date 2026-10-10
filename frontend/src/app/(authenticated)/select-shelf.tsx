@@ -20,7 +20,7 @@ export default function SelectShelfScreen() {
 
   // One action, one error. The handler used to be built per shelf in a loop; giving each button
   // its own state would mean a failure on one shelf leaving the others looking healthy.
-  const { run, error } = useAsyncAction(async (shelfId: string) => {
+  const { run, isLoading, error } = useAsyncAction(async (shelfId: string) => {
     await placeBookmark(accessToken, {
       bookId,
       currentPage: Number(currentPage),
@@ -48,6 +48,7 @@ export default function SelectShelfScreen() {
         <Pressable
           style={{ width: "100%", alignItems: "center" }}
           key={shelf.id}
+          disabled={isLoading}
           onPress={createShelfPressHandler(shelf.id)}
         >
           <ShelfView shelf={shelf}></ShelfView>

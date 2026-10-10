@@ -277,6 +277,33 @@ it("falls back to a generic message when the load fails with a non-ApiError", as
   );
 });
 
+it("retries the load in place instead of pushing a duplicate screen", async () => {
+  mockGetBookDetails.mockRejectedValueOnce(
+    ApiError.fromResponse(404, {
+      error: { code: "book_not_found", message: "book not found" },
+    }),
+  );
+  mockedUseShelf.mockReturnValue({
+    shelves: [],
+    toBeRead: makeShelf("tbr", "to be read"),
+    finished: makeShelf("fin", "finished"),
+  });
+
+  await renderScreen();
+
+  await waitFor(() => expect(screen.getByText("book not found")).toBeTruthy());
+  expect(mockGetBookDetails).toHaveBeenCalledTimes(1);
+
+  await fireEvent.press(screen.getByText("try again"));
+
+  // The retry re-runs the same load; it used to `router.push` a second /book/[id] without
+  // the shelfId param.
+  await waitFor(() => expect(mockGetBookDetails).toHaveBeenCalledTimes(2));
+  expect(mockGetBookDetails).toHaveBeenLastCalledWith("b1");
+  await waitFor(() => expect(screen.getByText("Dune")).toBeTruthy());
+  expect(router.push).not.toHaveBeenCalled();
+});
+
 it("does not navigate when addNewBookToShelf fails", async () => {
   mockSearchParams = { id: "b1", shelfId: "s1" };
   mockAddNewBookToShelf.mockRejectedValue(

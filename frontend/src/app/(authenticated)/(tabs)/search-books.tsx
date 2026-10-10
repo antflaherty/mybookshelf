@@ -18,6 +18,9 @@ export default function SearchBooksScreen() {
     shelfId: string;
   }>();
   const [title, setTitle] = useState("");
+  // Mirrors `title`, because a pagination response must be checked against the query that is
+  // current *when it lands*, and a closure would only ever see the value from when it started.
+  const titleRef = useRef("");
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -31,6 +34,11 @@ export default function SearchBooksScreen() {
     return caught instanceof ApiError
       ? caught.message
       : GENERIC_ERROR_MESSAGE;
+  }
+
+  function handleTitleChange(text: string) {
+    titleRef.current = text;
+    setTitle(text);
   }
 
   async function handleSearchPress() {
@@ -63,16 +71,26 @@ export default function SearchBooksScreen() {
       return;
     }
 
+    // Captured when the request starts, so a page that lands after the user has moved on can
+    // be recognised as belonging to a previous query.
+    const query = titleRef.current;
+
     setIsLoadingMore(true);
     setError(null);
 
     try {
       const searchBookResult = await searchBooks(
         accessToken,
-        title,
+        query,
         SEARCH_LIMIT,
         searchPage + 1,
       );
+
+      if (query !== titleRef.current) {
+        // The query changed while page N was in flight. Appending these results would mix two
+        // searches together, and bumping the page would corrupt the new search's pagination.
+        return;
+      }
 
       setHasMore(searchBookResult.length >= SEARCH_LIMIT);
 
@@ -81,7 +99,9 @@ export default function SearchBooksScreen() {
     } catch (caught) {
       // Deliberately leaves `books` and `hasMore` alone. A user looking at 20 results should not
       // lose them because page 2 timed out, and leaving `hasMore` true lets them retry the page.
-      setError(messageFor(caught));
+      if (query === titleRef.current) {
+        setError(messageFor(caught));
+      }
     } finally {
       setIsLoadingMore(false);
     }
@@ -93,6 +113,7 @@ export default function SearchBooksScreen() {
     useCallback(() => {
       return () => {
         if (!preserveSearch.current) {
+          titleRef.current = "";
           setTitle("");
           setBooks([]);
           setSearchPage(1);
@@ -116,7 +137,7 @@ export default function SearchBooksScreen() {
               color: theme.inputText,
             },
           ]}
-          onChangeText={setTitle}
+          onChangeText={handleTitleChange}
         />
         <ThemedPressable
           variant="primary"

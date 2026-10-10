@@ -29,7 +29,11 @@ export default function ReviewBookScreen() {
   const { accessToken } = useAuth();
   const { getBookDetails } = useBook();
 
-  const { run: runSubmit, error: submitError } = useAsyncAction(() =>
+  const {
+    run: runSubmit,
+    isLoading: isSubmitting,
+    error: submitError,
+  } = useAsyncAction(() =>
     postReview(accessToken, {
       bookId,
       stars,
@@ -125,7 +129,11 @@ export default function ReviewBookScreen() {
           </View>
           <View style={{ flex: 1 }}>
             {submitError && <ErrorMessage message={submitError} />}
-            <ThemedPressable text="submit" onPress={handleSubmit} />
+            <ThemedPressable
+              text="submit"
+              disabled={isSubmitting}
+              onPress={handleSubmit}
+            />
           </View>
         </View>
       )}

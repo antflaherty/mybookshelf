@@ -251,6 +251,86 @@ it("logs the user out when the registered handler is invoked", async () => {
   expect(mockedStore.deleteAccessToken).toHaveBeenCalled();
 });
 
+it("logout resolves even when deleting the stored token fails", async () => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  mockedStore.getAccessToken.mockReturnValue("tok" as unknown as null);
+  mockedStore.deleteAccessToken.mockRejectedValue(
+    new Error("secure store unavailable"),
+  );
+
+  await render(
+    <AuthProvider>
+      <Probe />
+    </AuthProvider>,
+  );
+
+  await waitFor(() =>
+    expect(screen.getByTestId("token").props.children).toBe("tok"),
+  );
+
+  // The registered handler doubles as the API client's 401 hook: if this rejected, the
+  // storage failure would replace the caller's 401 ApiError.
+  const handler = mockedApi.setUnauthorizedHandler.mock.calls[0][0];
+  await act(async () => {
+    await handler();
+  });
+
+  // No rejection escaped, and the in-memory token is gone regardless of the storage failure.
+  await waitFor(() =>
+    expect(screen.getByTestId("token").props.children).toBe("none"),
+  );
+});
+
+it("a failing logout still surfaces the original 401 ApiError to the caller", async () => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  mockedStore.getAccessToken.mockReturnValue("tok" as unknown as null);
+  mockedStore.deleteAccessToken.mockRejectedValue(
+    new Error("secure store unavailable"),
+  );
+
+  await render(
+    <AuthProvider>
+      <Probe />
+    </AuthProvider>,
+  );
+
+  await waitFor(() =>
+    expect(screen.getByTestId("token").props.children).toBe("tok"),
+  );
+
+  // The real request machinery wired to the provider's real logout. `@/api/apiClient` is
+  // mocked above, so the actual module is pulled in explicitly for the round trip.
+  const actualApi = jest.requireActual(
+    "@/api/apiClient",
+  ) as typeof import("@/api/apiClient");
+  actualApi.setUnauthorizedHandler(
+    mockedApi.setUnauthorizedHandler.mock.calls[0][0],
+  );
+
+  const originalFetch = global.fetch;
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 401,
+    text: jest
+      .fn()
+      .mockResolvedValue(
+        JSON.stringify({
+          error: { code: "unauthorized", message: "invalid or expired token" },
+        }),
+      ),
+  }) as unknown as typeof fetch;
+
+  try {
+    const error = await actualApi.getShelves("tok").catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).message).toBe("invalid or expired token");
+    expect((error as ApiError).status).toBe(401);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
 it("does not re-register the handler when the token changes", async () => {
   mockedStore.getAccessToken.mockReturnValue("tok" as unknown as null);
 

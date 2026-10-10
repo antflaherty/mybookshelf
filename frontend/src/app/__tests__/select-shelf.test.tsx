@@ -148,6 +148,39 @@ it("falls back to a generic message for a non-ApiError rejection", async () => {
   );
 });
 
+it("disables the shelf buttons while a save is in flight", async () => {
+  let settle!: () => void;
+  mockedPlaceBookmark.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      settle = resolve;
+    }),
+  );
+
+  await render(
+    <ThemeProvider>
+      <SelectShelfScreen />
+    </ThemeProvider>,
+  );
+
+  // Deliberately not awaited: fireEvent.press would block on the still-pending save.
+  fireEvent.press(screen.getByText("finished"));
+
+  // Text -> shelf card view -> the Pressable host view wrapped around the card.
+  await waitFor(() =>
+    expect(
+      screen.getByText("finished").parent?.parent?.props.accessibilityState,
+    ).toEqual(expect.objectContaining({ disabled: true })),
+  );
+
+  settle();
+
+  await waitFor(() => expect(router.push).toHaveBeenCalledWith("/"));
+  expect(
+    screen.getByText("finished").parent?.parent?.props.accessibilityState
+      ?.disabled,
+  ).toBeFalsy();
+});
+
 it("shares one error across the shelf buttons and clears it on retry", async () => {
   mockedPlaceBookmark.mockRejectedValueOnce(new Error("boom"));
   mockedPlaceBookmark.mockResolvedValueOnce(undefined);

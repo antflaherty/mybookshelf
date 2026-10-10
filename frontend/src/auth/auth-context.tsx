@@ -66,8 +66,17 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = useCallback(async () => {
+    // Cleared first: even if storage is unreachable, the session is over in memory.
     setAccessToken(null);
-    await deleteAccessToken();
+
+    try {
+      await deleteAccessToken();
+    } catch (error) {
+      // This callback doubles as the API client's 401 hook. If the storage deletion rejected,
+      // that rejection would replace the caller's 401 ApiError, so it is logged and swallowed
+      // instead. The worst case is a stale token in storage on the next launch.
+      console.error("Failed to delete the stored access token", error);
+    }
   }, []);
 
   useEffect(() => {

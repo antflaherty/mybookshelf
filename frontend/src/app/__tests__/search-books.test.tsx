@@ -1,5 +1,11 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react-native";
 import SearchBooksScreen from "../(authenticated)/(tabs)/search-books";
 import ThemeProvider from "@/theme/theme-provider";
 import { searchBooks } from "@/api/apiClient";
@@ -227,4 +233,49 @@ it("keeps hasMore usable after a failed page load so the user can retry", async 
     expect(screen.getByText("The Dragonriders")).toBeTruthy(),
   );
   expect(mockedSearchBooks).toHaveBeenLastCalledWith("tok", "Herbert", 6, 2);
+});
+
+it("drops a stale page response that lands after the query changed", async () => {
+  // Page 1 for "Herbert" fills the page size, so hasMore becomes true.
+  mockedSearchBooks.mockResolvedValueOnce([
+    { id: "b1", title: "Dune", author: "Herbert", pageCount: 600 },
+    { id: "b2", title: "Messiah", author: "Herbert", pageCount: 256 },
+    { id: "b3", title: "Children", author: "Herbert", pageCount: 240 },
+    { id: "b4", title: "Andymion", author: "Herbert", pageCount: 224 },
+    { id: "b5", title: "Elenna", author: "Herbert", pageCount: 288 },
+    { id: "b6", title: "Heaven", author: "Herbert", pageCount: 320 },
+  ]);
+  // Page 2 for "Herbert" stays in flight until after the next search has finished.
+  let resolveStalePage!: (books: unknown[]) => void;
+  mockedSearchBooks.mockReturnValueOnce(
+    new Promise((resolve) => {
+      resolveStalePage = resolve;
+    }),
+  );
+  mockedSearchBooks.mockResolvedValueOnce([
+    { id: "c1", title: "Hyperion", author: "Simmons", pageCount: 480 },
+  ]);
+
+  await renderScreen();
+  await search("Herbert");
+  await waitFor(() => expect(screen.getByText("Dune")).toBeTruthy());
+
+  // Page 2 goes in flight...
+  fireEvent.press(screen.getByTestId("end-reached"));
+  await waitFor(() => expect(mockedSearchBooks).toHaveBeenCalledTimes(2));
+
+  // ...the user starts a different search...
+  await search("Simmons");
+  await waitFor(() => expect(screen.getByText("Hyperion")).toBeTruthy());
+
+  // ...and only now does Herbert's page 2 land. It must not be appended to Simmons' results.
+  await act(async () => {
+    resolveStalePage([
+      { id: "b7", title: "Stale Result", author: "Herbert", pageCount: 300 },
+    ]);
+  });
+
+  expect(screen.queryByText("Stale Result")).toBeNull();
+  expect(screen.queryByText("Dune")).toBeNull();
+  expect(screen.getByTestId("book-count").props.children).toBe(1);
 });

@@ -103,7 +103,8 @@ async function request<T>(
     throw ApiError.fromResponse(response.status, parsed);
   }
 
-  // A 200 with an empty body resolves to null. Callers that want a collection already do `?? []`.
+  // A 200 with an empty body resolves to null. Each endpoint decides what that means for its
+  // shape: a collection falls back to `[]`, a single-resource endpoint treats it as broken.
   return parsed as T;
 }
 
@@ -161,17 +162,35 @@ export async function getBookDetails(
   accessToken: string | null,
   bookId: string,
 ): Promise<BookDetails> {
-  return request<BookDetails>(BOOKS_ROUTE, "GET", {
+  const result = await request<BookDetails | null>(BOOKS_ROUTE, "GET", {
     accessToken,
     query: { id: bookId },
   });
+
+  if (result === null) {
+    // A 200 that carries no book is a broken response, not data. Resolving null would put an
+    // unusable value in front of screens that index into `details.book`.
+    throw ApiError.fromResponse(200, result);
+  }
+
+  return result;
 }
 
 export async function createBook(
   accessToken: string | null,
   book: Book,
 ): Promise<Book> {
-  return request<Book>(BOOKS_ROUTE, "POST", { accessToken, body: book });
+  const result = await request<Book | null>(BOOKS_ROUTE, "POST", {
+    accessToken,
+    body: book,
+  });
+
+  if (result === null) {
+    // Same contract as `getBookDetails`: a create that returns nothing cannot be confirmed.
+    throw ApiError.fromResponse(200, result);
+  }
+
+  return result;
 }
 
 export interface PlaceBookmarkRequest {
@@ -201,15 +220,23 @@ export async function postReview(
   await request(REVIEWS_ROUTE, "POST", { accessToken, body: review });
 }
 
+/**
+ * The backend serializes `domain.Review.userID` (capital D) but `lib/definitions.ts` declares
+ * `userId`, so the wire shape differs from the frontend type and is normalized on the way in.
+ */
+type ReviewResponse = Omit<Review, "userId"> & { userID: Review["userId"] };
+
 export async function getReviews(
   accessToken: string | null,
   bookId: string,
 ): Promise<Review[]> {
-  // TODO: the backend sends `userID` in `domain.Review` (capital D) but `lib/definitions.ts`
-  // declares `userId`. Naming is a backend concern, so this file does not guess at the
-  // field name. Left as-is rather than guessed at. `reviews/[bookId].tsx` keys on `userId`.
-  return request<Review[]>(REVIEWS_ROUTE, "GET", {
+  const result = await request<ReviewResponse[] | null>(REVIEWS_ROUTE, "GET", {
     accessToken,
     query: { bookId },
   });
+
+  return (result ?? []).map(({ userID, ...review }) => ({
+    ...review,
+    userId: userID,
+  }));
 }

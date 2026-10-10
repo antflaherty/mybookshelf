@@ -214,6 +214,24 @@ it("shows a field error when there is no book selected", async () => {
   expect(mockedPlaceBookmark).not.toHaveBeenCalled();
 });
 
+it("shows the title zod error when placing with no book selected", async () => {
+  mockSearchParams = {};
+
+  await renderScreen();
+
+  await fireEvent.press(screen.getByText("place bookmark"));
+
+  // The zod message for the `bookId` field; the switch used to read `issue.path[0] === "id"`
+  // and never matched, so no error surfaced at all.
+  await waitFor(() =>
+    expect(
+      screen.getByText("String must contain at least 1 character(s)"),
+    ).toBeTruthy(),
+  );
+  expect(mockedPlaceBookmark).not.toHaveBeenCalled();
+  expect(router.back).not.toHaveBeenCalled();
+});
+
 it("shows a field error when the finished shelf is unavailable", async () => {
   mockedUseShelf.mockReturnValue({
     currentlyReading: {
@@ -262,4 +280,65 @@ it("keeps the bookmark on currently reading when the finished shelf is unavailab
     }),
   );
   expect(router.back).toHaveBeenCalled();
+});
+
+it("disables the place bookmark button while the save is in flight", async () => {
+  let settle!: () => void;
+  mockedPlaceBookmark.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      settle = resolve;
+    }),
+  );
+
+  await renderScreen();
+
+  // Deliberately not awaited: fireEvent.press would block on the still-pending save.
+  fireEvent.press(screen.getByText("place bookmark"));
+
+  await waitFor(() =>
+    expect(
+      screen.getByText("place bookmark").parent?.props.accessibilityState,
+    ).toEqual(expect.objectContaining({ disabled: true })),
+  );
+
+  settle();
+
+  await waitFor(() => expect(router.back).toHaveBeenCalled());
+  expect(
+    screen.getByText("place bookmark").parent?.props.accessibilityState
+      ?.disabled,
+  ).toBeFalsy();
+});
+
+it("disables the book completed button while its save is in flight", async () => {
+  let settle!: () => void;
+  mockedPlaceBookmark.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      settle = resolve;
+    }),
+  );
+
+  await renderScreen();
+
+  // Deliberately not awaited: fireEvent.press would block on the still-pending save.
+  fireEvent.press(screen.getByText("book completed"));
+
+  await waitFor(() =>
+    expect(
+      screen.getByText("book completed").parent?.props.accessibilityState,
+    ).toEqual(expect.objectContaining({ disabled: true })),
+  );
+
+  settle();
+
+  await waitFor(() =>
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: "/review/[bookId]",
+      params: { bookId: "b1" },
+    }),
+  );
+  expect(
+    screen.getByText("book completed").parent?.props.accessibilityState
+      ?.disabled,
+  ).toBeFalsy();
 });

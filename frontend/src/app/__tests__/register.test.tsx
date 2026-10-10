@@ -134,3 +134,39 @@ it("shows the generic message when register rejects with something that is not a
   );
   expect(screen.queryByText(/\[object Object\]/)).toBeNull();
 });
+
+it("disables the submit button while the registration is in flight", async () => {
+  let settle!: () => void;
+  mockedRegister.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      settle = resolve;
+    }),
+  );
+
+  await renderScreen();
+
+  await fireEvent.changeText(
+    screen.getByPlaceholderText("email"),
+    "new@example.com",
+  );
+  await fireEvent.changeText(screen.getByPlaceholderText("password"), "secret1");
+  await fireEvent.changeText(
+    screen.getByPlaceholderText("confirm password"),
+    "secret1",
+  );
+  // Deliberately not awaited: fireEvent.press would block on the still-pending request.
+  fireEvent.press(screen.getByText("submit"));
+
+  await waitFor(() =>
+    expect(screen.getByText("submit").parent?.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    ),
+  );
+
+  settle();
+
+  await waitFor(() => expect(router.push).toHaveBeenCalledWith("/login"));
+  expect(
+    screen.getByText("submit").parent?.props.accessibilityState?.disabled,
+  ).toBeFalsy();
+});

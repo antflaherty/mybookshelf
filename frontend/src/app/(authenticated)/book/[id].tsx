@@ -65,29 +65,32 @@ export default function BookScreen() {
 
   const shownError = error ?? actionError ?? startReadingError;
 
+  // Hoisted out of `useFocusEffect` so the retry button can re-run the same load instead of
+  // pushing a duplicate screen (which also dropped `shelfId`).
+  const loadBookDetails = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const details = await getBookDetails(id);
+
+      setBookDetails(details);
+      setPageCount((current) => current || details.book.pageCount);
+    } catch (caught) {
+      // Without this the screen stays a spinner forever, and the `bookDetails &&` below
+      // would render nothing at all.
+      setError(
+        caught instanceof ApiError ? caught.message : GENERIC_ERROR_MESSAGE,
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id, getBookDetails]);
+
   useFocusEffect(
     useCallback(() => {
-      async function loadBookDetails() {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-          const details = await getBookDetails(id);
-
-          setBookDetails(details);
-          setPageCount((current) => current || details.book.pageCount);
-        } catch (caught) {
-          // Without this the screen stays a spinner forever, and the `bookDetails &&` below
-          // would render nothing at all.
-          setError(
-            caught instanceof ApiError ? caught.message : GENERIC_ERROR_MESSAGE,
-          );
-        } finally {
-          setIsLoading(false);
-        }
-      }
       loadBookDetails();
-    }, [id, getBookDetails]),
+    }, [loadBookDetails]),
   );
 
   function handlePlaceBookmark() {
@@ -180,7 +183,7 @@ export default function BookScreen() {
     >
       <ErrorMessage
         message={shownError ?? GENERIC_ERROR_MESSAGE}
-        onRetry={() => router.push({ pathname: "/book/[id]", params: { id } })}
+        onRetry={() => loadBookDetails()}
       />
     </View>
   ) : (

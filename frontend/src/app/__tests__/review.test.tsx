@@ -190,3 +190,36 @@ it("clears the loading spinner when the book load fails", async () => {
   );
   expect(screen.queryByTestId("loading-spinner")).toBeNull();
 });
+
+it("disables the submit button while the review is in flight", async () => {
+  let settle!: () => void;
+  mockedPostReview.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      settle = resolve;
+    }),
+  );
+
+  await render(
+    <ThemeProvider>
+      <ReviewBookScreen />
+    </ThemeProvider>,
+  );
+
+  await waitFor(() => expect(screen.getByText("submit")).toBeTruthy());
+
+  // Deliberately not awaited: fireEvent.press would block on the still-pending submit.
+  fireEvent.press(screen.getByText("submit"));
+
+  await waitFor(() =>
+    expect(screen.getByText("submit").parent?.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    ),
+  );
+
+  settle();
+
+  await waitFor(() => expect(router.push).toHaveBeenCalledWith("/"));
+  expect(
+    screen.getByText("submit").parent?.props.accessibilityState?.disabled,
+  ).toBeFalsy();
+});

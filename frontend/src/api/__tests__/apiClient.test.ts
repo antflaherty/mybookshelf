@@ -437,16 +437,39 @@ describe("defensive body parsing", () => {
     );
   });
 
-  it("resolves to null for an empty 200 body", async () => {
+  it("rejects a single-resource endpoint on an empty 200 body", async () => {
     mockFetch.mockResolvedValue(emptyResponse());
 
-    await expect(getBookDetails("tok", "b1")).resolves.toBeNull();
+    const error = await getBookDetails("tok", "b1").catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).code).toBe("unexpected_response");
+  });
+
+  it("rejects createBook when a 200 carries no created book", async () => {
+    mockFetch.mockResolvedValue(emptyResponse());
+
+    const error = await createBook("tok", {
+      id: "1",
+      title: "Dune",
+      author: "Herbert",
+      pageCount: 400,
+    }).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).code).toBe("unexpected_response");
   });
 
   it("resolves a 200 whose body is invalid JSON without throwing", async () => {
     mockFetch.mockResolvedValue(rawResponse("not json at all", true, 200));
 
-    await expect(getReviews("tok", "b1")).resolves.toBeNull();
+    await expect(getReviews("tok", "b1")).resolves.toEqual([]);
+  });
+
+  it("resolves a collection endpoint to an empty array on an empty 200 body", async () => {
+    mockFetch.mockResolvedValue(emptyResponse());
+
+    await expect(getReviews("tok", "b1")).resolves.toEqual([]);
   });
 
   it("survives a body that cannot be read at all", async () => {
@@ -520,5 +543,20 @@ describe("reviews", () => {
       expect.anything(),
     );
     expect(reviews).toHaveLength(1);
+  });
+
+  it("normalizes the backend's capital-D userID into userId", async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse([
+        { bookId: "b1", stars: 20, userID: "u1" },
+        { bookId: "b1", stars: 16, userID: "u2" },
+      ]),
+    );
+
+    const reviews = await getReviews("tok", "b1");
+
+    expect(reviews.map((review) => review.userId)).toEqual(["u1", "u2"]);
+    // The wire field must not leak through alongside the normalized one.
+    expect(reviews[0]).not.toHaveProperty("userID");
   });
 });
