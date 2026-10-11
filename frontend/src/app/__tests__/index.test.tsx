@@ -49,7 +49,11 @@ it("shows a loading indicator while shelves load", async () => {
 });
 
 it("renders shelves and navigates to a shelf on press", async () => {
-  mockedUseShelf.mockReturnValue({ shelves: [shelf], isLoading: false });
+  mockedUseShelf.mockReturnValue({
+    shelves: [shelf],
+    isLoading: false,
+    isCurrentlyReading: jest.fn().mockReturnValue(true),
+  });
 
   await renderScreen();
 
@@ -65,7 +69,11 @@ it("renders shelves and navigates to a shelf on press", async () => {
 });
 
 it("navigates to place-bookmark", async () => {
-  mockedUseShelf.mockReturnValue({ shelves: [], isLoading: false });
+  mockedUseShelf.mockReturnValue({
+    shelves: [],
+    isLoading: false,
+    isCurrentlyReading: jest.fn().mockReturnValue(true),
+  });
 
   await renderScreen();
 
@@ -112,6 +120,7 @@ it("does not show the error when the shelves loaded cleanly", async () => {
     shelves: [shelf],
     isLoading: false,
     error: null,
+    isCurrentlyReading: jest.fn().mockReturnValue(true),
     loadShelves: jest.fn(),
   });
 

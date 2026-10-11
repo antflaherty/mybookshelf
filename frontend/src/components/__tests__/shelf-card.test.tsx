@@ -18,13 +18,28 @@ const shelf: Shelf = {
   ],
 };
 
-it("renders the shelf name and its bookmarks", async () => {
-  await render(
-    <ThemeProvider>
-      <ShelfCard shelf={shelf} />
-    </ThemeProvider>,
-  );
+describe("when showProgress true", () => {
+  it("renders the shelf name and its bookmarks", async () => {
+    await render(
+      <ThemeProvider>
+        <ShelfCard shelf={shelf} showProgress />
+      </ThemeProvider>,
+    );
 
-  expect(screen.getByText("Currently Reading")).toBeTruthy();
-  expect(screen.getByText("Dune: 10 / 600")).toBeTruthy();
+    expect(screen.getByText("Currently Reading")).toBeTruthy();
+    expect(screen.getByText("Dune: 10 / 600")).toBeTruthy();
+  });
+});
+
+describe("when showProgress false", () => {
+  it("renders the shelf name and its bookmarks", async () => {
+    await render(
+      <ThemeProvider>
+        <ShelfCard shelf={shelf} showProgress={false} />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByText("Currently Reading")).toBeTruthy();
+    expect(screen.getByText("Dune")).toBeTruthy();
+  });
 });
