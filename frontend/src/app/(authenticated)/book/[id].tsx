@@ -14,7 +14,6 @@ import BookActions from "@/components/book-actions";
 import BookHeader from "@/components/book-header";
 import GenrePill from "@/components/genre-pill";
 import { useBookActions } from "@/hooks/book-actions";
-import ThemedPressable from "@/components/themed-pressable";
 import { useBook } from "@/hooks/book";
 import ErrorMessage from "@/components/error-message";
 import { useAsyncAction } from "@/hooks/use-async-action";
