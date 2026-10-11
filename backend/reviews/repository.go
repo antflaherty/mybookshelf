@@ -2,6 +2,8 @@ package reviews
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/antflaherty/mybookshelf/backend/domain"
 )
@@ -19,15 +21,17 @@ func upsertReview(db *sql.DB, userID string, bookID string, stars int, timestamp
 		_, err = db.Exec(sqlString, userID, bookID, stars, timestamp, comment)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("inserting review: %w", err)
 		}
 	}
 
+	// The UPDATE runs even after a fresh INSERT. That is deliberate: it sets
+	// last_edited_timestamp on create. Do not "fix" it into an else branch.
 	sqlString := `UPDATE review SET stars = $1, comment = $2, last_edited_timestamp = $3 WHERE book_id = $4 AND user_id = $5;`
 	_, err = db.Exec(sqlString, stars, comment, timestamp, bookID, userID)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("updating review: %w", err)
 	}
 	return queryReviewByBookIDAndUserID(db, bookID, userID)
 
@@ -40,7 +44,7 @@ func queryReviewByBookIDAndUserID(db *sql.DB, bookID string, userID string) (*do
 	err := row.Scan(&review.BookID, &review.UserID, &review.Stars, &review.Comment, &review.CreatedTimestamp, &review.LastEditedTimestamp)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err

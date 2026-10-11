@@ -13,11 +13,17 @@ import {
 } from "@/storage/secureStore";
 import { User } from "@/lib/definitions";
 import { login as apiLogin, setUnauthorizedHandler } from "@/api/apiClient";
+import { ApiError, GENERIC_ERROR_MESSAGE } from "@/api/api-error";
+
+export interface LoginResult {
+  ok: boolean;
+  error?: string;
+}
 
 interface AuthContextValue {
   accessToken: string | null;
   isLoggedIn: boolean;
-  login: (user: User) => Promise<void>;
+  login: (user: User) => Promise<LoginResult>;
   logout: () => Promise<void>;
 }
 
@@ -40,17 +46,37 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     restoreToken();
   }, []);
 
-  async function login(user: User) {
-    const accessToken = await apiLogin(user);
+  async function login(user: User): Promise<LoginResult> {
+    try {
+      const token = await apiLogin(user);
 
-    setAccessToken(accessToken);
+      // Awaited: if persistence fails we have a token in memory that will be gone on next
+      // launch, which is worse than reporting the login as failed.
+      await storeAccessToken(token);
 
-    storeAccessToken(accessToken);
+      setAccessToken(token);
+
+      return { ok: true };
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.message : GENERIC_ERROR_MESSAGE;
+
+      return { ok: false, error: message };
+    }
   }
 
   const logout = useCallback(async () => {
+    // Cleared first: even if storage is unreachable, the session is over in memory.
     setAccessToken(null);
-    await deleteAccessToken();
+
+    try {
+      await deleteAccessToken();
+    } catch (error) {
+      // This callback doubles as the API client's 401 hook. If the storage deletion rejected,
+      // that rejection would replace the caller's 401 ApiError, so it is logged and swallowed
+      // instead. The worst case is a stale token in storage on the next launch.
+      console.error("Failed to delete the stored access token", error);
+    }
   }, []);
 
   useEffect(() => {

@@ -8,6 +8,8 @@ import { useTheme } from "@/theme/theme-provider";
 import { useAuth } from "@/auth/auth-context";
 import { useShelf } from "@/context/shelf-provider";
 import ThemedPressable from "@/components/themed-pressable";
+import ErrorMessage from "@/components/error-message";
+import { ApiError, GENERIC_ERROR_MESSAGE } from "@/api/api-error";
 
 const BookmarkSchema = z.object({
   bookId: z.string().min(1),
@@ -26,6 +28,13 @@ export default function PlaceBookmarkScreen() {
 
   const [titleError, setTitleError] = useState("");
   const [currentPageError, setCurrentPageError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  // Local flags rather than `useAsyncAction`: the zod parse runs inside these handlers and
+  // reports per-field errors, which the hook's single catch-all error would replace. Each
+  // button is disabled only while its own action is in flight.
+  const [isPlacing, setIsPlacing] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const { theme } = useTheme();
 
@@ -48,11 +57,19 @@ export default function PlaceBookmarkScreen() {
   function clearErrors() {
     setTitleError("");
     setCurrentPageError("");
+    setError(null);
   }
 
   async function handleBookCompletedPress() {
+    if (isCompleting) {
+      return;
+    }
     if (!id || !currentlyReading) {
       setTitleError("choose a book");
+      return;
+    }
+    if (!finished) {
+      setTitleError("finished shelf not available");
       return;
     }
     clearErrors();
@@ -62,17 +79,31 @@ export default function PlaceBookmarkScreen() {
     );
 
     if (!currentBookmark) {
-      throw new Error("book not found on shelf");
+      // A validation failure, not an exceptional one: the selected book is not on the shelf.
+      setTitleError("book not found on shelf");
+      return;
     }
 
     const placeBookMarkRequest = {
       bookId: id,
-      currentPage: currentBookmark?.book.pageCount,
+      currentPage: currentBookmark.book.pageCount,
       shelfId: finished.id,
     };
 
-    await placeBookmark(accessToken, placeBookMarkRequest);
-    await loadShelves();
+    setIsCompleting(true);
+    try {
+      await placeBookmark(accessToken, placeBookMarkRequest);
+      await loadShelves();
+    } catch (caught) {
+      // Had no try/catch at all: a failed save was an unhandled rejection and the screen did
+      // nothing.
+      setError(
+        caught instanceof ApiError ? caught.message : GENERIC_ERROR_MESSAGE,
+      );
+      return;
+    } finally {
+      setIsCompleting(false);
+    }
 
     clearAndNavigate(() => {
       router.push({
@@ -83,6 +114,14 @@ export default function PlaceBookmarkScreen() {
   }
 
   async function handlePlaceBookmarkPress() {
+    if (isPlacing) {
+      return;
+    }
+    if (!currentlyReading) {
+      setTitleError("shelves are not available");
+      return;
+    }
+    setIsPlacing(true);
     try {
       clearErrors();
 
@@ -101,7 +140,7 @@ export default function PlaceBookmarkScreen() {
       const pageCount = currentlyReading.bookmarks.find(
         ({ book: { id: bookId } }) => bookId === id,
       )?.book.pageCount;
-      if (pageCount === bookmark.currentPage) {
+      if (finished && pageCount === bookmark.currentPage) {
         bookmark.shelfId = finished.id;
         navigation = () => {
           router.push({
@@ -117,10 +156,9 @@ export default function PlaceBookmarkScreen() {
       clearAndNavigate(navigation);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log(error);
         error.issues.forEach((issue) => {
           switch (issue.path[0]) {
-            case "id":
+            case "bookId":
               setTitleError(issue.message);
               break;
             case "currentPage":
@@ -132,7 +170,17 @@ export default function PlaceBookmarkScreen() {
               break;
           }
         });
+      } else if (error instanceof ApiError) {
+        // Previously the catch only handled zod, so an ApiError from placeBookmark or
+        // loadShelves was swallowed and the user saw nothing at all.
+        setError(error.message);
+      } else {
+        // Any other Error may carry a raw driver or network string in its message. Fall back
+        // rather than showing it.
+        setError(GENERIC_ERROR_MESSAGE);
       }
+    } finally {
+      setIsPlacing(false);
     }
   }
   return (
@@ -181,15 +229,18 @@ export default function PlaceBookmarkScreen() {
       {currentPageError && (
         <Text style={{ color: theme.errorText }}>{currentPageError}</Text>
       )}
+      {error && <ErrorMessage message={error} />}
       <View style={{ flexDirection: "row" }}>
         <ThemedPressable
           variant="primary"
           text="place bookmark"
+          disabled={isPlacing}
           onPress={handlePlaceBookmarkPress}
         />
         <ThemedPressable
           variant="secondary"
           text="book completed"
+          disabled={isCompleting}
           onPress={handleBookCompletedPress}
         />
       </View>

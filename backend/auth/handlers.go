@@ -5,24 +5,64 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/antflaherty/mybookshelf/backend/apierr"
 	"github.com/antflaherty/mybookshelf/backend/config"
 	"github.com/antflaherty/mybookshelf/backend/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// pqUniqueViolation is the Postgres SQLSTATE for a unique constraint violation,
+// which for registration means the email is already taken.
+const pqUniqueViolation = "23505"
+
 type registerRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+// loginRequest is deliberately weaker than registerRequest. Login is checked
+// against credentials that already exist, so the password only has to be
+// present: applying registration's min=6 here turned a wrong short password
+// into a 400 that also revealed the minimum length.
+type loginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+// userStore is the slice of the database the auth handlers use.
+//
+// *sql.DB cannot be faked without a driver, and the handlers need both Exec
+// and QueryRow plus a transaction for the default shelves. This seam lets the
+// tests drive every branch with a plain struct. It is deliberately narrow: it
+// is the only place the handlers stop talking to *sql.DB directly.
+type userStore interface {
+	createUser(db *sql.DB, user *User) (*User, error)
+	queryUserByEmail(db *sql.DB, email string) (*User, error)
+}
+
+// sqlUserStore is the production implementation.
+type sqlUserStore struct{}
+
+func (sqlUserStore) createUser(db *sql.DB, user *User) (*User, error) {
+	return createUser(db, user)
+}
+
+func (sqlUserStore) queryUserByEmail(db *sql.DB, email string) (*User, error) {
+	return queryUserByEmail(db, email)
 }
 
 func RegisterHandler(db *sql.DB) gin.HandlerFunc {
+	return registerHandler(db, sqlUserStore{})
+}
+
+func registerHandler(db *sql.DB, store userStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request registerRequest
 
-		if err := c.ShouldBindJSON(&request); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if apierr.BindJSON(c, &request) != nil {
 			return
 		}
 
@@ -32,18 +72,24 @@ func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 		)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
 
 		user := &User{Email: request.Email, PasswordHash: string(passwordHash)}
 
-		user, err = createUser(db, user)
+		user, err = store.createUser(db, user)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			// A taken email is a client mistake, not a server fault. Checking it
+			// here means the response does not carry the constraint name.
+			var pqErr *pq.Error
+			if errors.As(err, &pqErr) && string(pqErr.Code) == pqUniqueViolation {
+				apierr.Respond(c, apierr.EmailTaken())
+				return
+			}
+
+			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
 
@@ -55,27 +101,29 @@ func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 }
 
 func LoginHandler(config config.Config, db *sql.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var request registerRequest
+	return loginHandler(config, db, sqlUserStore{})
+}
 
-		if err := c.ShouldBindJSON(&request); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func loginHandler(config config.Config, db *sql.DB, store userStore) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request loginRequest
+
+		if apierr.BindJSON(c, &request) != nil {
 			return
 		}
 
-		user, err := queryUserByEmail(db, request.Email)
+		user, err := store.queryUserByEmail(db, request.Email)
 
+		// Unknown email and wrong password return the identical 401
+		// invalid_credentials. They must stay indistinguishable: a client that
+		// can tell them apart can enumerate which emails have accounts.
 		if errors.Is(err, sql.ErrNoRows) {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid email or password",
-			})
+			apierr.Respond(c, apierr.InvalidCredentials())
 			return
 		}
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
 
@@ -84,13 +132,13 @@ func LoginHandler(config config.Config, db *sql.DB) gin.HandlerFunc {
 			[]byte(request.Password),
 		)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
+			apierr.Respond(c, apierr.InvalidCredentials())
 			return
 		}
 
 		jwt, err := createAccessToken(user.ID, config.JwtSecret)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			apierr.Respond(c, apierr.Internal(err))
 			return
 		}
 
@@ -114,6 +162,11 @@ func createUser(db *sql.DB, user *User) (*User, error) {
 		return nil, err
 	}
 
+	// TODO(error-handling): the user row is committed by the Exec above, before
+	// the transaction that creates the default shelves. If the shelf insert
+	// fails, registration returns 500 but the user already exists, leaving an
+	// orphan account with no shelves. Fixing it means moving the user insert
+	// into the same transaction, which changes the shape of createUser.
 	err = createDefaultShelvesForUser(db, user.ID)
 
 	if err != nil {

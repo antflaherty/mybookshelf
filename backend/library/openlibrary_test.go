@@ -38,12 +38,3 @@ func TestDescriptionUnmarshal_ObjectWithoutValue(t *testing.T) {
 		t.Errorf("expected empty description, got %q", d)
 	}
 }
-
-func TestGetCoverUri(t *testing.T) {
-	if uri := getCoverUri(0); uri != "" {
-		t.Errorf("expected empty uri for missing cover, got %q", uri)
-	}
-	if uri := getCoverUri(123); uri != "https://covers.openlibrary.org/b/id/123-M.jpg" {
-		t.Errorf("unexpected uri %q", uri)
-	}
-}

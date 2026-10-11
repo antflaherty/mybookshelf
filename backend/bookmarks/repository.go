@@ -2,6 +2,7 @@ package bookmarks
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/antflaherty/mybookshelf/backend/domain"
 )
@@ -41,12 +42,34 @@ func queryBookmarkByBookIdAndUserId(db *sql.DB, bookId string, userID string) (*
 	bm := &domain.Bookmark{}
 	err := row.Scan(&bm.BookID, &bm.CurrentPage)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
 	}
 	return bm, nil
+}
+
+// queryShelfBelongsToUser reports whether shelfID exists and is owned by userID.
+//
+// This lives here, and not in the shelves package, because shelves imports
+// bookmarks: putting it in shelves and calling it from bookmarks would be an
+// import cycle.
+func queryShelfBelongsToUser(db *sql.DB, shelfID, userID string) (bool, error) {
+	sqlString := "SELECT 1 FROM shelf WHERE id = $1 AND user_id = $2"
+	row := db.QueryRow(sqlString, shelfID, userID)
+
+	var one int
+
+	err := row.Scan(&one)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
 }
 
 func upsertBookmark(db *sql.DB, bm *domain.Bookmark) error {

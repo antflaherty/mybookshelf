@@ -2,6 +2,8 @@ package books
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/antflaherty/mybookshelf/backend/domain"
 )
@@ -13,6 +15,9 @@ func QueryBookById(db *sql.DB, id string) (*domain.Book, error) {
 	var coverUri sql.NullString
 	err := row.Scan(&b.ID, &b.Title, &b.Author, &b.PageCount, &coverUri)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("%w: %s", ErrBookNotFound, id)
+		}
 		return nil, err
 	}
 	b.CoverUri = coverUri.String
