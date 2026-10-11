@@ -240,6 +240,26 @@ it("links to the reviews screen", async () => {
   });
 });
 
+it("renders reviews inside the book actions row", async () => {
+  mockedUseShelf.mockReturnValue({
+    shelves: [],
+    toBeRead: makeShelf("tbr", "to be read"),
+    finished: makeShelf("fin", "finished"),
+  });
+
+  await renderScreen();
+
+  await waitFor(() => expect(screen.getByText("reviews")).toBeTruthy());
+  await waitFor(() =>
+    expect(screen.getByText("add to shelf")).toBeTruthy(),
+  );
+
+  // Reviews used to be its own stacked pressable below <BookActions>. It now shares the
+  // actions row, so the two buttons have the same parent.
+  const actionsRow = screen.getByText("reviews").parent!.parent!;
+  expect(screen.getByText("add to shelf").parent!.parent).toBe(actionsRow);
+});
+
 it("shows an error instead of a permanent spinner when the load fails", async () => {
   mockGetBookDetails.mockRejectedValue(
     ApiError.fromResponse(404, {
