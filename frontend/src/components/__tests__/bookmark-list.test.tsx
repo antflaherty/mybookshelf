@@ -8,11 +8,13 @@ function makeBookmark(
   id: string,
   title: string,
   currentPage: number,
+  bookType: "physical" | "ebook" | "audiobook",
 ): Bookmark {
   return {
     shelfId: "shelf-1",
     currentPage,
     book: { id, title, author: "Author", pageCount: 300 },
+    bookType,
   };
 }
 
@@ -21,8 +23,8 @@ it("renders an item per bookmark", async () => {
     <ThemeProvider>
       <BookmarkList
         bookmarks={[
-          makeBookmark("1", "Dune", 50),
-          makeBookmark("2", "Neuromancer", 200),
+          makeBookmark("1", "Dune", 50, "physical"),
+          makeBookmark("2", "Neuromancer", 200, "physical"),
         ]}
         showProgress
       />

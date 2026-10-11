@@ -8,7 +8,7 @@ import (
 )
 
 func QueryAllBookmarks(db *sql.DB, userID string) (*[]domain.QualifiedBookmark, error) {
-	sqlString := "SELECT bookmark.shelf_id, bookmark.book_id, bookmark.current_page, book.title, book.author, book.page_count, book.cover_uri FROM bookmark INNER JOIN book ON bookmark.book_id=book.id WHERE user_id = $1"
+	sqlString := "SELECT bookmark.shelf_id, bookmark.book_id, bookmark.current_page, bookmark.book_type, book.title, book.author, book.page_count, book.cover_uri FROM bookmark INNER JOIN book ON bookmark.book_id=book.id WHERE user_id = $1"
 
 	rows, err := db.Query(sqlString, userID)
 	if err != nil {
@@ -20,7 +20,7 @@ func QueryAllBookmarks(db *sql.DB, userID string) (*[]domain.QualifiedBookmark, 
 	for rows.Next() {
 		bookmark := &domain.QualifiedBookmark{}
 		var coverUri sql.NullString
-		err := rows.Scan(&bookmark.ShelfID, &bookmark.Book.ID, &bookmark.CurrentPage, &bookmark.Book.Title, &bookmark.Book.Author, &bookmark.Book.PageCount, &coverUri)
+		err := rows.Scan(&bookmark.ShelfID, &bookmark.Book.ID, &bookmark.CurrentPage, &bookmark.BookType, &bookmark.Book.Title, &bookmark.Book.Author, &bookmark.Book.PageCount, &coverUri)
 		if err != nil {
 			return nil, err
 		}

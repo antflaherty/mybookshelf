@@ -16,6 +16,7 @@ export interface BookDetails {
 export interface Bookmark {
   shelfId: string;
   currentPage: number;
+  bookType: "physical" | "ebook" | "audiobook";
   book: Book;
 }
 
