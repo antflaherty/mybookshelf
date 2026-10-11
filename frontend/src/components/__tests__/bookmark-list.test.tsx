@@ -4,7 +4,11 @@ import BookmarkList from "@/components/bookmark-list";
 import ThemeProvider from "@/theme/theme-provider";
 import { Bookmark } from "@/lib/definitions";
 
-function makeBookmark(id: string, title: string, currentPage: number): Bookmark {
+function makeBookmark(
+  id: string,
+  title: string,
+  currentPage: number,
+): Bookmark {
   return {
     shelfId: "shelf-1",
     currentPage,
@@ -20,6 +24,7 @@ it("renders an item per bookmark", async () => {
           makeBookmark("1", "Dune", 50),
           makeBookmark("2", "Neuromancer", 200),
         ]}
+        showProgress
       />
     </ThemeProvider>,
   );
