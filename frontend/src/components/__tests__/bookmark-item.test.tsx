@@ -15,12 +15,26 @@ const bookmark: Bookmark = {
   },
 };
 
-it("shows the title and reading progress", async () => {
-  await render(
-    <ThemeProvider>
-      <BookmarkItem bookmark={bookmark} />
-    </ThemeProvider>,
-  );
+describe("with showProgress true", () => {
+  it("shows the title and reading progress", async () => {
+    await render(
+      <ThemeProvider>
+        <BookmarkItem bookmark={bookmark} showProgress />
+      </ThemeProvider>,
+    );
 
-  expect(screen.getByText("Dune: 120 / 600")).toBeTruthy();
+    expect(screen.getByText("Dune: 120 / 600")).toBeTruthy();
+  });
+});
+
+describe("with showProgress false", () => {
+  it("shows the title only", async () => {
+    await render(
+      <ThemeProvider>
+        <BookmarkItem bookmark={bookmark} showProgress={false} />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByText("Dune")).toBeTruthy();
+  });
 });
