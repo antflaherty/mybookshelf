@@ -4,13 +4,21 @@ import { View } from "react-native";
 
 interface BookmarkListProps {
   bookmarks: Bookmark[];
+  showProgress?: boolean;
 }
 
-export default function BookmarkList({ bookmarks }: BookmarkListProps) {
+export default function BookmarkList({
+  bookmarks,
+  showProgress = false,
+}: BookmarkListProps) {
   return (
     <View>
       {bookmarks.map((bookmark) => (
-        <BookmarkItem key={bookmark.book.id} bookmark={bookmark}></BookmarkItem>
+        <BookmarkItem
+          key={bookmark.book.id}
+          bookmark={bookmark}
+          showProgress={showProgress}
+        ></BookmarkItem>
       ))}
     </View>
   );
