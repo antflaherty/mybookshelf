@@ -8,12 +8,13 @@ interface BookActionsProps {
   onAddToShelf: () => Promise<void>;
   showStartReading: boolean;
   onStartReading: () => Promise<void>;
+  onReviews: () => void;
   shelfName?: string;
 }
 
 export default function BookActions(props: BookActionsProps) {
   return (
-    <View>
+    <View style={{ flexDirection: "row" }}>
       {props.showPlaceBookmark && (
         <ThemedPressable
           variant="primary"
@@ -35,6 +36,17 @@ export default function BookActions(props: BookActionsProps) {
           onPress={props.onStartReading}
         />
       )}
+      <ThemedPressable
+        variant={
+          props.showPlaceBookmark ||
+          props.showAddToShelf ||
+          props.showStartReading
+            ? "secondary"
+            : "primary"
+        }
+        onPress={props.onReviews}
+        text="reviews"
+      />
     </View>
   );
 }

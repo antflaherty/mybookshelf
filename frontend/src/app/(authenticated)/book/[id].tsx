@@ -50,12 +50,11 @@ export default function BookScreen() {
 
   // The book is passed in rather than read from state, so neither action needs a non-null
   // assertion on `bookDetails`.
-  const {
-    run: runAddToShelf,
-    error: actionError,
-  } = useAsyncAction((book: Book) => {
-    return addNewBookToShelf({ ...book, pageCount }, shelfId);
-  });
+  const { run: runAddToShelf, error: actionError } = useAsyncAction(
+    (book: Book) => {
+      return addNewBookToShelf({ ...book, pageCount }, shelfId);
+    },
+  );
 
   const { run: runStartReading, error: startReadingError } = useAsyncAction(
     (book: Book) => {
@@ -152,6 +151,15 @@ export default function BookScreen() {
     });
   }
 
+  function handleReviews() {
+    router.push({
+      pathname: "/reviews/[bookId]",
+      params: {
+        bookId: id,
+      },
+    });
+  }
+
   const showAddToShelf = !bookmark;
   // Undefined means the named shelves are not loaded. Hiding the action is the right response:
   // we cannot place a bookmark on a shelf we do not have an id for.
@@ -190,10 +198,7 @@ export default function BookScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {shownError && <ErrorMessage message={shownError} />}
       <View style={styles.bookHeader}>
-        <BookHeader
-          book={bookDetails.book}
-          onPageCountChange={setPageCount}
-        />
+        <BookHeader book={bookDetails.book} onPageCountChange={setPageCount} />
       </View>
       <View style={styles.bookDetails}>
         <View style={{ height: "100%" }}>
@@ -222,17 +227,8 @@ export default function BookScreen() {
           onAddToShelf={handleAddToShelf}
           onPlaceBookmark={handlePlaceBookmark}
           onStartReading={handleStartReading}
+          onReviews={handleReviews}
           shelfName={shelfName}
-        />
-        <ThemedPressable
-          variant="secondary"
-          onPress={() => {
-            router.push({
-              pathname: "/reviews/[bookId]",
-              params: { bookId: id },
-            });
-          }}
-          text="reviews"
         />
       </View>
     </View>
