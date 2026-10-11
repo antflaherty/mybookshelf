@@ -13,6 +13,7 @@ export default function Index() {
     shelves,
     isLoading: isLoadingShelves,
     error,
+    isCurrentlyReading,
     loadShelves,
   } = useShelf();
 
@@ -41,7 +42,10 @@ export default function Index() {
                 });
               }}
             >
-              <ShelfCard shelf={shelf}></ShelfCard>
+              <ShelfCard
+                shelf={shelf}
+                showProgress={isCurrentlyReading(shelf.id)}
+              ></ShelfCard>
             </Pressable>
           ))}
         </>

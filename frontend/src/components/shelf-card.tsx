@@ -5,9 +5,10 @@ import BookmarkList from "./bookmark-list";
 
 interface ShelfCardProps {
   shelf: Shelf;
+  showProgress: boolean;
 }
 
-export default function ShelfCard({ shelf }: ShelfCardProps) {
+export default function ShelfCard({ shelf, showProgress }: ShelfCardProps) {
   const { theme } = useTheme();
 
   return (
@@ -15,7 +16,10 @@ export default function ShelfCard({ shelf }: ShelfCardProps) {
       <Text style={{ color: theme.text, fontWeight: "bold" }}>
         {shelf.name}
       </Text>
-      <BookmarkList bookmarks={shelf.bookmarks}></BookmarkList>
+      <BookmarkList
+        bookmarks={shelf.bookmarks}
+        showProgress={showProgress}
+      ></BookmarkList>
     </View>
   );
 }

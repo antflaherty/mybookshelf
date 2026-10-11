@@ -27,6 +27,7 @@ interface ShelfContextValue {
   finished: Shelf | undefined;
   isLoading: boolean;
   error: string | null;
+  isCurrentlyReading: (shelfId: string) => boolean;
   loadShelves: () => Promise<void>;
 }
 
@@ -41,7 +42,9 @@ interface ShelfLoadResult {
  * Fetches and sorts without touching state, so both the effect and a manual retry share one
  * implementation and one sort.
  */
-async function fetchShelves(accessToken: string | null): Promise<ShelfLoadResult> {
+async function fetchShelves(
+  accessToken: string | null,
+): Promise<ShelfLoadResult> {
   try {
     const loaded = await getShelves(accessToken);
 
@@ -54,7 +57,8 @@ async function fetchShelves(accessToken: string | null): Promise<ShelfLoadResult
     // Empty rather than stale, so consumers cannot act on a list the server no longer backs.
     return {
       shelves: [],
-      error: caught instanceof ApiError ? caught.message : GENERIC_ERROR_MESSAGE,
+      error:
+        caught instanceof ApiError ? caught.message : GENERIC_ERROR_MESSAGE,
     };
   }
 }
@@ -92,15 +96,20 @@ export default function ShelfProvider({ children }: { children: ReactNode }) {
     load();
   }, [accessToken]);
 
+  const currentlyReading = shelves.find(
+    ({ name }) => name === CURRENTLY_READING,
+  );
   return (
     <ShelfContext.Provider
       value={{
         shelves,
         toBeRead: shelves.find(({ name }) => name === TO_BE_READ),
-        currentlyReading: shelves.find(({ name }) => name === CURRENTLY_READING),
+        currentlyReading,
         finished: shelves.find(({ name }) => name === FINISHED),
         isLoading,
         error,
+        isCurrentlyReading: (shelfId: string) =>
+          !!shelfId && shelfId === currentlyReading?.id,
         loadShelves,
       }}
     >
