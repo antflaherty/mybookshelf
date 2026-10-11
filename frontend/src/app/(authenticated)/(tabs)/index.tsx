@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import ThemedPressable from "@/components/themed-pressable";
 import { router } from "expo-router";
 import { useShelf } from "@/context/shelf-provider";
-import ShelfView from "@/components/shelf-card";
+import ShelfCard from "@/components/shelf-card";
 import ErrorMessage from "@/components/error-message";
 
 export default function Index() {
@@ -41,7 +41,7 @@ export default function Index() {
                 });
               }}
             >
-              <ShelfView shelf={shelf}></ShelfView>
+              <ShelfCard shelf={shelf}></ShelfCard>
             </Pressable>
           ))}
         </>
